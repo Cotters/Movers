@@ -20,8 +20,8 @@ class MainActivity : ComponentActivity() {
     setContent {
       MoversTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-          Greeting(
-            name = "Android", modifier = Modifier.padding(innerPadding)
+          MovieDetailScreen(
+
           )
         }
       }
