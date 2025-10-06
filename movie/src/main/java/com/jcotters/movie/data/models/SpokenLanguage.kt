@@ -1,16 +1,14 @@
 package com.jcotters.movie.data.models
 
 import androidx.annotation.Keep
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
 @Keep
-@Serializable
 data class SpokenLanguage(
-  @SerialName("name")
-  val name: String? = null,
-  @SerialName("english_name")
+  @SerializedName("english_name")
   val englishName: String? = null,
-  @SerialName("iso_639_1")
+  @SerializedName("iso_639_1")
   val iso6391: String? = null,
+  @SerializedName("name")
+  val name: String? = null
 )

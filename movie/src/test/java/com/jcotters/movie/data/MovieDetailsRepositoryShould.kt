@@ -1,7 +1,5 @@
 package com.jcotters.movie.data
 
-import com.jcotters.movie.data.models.Genre
-import com.jcotters.movie.data.models.MovieDto
 import com.jcotters.movie.domain.IMovieDetailsRepository
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -14,6 +12,8 @@ import org.junit.Test
 
 class MovieDetailsRepositoryShould {
 
+  private val mapper = MovieMapper()
+
   @RelaxedMockK
   private lateinit var movieApi: MovieApi
 
@@ -24,7 +24,7 @@ class MovieDetailsRepositoryShould {
     MockKAnnotations.init(this)
     underTest = MovieDetailsRepository(
       api = movieApi,
-      movieMapper = MovieMapper,
+      movieMapper = mapper,
     )
   }
 
@@ -64,7 +64,7 @@ class MovieDetailsRepositoryShould {
       revenue = MOVIE_REVENUE,
       genres = MOVIE_GENRES,
     )
-    private val MOCKED_MOVIE = MovieMapper.toDomainModel(MOCKED_MOVIE_DTO)
+    private val MOCKED_MOVIE = MovieMapper().toDomainModel(MOCKED_MOVIE_DTO)
 
   }
 }

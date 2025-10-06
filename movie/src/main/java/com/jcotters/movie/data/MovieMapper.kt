@@ -2,8 +2,9 @@ package com.jcotters.movie.data
 
 import com.jcotters.movie.data.models.MovieDto
 import com.jcotters.movie.domain.models.Movie
+import javax.inject.Inject
 
-object MovieMapper {
+class MovieMapper @Inject constructor() {
   fun toDomainModel(movieDto: MovieDto): Movie? {
     return Movie(
       id = movieDto.id ?: return null,

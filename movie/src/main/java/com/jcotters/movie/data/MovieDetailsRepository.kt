@@ -1,7 +1,10 @@
 package com.jcotters.movie.data
 
+import android.util.Log
 import com.jcotters.movie.domain.IMovieDetailsRepository
 import com.jcotters.movie.domain.models.Movie
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class MovieDetailsRepository @Inject constructor(
@@ -13,16 +16,18 @@ class MovieDetailsRepository @Inject constructor(
     private const val NO_MOVIE_MESSAGE = "Could not find requested movie."
   }
 
-  override fun getMovieWithId(id: Int): Result<Movie> {
+  override suspend fun getMovieWithId(id: Int): Result<Movie> = withContext(Dispatchers.IO) {
     try {
-      val movie = movieMapper.toDomainModel(api.getMovieById(movieId = id))
-      return if (movie != null) {
+      val movieDto = api.getMovieById(movieId = id)
+      val movie = movieMapper.toDomainModel(movieDto)
+      return@withContext if (movie != null) {
         Result.success(movie)
       } else {
         throw Throwable(NO_MOVIE_MESSAGE)
       }
     } catch (e: Throwable) {
-      return Result.failure(Throwable(NO_MOVIE_MESSAGE))
+      Log.d("TJ", "Error in Repo: ${e.message}")
+      return@withContext Result.failure(Throwable(NO_MOVIE_MESSAGE))
     }
   }
 }

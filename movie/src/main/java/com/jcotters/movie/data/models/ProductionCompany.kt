@@ -1,18 +1,16 @@
 package com.jcotters.movie.data.models
 
 import androidx.annotation.Keep
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
 @Keep
-@Serializable
 data class ProductionCompany(
-  @SerialName("id")
+  @SerializedName("id")
   val id: Int? = null,
-  @SerialName("logo_path")
+  @SerializedName("logo_path")
   val logoPath: String? = null,
-  @SerialName("name")
+  @SerializedName("name")
   val name: String? = null,
-  @SerialName("origin_country")
+  @SerializedName("origin_country")
   val originCountry: String? = null
 )

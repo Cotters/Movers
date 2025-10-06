@@ -23,7 +23,6 @@ class MovieDetailViewModel @Inject constructor(
     }
   }
 
-
   private fun onViewLoaded(movieId: Int) {
     viewModelScope.launch {
       getMovieById(movieId)
