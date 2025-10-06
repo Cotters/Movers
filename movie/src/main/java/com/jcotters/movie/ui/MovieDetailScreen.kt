@@ -15,7 +15,6 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun MovieDetailScreen(
   modifier: Modifier = Modifier,
-  movie: Movie,
 ) {
   Scaffold(
     modifier = modifier,
