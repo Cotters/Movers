@@ -5,5 +5,5 @@ import retrofit2.http.GET
 
 interface MovieApi {
   @GET("movie/{id}")
-  fun getMovieDetails(movieId: String): MovieDto
+  fun getMovieDetails(movieId: Int): MovieDto
 }
