@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,9 +37,9 @@ import com.jcotters.movie.detail.ui.MoviePostImageView
 @Composable
 fun MovieCatalogueScreen(
   movies: List<Movie>,
-  modifier: Modifier = Modifier,
   onMovieTapped: (movieId: Int) -> Unit,
   onAccountTapped: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
   Scaffold(
     topBar = {
@@ -60,6 +62,11 @@ fun MovieCatalogueScreen(
     LazyColumn(
       modifier = modifier.padding(innerPadding),
     ) {
+      if (movies.isEmpty()) {
+        item {
+          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+      }
       items(movies, key = { it.id }) { movie ->
         Row(
           modifier = Modifier
