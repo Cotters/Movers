@@ -1,8 +1,8 @@
-package com.jcotters.movie.data
+package com.jcotters.movie.detail.data
 
 import android.util.Log
-import com.jcotters.movie.domain.IMovieDetailsRepository
-import com.jcotters.movie.domain.models.Movie
+import com.jcotters.movie.detail.domain.IMovieDetailsRepository
+import com.jcotters.movie.detail.domain.models.Movie
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject

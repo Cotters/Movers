@@ -1,6 +1,6 @@
-package com.jcotters.movie.data
+package com.jcotters.movie.detail.data
 
-import com.jcotters.movie.data.models.MovieDto
+import com.jcotters.movie.detail.data.models.MovieDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 

@@ -1,6 +1,6 @@
-package com.jcotters.movie.domain
+package com.jcotters.movie.detail.domain
 
-import com.jcotters.movie.domain.models.Movie
+import com.jcotters.movie.detail.domain.models.Movie
 import javax.inject.Inject
 
 class GetMovieByIdUseCase @Inject constructor(

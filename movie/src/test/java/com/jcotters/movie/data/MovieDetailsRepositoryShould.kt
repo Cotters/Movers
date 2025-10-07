@@ -1,6 +1,9 @@
 package com.jcotters.movie.data
 
-import com.jcotters.movie.domain.IMovieDetailsRepository
+import com.jcotters.movie.detail.data.MovieApi
+import com.jcotters.movie.detail.data.MovieDetailsRepository
+import com.jcotters.movie.detail.data.MovieMapper
+import com.jcotters.movie.detail.domain.IMovieDetailsRepository
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK

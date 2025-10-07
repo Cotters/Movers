@@ -1,4 +1,4 @@
-package com.jcotters.movie.data.models
+package com.jcotters.movie.detail.data.models
 
 import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName

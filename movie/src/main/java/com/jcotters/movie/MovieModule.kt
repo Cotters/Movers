@@ -1,8 +1,8 @@
 package com.jcotters.movie
 
-import com.jcotters.movie.data.MovieApi
-import com.jcotters.movie.data.MovieDetailsRepository
-import com.jcotters.movie.domain.IMovieDetailsRepository
+import com.jcotters.movie.detail.data.MovieApi
+import com.jcotters.movie.detail.data.MovieDetailsRepository
+import com.jcotters.movie.detail.domain.IMovieDetailsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

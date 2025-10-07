@@ -1,9 +1,9 @@
-package com.jcotters.movie.ui
+package com.jcotters.movie.detail.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jcotters.movie.domain.GetMovieByIdUseCase
-import com.jcotters.movie.domain.models.Movie
+import com.jcotters.movie.detail.domain.GetMovieByIdUseCase
+import com.jcotters.movie.detail.domain.models.Movie
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

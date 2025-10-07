@@ -1,7 +1,7 @@
-package com.jcotters.movie.data
+package com.jcotters.movie.detail.data
 
-import com.jcotters.movie.data.models.MovieDto
-import com.jcotters.movie.domain.models.Movie
+import com.jcotters.movie.detail.data.models.MovieDto
+import com.jcotters.movie.detail.domain.models.Movie
 import javax.inject.Inject
 
 class MovieMapper @Inject constructor() {

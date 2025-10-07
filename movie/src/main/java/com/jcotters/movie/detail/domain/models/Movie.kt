@@ -1,4 +1,4 @@
-package com.jcotters.movie.domain.models
+package com.jcotters.movie.detail.domain.models
 
 data class Movie(
   val id: Int,
