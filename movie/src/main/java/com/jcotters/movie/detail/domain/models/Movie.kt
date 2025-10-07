@@ -5,4 +5,6 @@ data class Movie(
   val title: String,
   val synopsis: String,
   val releaseDate: String,
+  val posterUrl: String? = null,
+  val backdropUrl: String? = null,
 )

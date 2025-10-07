@@ -12,6 +12,8 @@ class MovieMapper @Inject constructor() {
       title = movieDto.title ?: return null,
       releaseDate = movieDto.releaseDate ?: "Unknown release date",
       synopsis = movieDto.overview ?: return null,
+      posterUrl = movieDto.posterPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
+      backdropUrl = movieDto.backdropPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
     )
   }
 
@@ -22,6 +24,7 @@ class MovieMapper @Inject constructor() {
         title = dto.title ?: return@mapNotNull null,
         synopsis = dto.overview ?: return@mapNotNull null,
         releaseDate = dto.releaseDate ?: "Unknown release date",
+        posterUrl = dto.posterPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
       )
     }
   }

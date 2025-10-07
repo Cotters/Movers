@@ -46,6 +46,8 @@ dependencies {
   implementation(libs.retrofit.gson)
   implementation(libs.hilt)
   ksp(libs.hilt.compiler)
+  implementation(libs.coil.compose)
+  implementation(libs.coil.network.okhttp)
 
   testImplementation(libs.junit)
   testImplementation(libs.mockk)
