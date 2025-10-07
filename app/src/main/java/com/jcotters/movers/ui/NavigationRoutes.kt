@@ -8,4 +8,7 @@ sealed interface NavigationRoutes {
 
   @Serializable
   data class MovieDetails(val movieId: Int)
+
+  @Serializable
+  data object Login
 }

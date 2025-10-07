@@ -53,6 +53,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(project(path = ":movie"))
+    implementation(project(path = ":auth"))
 
     testImplementation(libs.junit)
 

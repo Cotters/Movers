@@ -4,11 +4,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -17,14 +13,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.jcotters.movers.R
+import com.jcotters.auth.ui.LoginScreen
+import com.jcotters.auth.ui.LoginViewModel
 import com.jcotters.movie.catalogue.ui.MovieCatalogueScreen
 import com.jcotters.movie.catalogue.ui.MovieCatalogueViewModel
 import com.jcotters.movie.detail.ui.MovieDetailScreen
@@ -39,25 +35,38 @@ fun MoversApp() {
     topBar = {
       TopAppBar(
         title = { Text("Movers") },
-        navigationIcon = {
-          if (navController.previousBackStackEntry != null) {
-            IconButton(onClick = navController::popBackStack) {
-              Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.back_button)
-              )
-            }
-          }
-        }
+//        navigationIcon = {
+//          if (navController.previousBackStackEntry != null) {
+//            IconButton(onClick = navController::popBackStack) {
+//              Icon(
+//                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+//                contentDescription = stringResource(R.string.back_button)
+//              )
+//            }
+//          }
+//        }
       )
     },
     modifier = Modifier.fillMaxSize()
   ) { innerPadding ->
     NavHost(
       navController = navController,
-      startDestination = NavigationRoutes.Catalogue,
+      startDestination = NavigationRoutes.Login,
       modifier = Modifier.padding(innerPadding),
     ) {
+      composable<NavigationRoutes.Login> {
+        val viewModel: LoginViewModel = hiltViewModel()
+        val viewState by viewModel.uiState.collectAsState()
+        LaunchedEffect(viewState.successfulLogin) {
+          if (viewState.successfulLogin) {
+            navController.navigate(NavigationRoutes.Catalogue)
+          }
+        }
+        LoginScreen(
+          viewState = viewState,
+          onViewEvent = viewModel::onViewEvent,
+        )
+      }
       composable<NavigationRoutes.Catalogue>(
         enterTransition = {
           slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
