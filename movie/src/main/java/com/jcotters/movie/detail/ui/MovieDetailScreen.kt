@@ -4,11 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -16,15 +21,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.jcotters.movie.R
 import com.jcotters.movie.detail.domain.models.Movie
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,6 +42,7 @@ fun MovieDetailScreen(
   viewState: MovieDetailViewState,
   modifier: Modifier = Modifier,
 ) {
+  val horizontalPadding = 8.dp
   Surface(
     modifier = modifier.fillMaxSize(),
   ) {
@@ -51,15 +60,13 @@ fun MovieDetailScreen(
             .fillMaxWidth()
             .aspectRatio(16f / 9f)
         ) {
-          movie.backdropUrl?.let { url ->
-            MoviePostImageView(
-              posterUrl = url,
-              contentDescription = "Movie backdrop image for ${movie.title}",
-              modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f),
-            )
-          }
+          MoviePostImageView(
+            posterUrl = movie.backdropUrl.orEmpty(),
+            contentDescription = "Movie backdrop image for ${movie.title}",
+            modifier = Modifier
+              .fillMaxWidth()
+              .aspectRatio(16f / 9f),
+          )
 
           Box(
             modifier = Modifier
@@ -76,26 +83,52 @@ fun MovieDetailScreen(
               )
           )
 
-          Text(
-            text = movie.title,
-            style = MaterialTheme.typography.titleLarge.copy(
-              color = Color.White,
-              fontWeight = FontWeight.SemiBold
-            ),
+          Row(
             modifier = Modifier
               .align(Alignment.BottomStart)
               .fillMaxWidth()
-              .padding(16.dp)
+              .padding(horizontal = horizontalPadding, vertical = 8.dp)
               .graphicsLayer {
                 alpha = 0.95f
               },
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-          )
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(
+              text = movie.title,
+              modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp),
+              style = MaterialTheme.typography.titleLarge.copy(
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold
+              ),
+              maxLines = 2,
+              overflow = TextOverflow.Ellipsis
+            )
+
+            Box(
+              modifier = Modifier
+                .padding(2.dp)
+                .clip(CircleShape)
+                .size(40.dp)
+                .background(Color.Black.copy(alpha = 0.5f))
+            ) {
+              IconButton(onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) }) {
+                Icon(
+                  painter = painterResource(R.drawable.bookmark_outline),
+                  contentDescription = "Bookmark film button",
+                  modifier = Modifier.size(25.dp),
+                  tint = Color.White,
+                )
+              }
+            }
+          }
         }
+
         Column(
           modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .padding(horizontal = horizontalPadding, vertical = 16.dp),
           verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
           Text(text = movie.synopsis, style = MaterialTheme.typography.bodyMedium)

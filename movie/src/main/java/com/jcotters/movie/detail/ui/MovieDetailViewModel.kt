@@ -12,6 +12,7 @@ import javax.inject.Inject
 
 sealed interface MovieDetailViewEvent {
   class OnLoad(val movieId: Int) : MovieDetailViewEvent
+  class BookmarkTapped(val movieId: Int) : MovieDetailViewEvent
 }
 
 data class MovieDetailViewState(
@@ -31,6 +32,7 @@ class MovieDetailViewModel @Inject constructor(
   fun onViewEvent(event: MovieDetailViewEvent) {
     when (event) {
       is MovieDetailViewEvent.OnLoad -> onViewLoaded(event.movieId)
+      is MovieDetailViewEvent.BookmarkTapped -> onBookmarkTapped(event.movieId)
     }
   }
 
@@ -54,6 +56,11 @@ class MovieDetailViewModel @Inject constructor(
           )
         }
     }
+  }
+
+  private fun onBookmarkTapped(movieId: Int) {
+    // TODO: Show toast when not authenticated.
+    //    Or add to Room bookmarks.
   }
 
 }
