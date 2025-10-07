@@ -1,4 +1,4 @@
-package com.jcotters.movie
+package com.jcotters.movie.catalogue.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

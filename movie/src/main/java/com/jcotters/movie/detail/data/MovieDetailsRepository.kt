@@ -1,6 +1,6 @@
 package com.jcotters.movie.detail.data
 
-import android.util.Log
+import com.jcotters.movie.MovieApi
 import com.jcotters.movie.detail.domain.IMovieDetailsRepository
 import com.jcotters.movie.detail.domain.models.Movie
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,6 @@ class MovieDetailsRepository @Inject constructor(
         throw Throwable(NO_MOVIE_MESSAGE)
       }
     } catch (e: Throwable) {
-      Log.d("TJ", "Error in Repo: ${e.message}")
       return@withContext Result.failure(Throwable(NO_MOVIE_MESSAGE))
     }
   }

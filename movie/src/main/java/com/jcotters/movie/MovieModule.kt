@@ -1,6 +1,5 @@
 package com.jcotters.movie
 
-import com.jcotters.movie.detail.data.MovieApi
 import com.jcotters.movie.detail.data.MovieDetailsRepository
 import com.jcotters.movie.detail.domain.IMovieDetailsRepository
 import dagger.Module
