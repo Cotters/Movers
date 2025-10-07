@@ -27,49 +27,51 @@ fun LoginScreen(
   viewState: LoginViewState,
   onViewEvent: (LoginViewEvent) -> Unit,
 ) {
-  Column(
-    modifier = modifier.fillMaxSize(),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    Spacer(modifier = Modifier.height(48.dp))
-    Text(
-      text = "Login",
-      style = MaterialTheme.typography.headlineLarge,
-    )
-    TextField(
-      value = viewState.username,
-      onValueChange = { onViewEvent(LoginViewEvent.UsernameUpdated(it)) }
-    )
-    TextField(
-      value = viewState.password,
-      onValueChange = { onViewEvent(LoginViewEvent.PasswordUpdated(it)) },
-      visualTransformation = PasswordVisualTransformation(),
-    )
-    Button(
-      onClick = { onViewEvent(LoginViewEvent.LoginTapped) },
-      enabled = viewState.loginButtonEnabled,
+  Surface {
+    Column(
+      modifier = modifier.fillMaxSize(),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-      Text(text = "Login")
-    }
-    if (viewState.errorMessage.isNotBlank()) {
-      Box(
-        modifier = Modifier
-          .background(Color.Red.copy(alpha = 0.6f))
-          .padding(8.dp)
+      Spacer(modifier = Modifier.height(48.dp))
+      Text(
+        text = "Login",
+        style = MaterialTheme.typography.headlineLarge,
+      )
+      TextField(
+        value = viewState.username,
+        onValueChange = { onViewEvent(LoginViewEvent.UsernameUpdated(it)) }
+      )
+      TextField(
+        value = viewState.password,
+        onValueChange = { onViewEvent(LoginViewEvent.PasswordUpdated(it)) },
+        visualTransformation = PasswordVisualTransformation(),
+      )
+      Button(
+        onClick = { onViewEvent(LoginViewEvent.LoginTapped) },
+        enabled = viewState.loginButtonEnabled,
       ) {
-        Text(text = viewState.errorMessage)
+        Text(text = "Login")
+      }
+      if (viewState.errorMessage.isNotBlank()) {
+        Box(
+          modifier = Modifier
+            .background(Color.Red.copy(alpha = 0.6f))
+            .padding(8.dp)
+        ) {
+          Text(text = viewState.errorMessage)
+
+        }
 
       }
+      Box(
+        modifier = Modifier
+          .background(Color.Yellow.copy(alpha = 0.1f))
+          .padding(16.dp)
+      ) {
+        Text(text = "Use 'username' and 'password' to login")
 
-    }
-    Box(
-      modifier = Modifier
-        .background(Color.Yellow.copy(alpha = 0.1f))
-        .padding(16.dp)
-    ) {
-      Text(text = "Use 'username' and 'password' to login")
-
+      }
     }
   }
 
