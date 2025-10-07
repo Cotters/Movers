@@ -14,13 +14,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.jcotters.movie.domain.models.Movie
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailScreen(
-  modifier: Modifier = Modifier,
   onViewEvent: (MovieDetailViewEvent) -> Unit,
   viewState: MovieDetailViewState,
+  modifier: Modifier = Modifier,
 ) {
   LaunchedEffect(Unit) {
     onViewEvent(MovieDetailViewEvent.OnLoad(11))
@@ -35,6 +37,7 @@ fun MovieDetailScreen(
     Column(
       modifier = Modifier
         .padding(innerPadding)
+        .padding(horizontal = 12.dp)
     ) {
       if (viewState.isLoading) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -42,8 +45,9 @@ fun MovieDetailScreen(
         }
       } else if (viewState.movie != null) {
         val movie = viewState.movie
-        Text(text = movie.title, style = MaterialTheme.typography.bodyLarge)
-        Text(text = movie.synopsis, style = MaterialTheme.typography.bodySmall)
+        Text(text = movie.title, style = MaterialTheme.typography.titleLarge)
+        Text(text = movie.synopsis, style = MaterialTheme.typography.bodyMedium)
+        Text(text = "Released ${movie.releaseDate}", style = MaterialTheme.typography.bodyMedium)
       }
     }
   }
@@ -52,5 +56,11 @@ fun MovieDetailScreen(
 @Preview
 @Composable
 private fun MovieDetailScreenPreview() {
-//  MovieDetailScreen()
+  MovieDetailScreen(
+    onViewEvent = { _ -> },
+    viewState = MovieDetailViewState(
+      isLoading = false,
+      movie = Movie(id = 1, title = "Preview: The Movie", synopsis = "A preview to die for...", releaseDate = "2025/10/07")
+    )
+  )
 }
