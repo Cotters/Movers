@@ -1,22 +1,15 @@
 package com.jcotters.movie.detail.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,14 +19,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImagePainter
-import coil3.compose.rememberAsyncImagePainter
-import coil3.request.ImageRequest
+import coil3.compose.AsyncImage
 import com.jcotters.movie.detail.domain.models.Movie
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +50,7 @@ fun MovieDetailScreen(
         movie.backdropUrl?.let { url ->
           MoviePostImageView(
             posterUrl = url,
+            contentDescription = "Movie backdrop image for ${movie.title}",
             modifier = Modifier
               .fillMaxWidth()
               .aspectRatio(16f / 9f),
@@ -113,58 +104,19 @@ fun MovieDetailScreen(
 @Composable
 fun MoviePostImageView(
   posterUrl: String,
+  contentDescription: String,
   modifier: Modifier = Modifier,
 ) {
-  val painter = rememberAsyncImagePainter(
-    model = ImageRequest.Builder(LocalContext.current)
-      .data(posterUrl)
-      .build()
-  )
-
-  val state = painter.state
-
   Box(
     modifier = modifier
       .background(Color.LightGray.copy(alpha = 0.3f))
   ) {
-    Image(
-      painter = painter,
-      contentDescription = "Movie poster for Jaws",
+    AsyncImage(
+      model = posterUrl,
+      contentDescription = contentDescription,
       contentScale = ContentScale.Crop,
       modifier = Modifier.matchParentSize()
     )
-
-    when (state) {
-      is AsyncImagePainter.State.Loading -> {
-        CircularProgressIndicator(
-          modifier = Modifier
-            .align(Alignment.Center)
-            .size(48.dp),
-          strokeWidth = 3.dp
-        )
-      }
-
-      is AsyncImagePainter.State.Error -> {
-        Column(
-          modifier = Modifier
-            .align(Alignment.Center)
-            .padding(16.dp),
-          horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-          Icon(
-            imageVector = Icons.Default.Warning,
-            contentDescription = "Error",
-            tint = Color.Red,
-            modifier = Modifier.size(48.dp)
-          )
-          Spacer(modifier = Modifier.height(8.dp))
-          Text(
-            text = "Failed to load image",
-            color = Color.Red
-          )
-        }
-      }
-    }
   }
 }
 

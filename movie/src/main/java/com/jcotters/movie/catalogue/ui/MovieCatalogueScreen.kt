@@ -40,6 +40,7 @@ fun MovieCatalogueScreen(
         movie.posterUrl?.let {
           MoviePostImageView(
             posterUrl = it,
+            contentDescription = "Movie poster for ${movie.title}",
             modifier = Modifier
               .fillMaxHeight()
               .aspectRatio(9f / 16f)
