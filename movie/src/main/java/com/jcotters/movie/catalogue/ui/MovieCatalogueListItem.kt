@@ -15,7 +15,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jcotters.movie.detail.domain.models.Movie
-import com.jcotters.movie.detail.ui.MoviePostImageView
+import com.jcotters.movie.detail.ui.MoverImageView
 
 @Composable
 fun MovieCatalogueListItem(
@@ -23,7 +23,7 @@ fun MovieCatalogueListItem(
   modifier: Modifier = Modifier,
 ) {
   Row(modifier = modifier) {
-    MoviePostImageView(
+    MoverImageView(
       posterUrl = movie.posterUrl.orEmpty(),
       contentDescription = "Movie poster for ${movie.title}",
       modifier = Modifier

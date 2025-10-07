@@ -25,13 +25,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.jcotters.movie.R
 import com.jcotters.movie.detail.domain.models.Movie
 
@@ -60,12 +58,10 @@ fun MovieDetailScreen(
             .fillMaxWidth()
             .aspectRatio(16f / 9f)
         ) {
-          MoviePostImageView(
+          MoverImageView(
             posterUrl = movie.backdropUrl.orEmpty(),
             contentDescription = "Movie backdrop image for ${movie.title}",
-            modifier = Modifier
-              .fillMaxWidth()
-              .aspectRatio(16f / 9f),
+            modifier = Modifier.fillMaxSize(),
           )
 
           Box(
@@ -114,9 +110,10 @@ fun MovieDetailScreen(
                 .size(40.dp)
                 .background(Color.Black.copy(alpha = 0.5f))
             ) {
+              val bookmarkIcon = if (viewState.isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
               IconButton(onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) }) {
                 Icon(
-                  painter = painterResource(R.drawable.bookmark_outline),
+                  painter = painterResource(bookmarkIcon),
                   contentDescription = "Bookmark film button",
                   modifier = Modifier.size(25.dp),
                   tint = Color.White,
@@ -140,25 +137,6 @@ fun MovieDetailScreen(
   }
 }
 
-@Composable
-fun MoviePostImageView(
-  posterUrl: String,
-  contentDescription: String,
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier
-      .background(Color.LightGray.copy(alpha = 0.3f))
-  ) {
-    AsyncImage(
-      model = posterUrl,
-      contentDescription = contentDescription,
-      contentScale = ContentScale.Crop,
-      modifier = Modifier.matchParentSize()
-    )
-  }
-}
-
 @Preview
 @Composable
 private fun MovieDetailScreenPreview() {
@@ -166,6 +144,7 @@ private fun MovieDetailScreenPreview() {
     onViewEvent = { _ -> },
     viewState = MovieDetailViewState(
       isLoading = false,
+      isBookmarked = true,
       movie = Movie(
         id = 1,
         title = "Preview: The Movie",

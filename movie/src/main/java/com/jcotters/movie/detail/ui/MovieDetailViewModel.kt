@@ -48,6 +48,9 @@ class MovieDetailViewModel @Inject constructor(
   }
 
   private fun onBookmarkTapped(movieId: Int) {
+    viewModelUiState.update { current ->
+      current.copy(isBookmarked = current.isBookmarked.not())
+    }
     // TODO: Show toast when not authenticated.
     //    Or add to Room bookmarks.
   }
