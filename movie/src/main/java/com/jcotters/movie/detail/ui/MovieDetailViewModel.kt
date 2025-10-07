@@ -3,23 +3,12 @@ package com.jcotters.movie.detail.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jcotters.movie.detail.domain.GetMovieByIdUseCase
-import com.jcotters.movie.detail.domain.models.Movie
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-sealed interface MovieDetailViewEvent {
-  class OnLoad(val movieId: Int) : MovieDetailViewEvent
-  class BookmarkTapped(val movieId: Int) : MovieDetailViewEvent
-}
-
-data class MovieDetailViewState(
-  val isLoading: Boolean = true,
-  val movie: Movie? = null,
-  val errorMessage: String = "",
-)
 
 @HiltViewModel
 class MovieDetailViewModel @Inject constructor(
@@ -39,21 +28,21 @@ class MovieDetailViewModel @Inject constructor(
   private fun onViewLoaded(movieId: Int) {
     viewModelScope.launch {
       getMovieById(movieId)
-        .onSuccess {
-          viewModelUiState.emit(
-            viewModelUiState.value.copy(
+        .onSuccess { movie ->
+          viewModelUiState.update { current ->
+            current.copy(
               isLoading = false,
-              movie = it,
+              movie = movie,
             )
-          )
+          }
         }
-        .onFailure {
-          viewModelUiState.emit(
-            viewModelUiState.value.copy(
+        .onFailure { error ->
+          viewModelUiState.update { current ->
+            current.copy(
               isLoading = false,
-              errorMessage = it.message ?: "Failed to load mover.",
+              errorMessage = error.message ?: "Failed to load mover.",
             )
-          )
+          }
         }
     }
   }
