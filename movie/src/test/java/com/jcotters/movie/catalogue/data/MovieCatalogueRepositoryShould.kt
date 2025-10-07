@@ -31,6 +31,16 @@ class MovieCatalogueRepositoryShould {
   }
 
   @Test
+  fun `return empty list of popular movies when error occurs`() {
+    coEvery { movieApi.getPopularMovies(page = 1) } throws Throwable("Mock error")
+
+    val response = runBlocking { underTest.getPopularMovies(page = 1) }
+
+    assertTrue(response.isEmpty())
+    coVerify(exactly = 1) { movieApi.getPopularMovies(page = 1) }
+  }
+
+  @Test
   fun `return empty list of popular movies when first page requested given result is empty`() {
     coEvery { movieApi.getPopularMovies(page = 1) } returns EMPTY_FIRST_PAGE
 

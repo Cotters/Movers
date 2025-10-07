@@ -25,7 +25,7 @@ class MovieDetailsRepository @Inject constructor(
       } else {
         throw Throwable(NO_MOVIE_MESSAGE)
       }
-    } catch (e: Throwable) {
+    } catch (_: Throwable) {
       return@withContext Result.failure(Throwable(NO_MOVIE_MESSAGE))
     }
   }

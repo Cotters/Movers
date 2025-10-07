@@ -1,5 +1,7 @@
 package com.jcotters.movie
 
+import com.jcotters.movie.catalogue.data.MovieCatalogueRepository
+import com.jcotters.movie.catalogue.domain.IMovieCatalogueRepository
 import com.jcotters.movie.detail.data.MovieDetailsRepository
 import com.jcotters.movie.detail.domain.IMovieDetailsRepository
 import dagger.Module
@@ -53,5 +55,10 @@ object MovieModule {
   fun provideMovieDetailsRepository(
     impl: MovieDetailsRepository
   ): IMovieDetailsRepository = impl
+
+  @Provides
+  fun provideMovieCatalogueRepository(
+    impl: MovieCatalogueRepository
+  ): IMovieCatalogueRepository = impl
 
 }
