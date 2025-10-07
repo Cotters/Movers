@@ -1,5 +1,6 @@
 package com.jcotters.movie.detail.data
 
+import com.jcotters.movie.catalogue.data.models.CatalogueMovieDto
 import com.jcotters.movie.detail.data.models.MovieDto
 import com.jcotters.movie.detail.domain.models.Movie
 import javax.inject.Inject
@@ -12,5 +13,16 @@ class MovieMapper @Inject constructor() {
       releaseDate = movieDto.releaseDate ?: "Unknown release date",
       synopsis = movieDto.overview ?: return null,
     )
+  }
+
+  fun toDomainModel(catalogueResults: List<CatalogueMovieDto?>): List<Movie> {
+    return catalogueResults.mapNotNull { dto ->
+      return@mapNotNull Movie(
+        id = dto?.id ?: return@mapNotNull null,
+        title = dto.title ?: return@mapNotNull null,
+        synopsis = dto.overview ?: return@mapNotNull null,
+        releaseDate = dto.releaseDate ?: "Unknown release date",
+      )
+    }
   }
 }

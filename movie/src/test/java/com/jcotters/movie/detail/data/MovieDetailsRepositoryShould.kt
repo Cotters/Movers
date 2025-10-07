@@ -1,8 +1,6 @@
-package com.jcotters.movie.data
+package com.jcotters.movie.detail.data
 
 import com.jcotters.movie.MovieApi
-import com.jcotters.movie.detail.data.MovieDetailsRepository
-import com.jcotters.movie.detail.data.MovieMapper
 import com.jcotters.movie.detail.data.models.Genre
 import com.jcotters.movie.detail.data.models.MovieDto
 import com.jcotters.movie.detail.domain.IMovieDetailsRepository
