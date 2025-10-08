@@ -2,9 +2,12 @@ package com.jcotters.movers.ui
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -40,18 +43,23 @@ fun NavGraphBuilder.authNavGraph(
           navController.navigate(NavigationRoutes.Catalogue)
         }
       }
-      when (viewState.authMode) {
-        AuthMode.Login -> {
-          LoginScreen(
-            viewState = viewState,
-            onViewEvent = viewModel::onViewEvent,
-          )
-        }
-        AuthMode.SignUp -> {
-          SignUpScreen(
-            viewState = viewState,
-            onViewEvent = viewModel::onViewEvent,
-          )
+      Scaffold { innerPadding ->
+        when (viewState.authMode) {
+          AuthMode.Login -> {
+            LoginScreen(
+              modifier = Modifier.padding(innerPadding),
+              viewState = viewState,
+              onViewEvent = viewModel::onViewEvent,
+            )
+          }
+
+          AuthMode.SignUp -> {
+            SignUpScreen(
+              modifier = Modifier.padding(innerPadding),
+              viewState = viewState,
+              onViewEvent = viewModel::onViewEvent,
+            )
+          }
         }
       }
     }

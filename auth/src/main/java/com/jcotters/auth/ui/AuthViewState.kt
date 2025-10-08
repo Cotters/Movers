@@ -9,7 +9,6 @@ data class AuthViewState(
   val username: String = "",
   val password: String = "",
   val confirmPassword: String = "",
-  val isAuthenticating: Boolean = false,
   val successfulLogin: Boolean = false,
   val errorMessage: String = "",
 ) {
@@ -17,5 +16,5 @@ data class AuthViewState(
     get() = username.isNotEmpty() && password.isNotEmpty()
 
   val signUpButtonEnabled: Boolean
-    get() = username.isNotEmpty() && password.isNotEmpty() && confirmPassword.equals(password, ignoreCase = false)
+    get() = username.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
 }
