@@ -1,31 +1,15 @@
 package com.jcotters.auth.ui
 
 import androidx.lifecycle.ViewModel
+import com.jcotters.auth.domain.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
-sealed interface LoginViewEvent {
-  class UsernameUpdated(val username: String) : LoginViewEvent
-  class PasswordUpdated(val username: String) : LoginViewEvent
-  object LoginTapped : LoginViewEvent
-}
-
-data class LoginViewState(
-  val username: String = "",
-  val password: String = "",
-  val isLoggingIn: Boolean = false,
-  val errorMessage: String = "",
-  val successfulLogin: Boolean = false,
-) {
-  val loginButtonEnabled: Boolean
-    get() = username.isNotEmpty() && password.isNotEmpty()
-}
-
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-
+  private val loginUseCase: LoginUseCase,
 ) : ViewModel() {
 
   private val viewModelUiState = MutableStateFlow(LoginViewState())
@@ -55,18 +39,16 @@ class LoginViewModel @Inject constructor(
 
   private fun onLoginTapped() {
     clearErrorMessage()
-    val username = uiState.value.username
-    val password = uiState.value.password
-    if (username.equals("username", ignoreCase = false) && password.equals("password", ignoreCase = false)) {
-      viewModelUiState.value = viewModelUiState.value.copy(successfulLogin = true)
-    } else {
-      setErrorMessage("Incorrect login details.")
-    }
+    loginUseCase.invoke(uiState.value.username, uiState.value.password)
+      .onSuccess {
+        viewModelUiState.value = viewModelUiState.value.copy(successfulLogin = true)
+      }
+      .onFailure { error ->
+        setErrorMessage(error.message ?: "Failed to login.")
+      }
   }
 
-  private fun clearErrorMessage() {
-    setErrorMessage("")
-  }
+  private fun clearErrorMessage() = setErrorMessage("")
 
   private fun setErrorMessage(message: String) {
     viewModelUiState.value = viewModelUiState.value.copy(
