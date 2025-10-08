@@ -96,7 +96,6 @@ fun NavGraphBuilder.homeNavigationGraph(
     ProfileScreen(
       viewState = viewState,
       onViewEvent = viewModel::onViewEvent,
-      userSession = "$userSession",
     )
   }
 }

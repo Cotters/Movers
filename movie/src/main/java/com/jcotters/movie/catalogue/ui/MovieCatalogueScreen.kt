@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jcotters.movie.R
 import com.jcotters.movie.detail.domain.models.Movie
+import com.jcotters.movie.detail.domain.models.PreviewMovies
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,11 +80,7 @@ fun MovieCatalogueScreen(
 private fun MovieCatalogueScreenPreview() {
   MovieCatalogueScreen(
     isAuthenticated = false,
-    movies = listOf(
-      Movie(id = 1, title = "Preview: The Movie", synopsis = "A thrilling preview!", releaseDate = "Today"),
-      Movie(id = 2, title = "Preview: Reloaded", synopsis = "A thrilling hot reload!", releaseDate = "Tomorrow"),
-      Movie(id = 3, title = "Preview: Recomp", synopsis = "A stunning recomposition!", releaseDate = "Friday"),
-    ),
+    movies = PreviewMovies.movies,
     onMovieTapped = { movieId -> },
     onAccountTapped = {},
   )
