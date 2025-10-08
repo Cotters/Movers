@@ -17,6 +17,9 @@ import com.jcotters.movie.catalogue.ui.MovieCatalogueViewModel
 import com.jcotters.movie.detail.ui.MovieDetailScreen
 import com.jcotters.movie.detail.ui.MovieDetailViewEvent
 import com.jcotters.movie.detail.ui.MovieDetailViewModel
+import com.jcotters.profile.ui.ProfileScreen
+import com.jcotters.profile.ui.ProfileViewEvent
+import com.jcotters.profile.ui.ProfileViewModel
 import kotlinx.coroutines.flow.Flow
 
 fun NavGraphBuilder.homeNavigationGraph(
@@ -29,6 +32,7 @@ fun NavGraphBuilder.homeNavigationGraph(
       val viewModel: MovieCatalogueViewModel = hiltViewModel()
       val viewState by viewModel.uiState.collectAsState()
       val userSession by userSessionFlow.collectAsState(initial = UserSession.NotAuthenticated)
+
       MovieCatalogueScreen(
         isAuthenticated = userSession is UserSession.Authenticated,
         movies = viewState.movies,
@@ -38,7 +42,8 @@ fun NavGraphBuilder.homeNavigationGraph(
         onAccountTapped = {
           when (userSession) {
             is UserSession.Authenticated -> {
-                // TODO: Show Profile.
+              val userId = (userSession as UserSession.Authenticated).userId
+              navController.navigate(NavigationRoutes.Profile(userId))
             }
 
             is UserSession.NotAuthenticated -> {
@@ -74,4 +79,30 @@ fun NavGraphBuilder.homeNavigationGraph(
     }
   }
 
+  composable<NavigationRoutes.Profile>(
+    enterTransition = {
+      slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(350))
+    },
+    exitTransition = {
+      slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
+    },
+  ) { backStackEntry ->
+    val userId: Int = backStackEntry.toRoute<NavigationRoutes.Profile>().userId
+    val viewModel: ProfileViewModel = hiltViewModel()
+    val viewState by viewModel.uiState.collectAsState()
+    val userSession by userSessionFlow.collectAsState(initial = UserSession.NotAuthenticated)
+
+    LaunchedEffect(userSession) {
+      if (userSession is UserSession.Authenticated) {
+        val userId = (userSession as UserSession.Authenticated).userId
+        viewModel.onViewEvent(ProfileViewEvent.UserSessionFound(userId))
+      }
+    }
+
+    ProfileScreen(
+      viewState = viewState,
+      onViewEvent = viewModel::onViewEvent,
+      userSession = "$userSession",
+    )
+  }
 }

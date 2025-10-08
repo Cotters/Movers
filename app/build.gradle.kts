@@ -54,6 +54,7 @@ dependencies {
 
     implementation(project(path = ":movie"))
     implementation(project(path = ":auth"))
+    implementation(project(path = ":profile"))
 
     testImplementation(libs.junit)
 

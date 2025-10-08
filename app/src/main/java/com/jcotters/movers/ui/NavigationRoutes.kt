@@ -17,4 +17,7 @@ sealed interface NavigationRoutes {
 
   @Serializable
   data class MovieDetails(val movieId: Int)
+
+  @Serializable
+  data class Profile(val userId: Int)
 }

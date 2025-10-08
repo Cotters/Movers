@@ -72,6 +72,10 @@ class UserRepository @Inject constructor(
       Result.failure(Throwable(SESSION_FAILED_MESSAGE))
     }
   }
+
+  override suspend fun logout() = withContext(Dispatchers.IO) {
+    sessionManager.clearSession()
+  }
 }
 
 fun String.toBytes(): ByteArray {
