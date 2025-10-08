@@ -41,6 +41,10 @@ dependencies {
   implementation(libs.kotlin.serialization.json)
   implementation(libs.hilt)
   ksp(libs.hilt.compiler)
+  implementation(libs.androidx.credentials)
+  implementation(libs.androidx.credentials.play.services.auth)
+
+  implementation(project(path = ":database"))
 
   testImplementation(libs.junit)
 
