@@ -1,6 +1,7 @@
 package com.jcotters.auth.data
 
 import com.jcotters.auth.domain.IUserRepository
+import com.jcotters.database.user.User
 import com.jcotters.database.user.UserDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,6 +29,18 @@ class UserRepository @Inject constructor(
       } else {
         throw Throwable(INCORRECT_DETAILS)
       }
+    } catch (e: Throwable) {
+      return@withContext Result.failure(e)
+    }
+  }
+
+  override suspend fun signUp(username: String, password: String): Result<Unit> = withContext(Dispatchers.IO) {
+    try {
+      val salt = passwordUtils.generateSalt()
+      val hashedPassword = passwordUtils.hashPassword(password = password, salt = salt)
+      secureStorage.saveCredentials(username = username, saltHex = salt.toHexString(), hashHex = hashedPassword)
+      userDao.insertUser(User(username = username))
+      return@withContext Result.success(Unit)
     } catch (e: Throwable) {
       return@withContext Result.failure(e)
     }

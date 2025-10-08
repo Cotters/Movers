@@ -27,5 +27,5 @@ class PasswordUtils @Inject constructor() {
     return factory.generateSecret(spec).encoded.toHexString()
   }
 
-  fun ByteArray.toHexString(): String = this.joinToString(separator = "", transform = BYTE_STRING::format)
+//  fun ByteArray.toHexString(): String = this.joinToString(separator = "", transform = BYTE_STRING::format)
 }
