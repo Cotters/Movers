@@ -14,6 +14,7 @@ class UserRepository @Inject constructor(
 ) : IUserRepository {
 
   private companion object {
+    const val USERNAME_TAKEN_MESSAGE = "Username already in use."
     const val INCORRECT_DETAILS = "Incorrect username or password."
   }
 
@@ -36,6 +37,9 @@ class UserRepository @Inject constructor(
 
   override suspend fun signUp(username: String, password: String): Result<Unit> = withContext(Dispatchers.IO) {
     try {
+      if (userDao.findByUsername(username) != null) {
+        throw Throwable(USERNAME_TAKEN_MESSAGE)
+      }
       val salt = passwordUtils.generateSalt()
       val hashedPassword = passwordUtils.hashPassword(password = password, salt = salt)
       secureStorage.saveCredentials(username = username, saltHex = salt.toHexString(), hashHex = hashedPassword)

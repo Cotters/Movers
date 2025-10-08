@@ -53,7 +53,7 @@ fun SignUpScreen(
         visualTransformation = PasswordVisualTransformation(),
       )
       Button(
-        onClick = { onViewEvent(AuthViewEvent.LoginTapped) },
+        onClick = { onViewEvent(AuthViewEvent.SignUpTapped) },
         enabled = viewState.signUpButtonEnabled,
       ) {
         Text(text = "Sign Up")

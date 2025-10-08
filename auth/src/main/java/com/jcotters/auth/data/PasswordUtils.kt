@@ -12,7 +12,6 @@ class PasswordUtils @Inject constructor() {
     const val HASHING_ALGORITHM = "PBKDF2WithHmacSHA256"
     const val ITERATION_COUNT = 10000
     const val KEY_LENGTH_BITS = 256
-    const val BYTE_STRING = "%02x"
   }
 
   fun generateSalt(): ByteArray {
@@ -26,6 +25,4 @@ class PasswordUtils @Inject constructor() {
     val spec = PBEKeySpec(password.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH_BITS)
     return factory.generateSecret(spec).encoded.toHexString()
   }
-
-//  fun ByteArray.toHexString(): String = this.joinToString(separator = "", transform = BYTE_STRING::format)
 }

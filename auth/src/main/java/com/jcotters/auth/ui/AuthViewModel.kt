@@ -10,6 +10,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jcotters.auth.domain.LoginUseCase
+import com.jcotters.auth.domain.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,12 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
   private val loginUseCase: LoginUseCase,
+  private val signUpUseCase: SignUpUseCase,
 ) : ViewModel() {
+
+  companion object {
+    const val MISMATCHING_PASSWORDS_MESSAGE = "Passwords do not match."
+  }
 
   private val viewModelUiState = MutableStateFlow(AuthViewState())
   val uiState: StateFlow<AuthViewState> = viewModelUiState
@@ -62,7 +68,10 @@ class AuthViewModel @Inject constructor(
 
   fun onViewEvent(event: AuthViewEvent) {
     when (event) {
-      is AuthViewEvent.OnLoad -> { launchCredentialManagerFlow(event.context) }
+      is AuthViewEvent.OnLoad -> {
+        launchCredentialManagerFlow(event.context)
+      }
+
       is AuthViewEvent.UsernameUpdated -> onUsernameUpdated(event.username)
       is AuthViewEvent.PasswordUpdated -> onPasswordUpdated(event.password)
       is AuthViewEvent.ConfirmPasswordUpdated -> onConfirmPasswordUpdated(event.password)
@@ -72,6 +81,7 @@ class AuthViewModel @Inject constructor(
         viewModelUiState.update { it.copy(authMode = AuthMode.SignUp) }
         clearErrorMessage()
       }
+
       AuthViewEvent.HaveExistingAccountTapped -> {
         viewModelUiState.update { it.copy(authMode = AuthMode.Login) }
         clearErrorMessage()
@@ -114,15 +124,24 @@ class AuthViewModel @Inject constructor(
   }
 
   private fun onSignUpTapped() {
-    clearErrorMessage()
-    // TODO: Sign Up flow.
-//    signUpUseCase.invoke(uiState.value.username, uiState.value.password)
-//      .onSuccess {
-//        viewModelUiState.update { current -> current.copy(successfulLogin = true) }
-//      }
-//      .onFailure { error ->
-//        setErrorMessage(error.message ?: "Failed to sign up.")
-//      }
+    if (uiState.value.password.equals(uiState.value.confirmPassword, ignoreCase = false)) {
+      clearErrorMessage()
+      signUp()
+    } else {
+      setErrorMessage(MISMATCHING_PASSWORDS_MESSAGE)
+    }
+  }
+
+  private fun signUp() {
+    viewModelScope.launch {
+      signUpUseCase.invoke(uiState.value.username, uiState.value.password)
+        .onSuccess {
+          viewModelUiState.update { current -> current.copy(successfulLogin = true) }
+        }
+        .onFailure { error ->
+          setErrorMessage(error.message ?: "Failed to sign up.")
+        }
+    }
   }
 
   private fun clearErrorMessage() = setErrorMessage("")
