@@ -24,6 +24,9 @@ class UserRepositoryShould {
   @RelaxedMockK
   private lateinit var secureStorage: SecureStorage
 
+  @RelaxedMockK
+  private lateinit var sessionManager: SessionManager
+
   @MockK
   private lateinit var userDao: UserDao
 
@@ -36,6 +39,7 @@ class UserRepositoryShould {
       passwordUtils = passwordUtils,
       secureStorage = secureStorage,
       userDao = userDao,
+      sessionManager = sessionManager,
     )
   }
 
@@ -71,6 +75,19 @@ class UserRepositoryShould {
     val result = runBlocking { underTest.login(USERNAME, PASSWORD) }
 
     assertTrue(result.isSuccess)
+    assertThat(result.getOrNull()!!.username, equalTo(USERNAME))
+  }
+
+  @Test
+  fun `fail sign up when username already taken`() {
+    coEvery { userDao.findByUsername(USERNAME) } returns DB_USER
+
+    runBlocking { underTest.signUp(USERNAME, PASSWORD) }
+
+    coVerify(exactly = 0) { passwordUtils.generateSalt() }
+    coVerify(exactly = 0) { passwordUtils.hashPassword(PASSWORD, any()) }
+    coVerify(exactly = 0) { secureStorage.saveCredentials(USERNAME, any(), HASHED_PASSWORD) }
+    coVerify(exactly = 0) { userDao.insertUser(any()) }
   }
 
   @Test
@@ -78,6 +95,7 @@ class UserRepositoryShould {
     val salt = generateSalt()
     val saltHex = salt.toHexString()
 
+    coEvery { userDao.findByUsername(USERNAME) } returns null
     coEvery { passwordUtils.generateSalt() } returns salt
     coEvery { passwordUtils.hashPassword(PASSWORD, salt) } returns HASHED_PASSWORD
     coEvery { secureStorage.saveCredentials(USERNAME, saltHex, HASHED_PASSWORD) } returns Unit
@@ -90,6 +108,13 @@ class UserRepositoryShould {
     coVerify(exactly = 1) { userDao.insertUser(any()) }
   }
 
+  @Test
+  fun `create user session`() {
+    runBlocking{ underTest.createUserSession(USER_ID) }
+
+    coVerify(exactly = 1) { sessionManager.createSession(userId = USER_ID) }
+  }
+
   private fun generateSalt(): ByteArray {
     val salt = ByteArray(16)
     SecureRandom().nextBytes(salt)
@@ -98,8 +123,10 @@ class UserRepositoryShould {
 
 
   private companion object {
+    const val USER_ID = 1
     const val USERNAME = "username"
     const val PASSWORD = "password"
     const val HASHED_PASSWORD = "hashed_password"
+    val DB_USER = User(id = 1, username = USERNAME)
   }
 }
