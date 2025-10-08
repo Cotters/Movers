@@ -43,10 +43,12 @@ dependencies {
   ksp(libs.hilt.compiler)
   implementation(libs.androidx.credentials)
   implementation(libs.androidx.credentials.play.services.auth)
+  implementation(libs.androidx.datastore)
 
   implementation(project(path = ":database"))
 
   testImplementation(libs.junit)
+  testImplementation(libs.mockk)
 
   androidTestImplementation(libs.androidx.junit)
   androidTestImplementation(libs.androidx.espresso.core)

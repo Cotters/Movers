@@ -102,13 +102,15 @@ class AuthViewModel @Inject constructor(
 
   private fun onLoginTapped() {
     clearErrorMessage()
-    loginUseCase.invoke(uiState.value.username, uiState.value.password)
-      .onSuccess {
-        viewModelUiState.update { current -> current.copy(successfulLogin = true) }
-      }
-      .onFailure { error ->
-        setErrorMessage(error.message ?: "Failed to login.")
-      }
+    viewModelScope.launch {
+      loginUseCase.invoke(uiState.value.username, uiState.value.password)
+        .onSuccess {
+          viewModelUiState.update { current -> current.copy(successfulLogin = true) }
+        }
+        .onFailure { error ->
+          setErrorMessage(error.message ?: "Failed to login.")
+        }
+    }
   }
 
   private fun onSignUpTapped() {
