@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jcotters.auth.domain.UserSession
 
@@ -18,16 +19,22 @@ fun MoversApp() {
   val userSession by viewModel.userSession.collectAsState(initial = UserSession.NotAuthenticated)
 
   LaunchedEffect(userSession) {
-    navController.navigate(NavigationRoutes.Home) {
-      popUpTo(NavigationRoutes.Home)
-      launchSingleTop = true
+    if (userSession !is UserSession.Unknown) {
+      navController.navigate(NavigationRoutes.Home) {
+        popUpTo(NavigationRoutes.Home)
+        launchSingleTop = true
+      }
     }
   }
 
   NavHost(
     navController = navController,
-    startDestination = NavigationRoutes.Home,
+    startDestination = NavigationRoutes.Splash,
   ) {
+    composable<NavigationRoutes.Splash> {
+      MoversSplashScreen()
+    }
+
     authNavGraph(navController = navController)
 
     homeNavigationGraph(

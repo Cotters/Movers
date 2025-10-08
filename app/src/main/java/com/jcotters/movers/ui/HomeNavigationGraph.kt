@@ -31,7 +31,7 @@ fun NavGraphBuilder.homeNavigationGraph(
     composable<NavigationRoutes.Catalogue> {
       val viewModel: MovieCatalogueViewModel = hiltViewModel()
       val viewState by viewModel.uiState.collectAsState()
-      val userSession by userSessionFlow.collectAsState(initial = UserSession.NotAuthenticated)
+      val userSession by userSessionFlow.collectAsState(initial = UserSession.Unknown)
 
       MovieCatalogueScreen(
         isAuthenticated = userSession is UserSession.Authenticated,
@@ -40,16 +40,11 @@ fun NavGraphBuilder.homeNavigationGraph(
           navController.navigate(NavigationRoutes.MovieDetails(movieId = movieId))
         },
         onAccountTapped = {
-          when (userSession) {
-            is UserSession.Authenticated -> {
-              val userId = (userSession as UserSession.Authenticated).userId
-              navController.navigate(NavigationRoutes.Profile(userId))
-            }
-
-            is UserSession.NotAuthenticated -> {
-              navController.navigate(NavigationRoutes.Auth) {
-                launchSingleTop = true
-              }
+          if (userSession is UserSession.Authenticated) {
+            navController.navigate(NavigationRoutes.Profile)
+          } else if (userSession is UserSession.NotAuthenticated) {
+            navController.navigate(NavigationRoutes.Auth) {
+              launchSingleTop = true
             }
           }
         }
@@ -87,10 +82,9 @@ fun NavGraphBuilder.homeNavigationGraph(
       slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
     },
   ) { backStackEntry ->
-    val userId: Int = backStackEntry.toRoute<NavigationRoutes.Profile>().userId
     val viewModel: ProfileViewModel = hiltViewModel()
     val viewState by viewModel.uiState.collectAsState()
-    val userSession by userSessionFlow.collectAsState(initial = UserSession.NotAuthenticated)
+    val userSession by userSessionFlow.collectAsState(initial = UserSession.Unknown)
 
     LaunchedEffect(userSession) {
       if (userSession is UserSession.Authenticated) {

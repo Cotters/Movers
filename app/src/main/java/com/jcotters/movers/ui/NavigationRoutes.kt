@@ -3,6 +3,8 @@ package com.jcotters.movers.ui
 import kotlinx.serialization.Serializable
 
 sealed interface NavigationRoutes {
+  @Serializable
+  data object Splash
 
   @Serializable
   data object Auth
@@ -19,5 +21,5 @@ sealed interface NavigationRoutes {
   data class MovieDetails(val movieId: Int)
 
   @Serializable
-  data class Profile(val userId: Int)
+  data object Profile
 }
