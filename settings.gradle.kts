@@ -23,3 +23,4 @@ rootProject.name = "Movers"
 include(":app")
 include(":movie")
 include(":auth")
+include(":database")
