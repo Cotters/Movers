@@ -11,26 +11,41 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.jcotters.auth.domain.UserSession
 import com.jcotters.movie.catalogue.ui.MovieCatalogueScreen
 import com.jcotters.movie.catalogue.ui.MovieCatalogueViewModel
 import com.jcotters.movie.detail.ui.MovieDetailScreen
 import com.jcotters.movie.detail.ui.MovieDetailViewEvent
 import com.jcotters.movie.detail.ui.MovieDetailViewModel
+import kotlinx.coroutines.flow.Flow
 
-fun NavGraphBuilder.homeNavigationGraph(navController: NavHostController) {
+fun NavGraphBuilder.homeNavigationGraph(
+  navController: NavHostController,
+  userSessionFlow: Flow<UserSession>,
+) {
 
   navigation<NavigationRoutes.Home>(startDestination = NavigationRoutes.Catalogue) {
     composable<NavigationRoutes.Catalogue> {
       val viewModel: MovieCatalogueViewModel = hiltViewModel()
       val viewState by viewModel.uiState.collectAsState()
+      val userSession by userSessionFlow.collectAsState(initial = UserSession.NotAuthenticated)
       MovieCatalogueScreen(
+        isAuthenticated = userSession is UserSession.Authenticated,
         movies = viewState.movies,
         onMovieTapped = { movieId ->
           navController.navigate(NavigationRoutes.MovieDetails(movieId = movieId))
         },
         onAccountTapped = {
-          navController.navigate(NavigationRoutes.Auth) {
-            launchSingleTop = true
+          when (userSession) {
+            is UserSession.Authenticated -> {
+                // TODO: Show Profile.
+            }
+
+            is UserSession.NotAuthenticated -> {
+              navController.navigate(NavigationRoutes.Auth) {
+                launchSingleTop = true
+              }
+            }
           }
         }
       )

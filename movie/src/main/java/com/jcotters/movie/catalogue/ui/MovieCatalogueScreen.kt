@@ -28,11 +28,13 @@ import com.jcotters.movie.detail.domain.models.Movie
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieCatalogueScreen(
+  isAuthenticated: Boolean,
   movies: List<Movie>,
   onMovieTapped: (movieId: Int) -> Unit,
   onAccountTapped: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val accountIcon = if (isAuthenticated) R.drawable.person_filled else R.drawable.person_outline
   Scaffold(
     topBar = {
       TopAppBar(
@@ -40,7 +42,7 @@ fun MovieCatalogueScreen(
         actions = {
           IconButton(onClick = onAccountTapped) {
             Icon(
-              painter = painterResource(R.drawable.person),
+              painter = painterResource(accountIcon),
               contentDescription = "Account top bar button",
               modifier = Modifier.size(30.dp),
               tint = MaterialTheme.colorScheme.onBackground,
@@ -76,6 +78,7 @@ fun MovieCatalogueScreen(
 @Composable
 private fun MovieCatalogueScreenPreview() {
   MovieCatalogueScreen(
+    isAuthenticated = false,
     movies = listOf(
       Movie(id = 1, title = "Preview: The Movie", synopsis = "A thrilling preview!", releaseDate = "Today"),
       Movie(id = 2, title = "Preview: Reloaded", synopsis = "A thrilling hot reload!", releaseDate = "Tomorrow"),

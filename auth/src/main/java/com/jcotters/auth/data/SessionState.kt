@@ -1,4 +1,4 @@
-package com.jcotters.auth.domain
+package com.jcotters.auth.data
 
 data class SessionState(
   val userId: Int? = null,
