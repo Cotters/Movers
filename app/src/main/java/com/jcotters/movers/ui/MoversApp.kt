@@ -21,7 +21,9 @@ fun MoversApp() {
   LaunchedEffect(userSession) {
     if (userSession !is UserSession.Unknown) {
       navController.navigate(NavigationRoutes.Home) {
-        popUpTo(NavigationRoutes.Home)
+        popUpTo(NavigationRoutes.Splash) {
+          inclusive = true
+        }
         launchSingleTop = true
       }
     }
