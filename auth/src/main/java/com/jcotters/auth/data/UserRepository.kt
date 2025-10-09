@@ -54,7 +54,7 @@ class UserRepository @Inject constructor(
     }
   }
 
-  override suspend fun signUp(username: String, password: String): Result<Unit> = withContext(Dispatchers.IO) {
+  override suspend fun signUp(username: String, password: String): Result<MoverUser> = withContext(Dispatchers.IO) {
     try {
       if (userDao.findByUsername(username) != null) {
         throw Throwable(USERNAME_TAKEN_MESSAGE)
@@ -62,8 +62,9 @@ class UserRepository @Inject constructor(
       val salt = passwordUtils.generateSalt()
       val hashedPassword = passwordUtils.hashPassword(password = password, salt = salt)
       secureStorage.saveCredentials(username = username, saltHex = salt.toHexString(), hashHex = hashedPassword)
-      userDao.insertUser(User(username = username))
-      return@withContext Result.success(Unit)
+      val newUser = User(username = username)
+      userDao.insertUser(newUser)
+      return@withContext Result.success(MoverUser(userId = newUser.id, username = newUser.username))
     } catch (e: Throwable) {
       return@withContext Result.failure(e)
     }
