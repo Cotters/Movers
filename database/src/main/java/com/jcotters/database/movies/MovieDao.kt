@@ -9,19 +9,19 @@ import androidx.room.Query
 @Dao
 interface MovieDao {
     @Query("SELECT * FROM movies WHERE id = :id")
-    suspend fun getMovieById(id: Int): Movie?
+    suspend fun getMovieById(id: Int): DbMovie?
 
     @Query("SELECT * FROM movies")
-    suspend fun getAllMovies(): List<Movie>
+    suspend fun getAllMovies(): List<DbMovie>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMovie(movie: Movie)
+    suspend fun insertMovie(movie: DbMovie)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMovies(movies: List<Movie>)
+    suspend fun insertMovies(movies: List<DbMovie>)
 
     @Delete
-    suspend fun deleteMovie(movie: Movie)
+    suspend fun deleteMovie(movie: DbMovie)
 
     @Query("DELETE FROM movies")
     suspend fun clearAll()

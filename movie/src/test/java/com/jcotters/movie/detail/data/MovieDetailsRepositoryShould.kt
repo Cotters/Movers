@@ -55,7 +55,7 @@ class MovieDetailsRepositoryShould {
 
   companion object {
     private const val MOVIE_ID: Int = 123
-    private const val MOVIE_TITLE = "Mock: The Movie"
+    private const val MOVIE_TITLE = "Mock: The DbMovie"
     private const val MOVIE_OVERVIEW = "The hilarious mocking of unit testing."
     private const val MOVIE_RELEASE_DATE = "2025/12/25"
     private const val MOVIE_REVENUE = 345245234

@@ -26,7 +26,7 @@ fun MovieCatalogueListItem(
   Row(modifier = modifier) {
     MoverImageView(
       posterUrl = movie.posterUrl.orEmpty(),
-      contentDescription = "Movie poster for ${movie.title}",
+      contentDescription = "DbMovie poster for ${movie.title}",
       modifier = Modifier
         .fillMaxHeight()
         .aspectRatio(9f / 16f)
@@ -57,7 +57,7 @@ fun MovieCatalogueListItem(
 private fun MovieCatalogueListItemPreview() {
   Surface {
     MovieCatalogueListItem(
-      movie = Movie(id = 1, title = "Preview: The Movie", synopsis = "A thrilling preview!", releaseDate = "Today"),
+      movie = Movie(id = 1, title = "Preview: The DbMovie", synopsis = "A thrilling preview!", releaseDate = "Today"),
     )
   }
 }

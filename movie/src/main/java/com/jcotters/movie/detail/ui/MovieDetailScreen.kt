@@ -60,7 +60,7 @@ fun MovieDetailScreen(
         ) {
           MoverImageView(
             posterUrl = movie.backdropUrl.orEmpty(),
-            contentDescription = "Movie backdrop image for ${movie.title}",
+            contentDescription = "DbMovie backdrop image for ${movie.title}",
             modifier = Modifier.fillMaxSize(),
           )
 
@@ -147,7 +147,7 @@ private fun MovieDetailScreenPreview() {
       isBookmarked = true,
       movie = Movie(
         id = 1,
-        title = "Preview: The Movie",
+        title = "Preview: The DbMovie",
         synopsis = "A preview to die for...",
         releaseDate = "2025/10/07",
         posterUrl = "https://api.themoviedb.org/3/ovZ0zq0NwRghtWI1oLaM0lWuoEw.jpg"

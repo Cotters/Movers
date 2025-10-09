@@ -4,12 +4,12 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.jcotters.database.bookmarks.Bookmark
 import com.jcotters.database.bookmarks.BookmarkDao
-import com.jcotters.database.movies.Movie
+import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.database.user.User
 import com.jcotters.database.user.UserDao
 
-@Database(entities = [User::class, Bookmark::class, Movie::class], version = 3)
+@Database(entities = [User::class, Bookmark::class, DbMovie::class], version = 3)
 abstract class MoversDatabase : RoomDatabase() {
 
   abstract fun userDao(): UserDao
