@@ -103,7 +103,7 @@ fun NavGraphBuilder.homeNavigationGraph(
       slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(350))
     },
     exitTransition = {
-      slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, animationSpec = tween(350))
+      slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
     },
   ) { backStackEntry ->
     val viewModel: ProfileViewModel = hiltViewModel()
