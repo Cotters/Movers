@@ -2,6 +2,7 @@ package com.jcotters.profile.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jcotters.profile.domain.FetchUserBookmarksUseCase
 import com.jcotters.profile.domain.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
+  private val fetchUserBookmarksUseCase: FetchUserBookmarksUseCase,
   private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
@@ -26,8 +28,21 @@ class ProfileViewModel @Inject constructor(
   }
 
   private fun loadProfile(userId: Int) {
-    viewModelUiState.update { current ->
-      current.copy(isLoading = false)
+    viewModelScope.launch {
+      fetchUserBookmarksUseCase.invoke()
+        .onSuccess { movies ->
+          viewModelUiState.update { current ->
+            current.copy(
+              isLoading = false,
+              bookmarkedMovies = movies,
+            )
+          }
+        }
+        .onFailure {
+          viewModelUiState.update { current ->
+            current.copy(isLoading = false)
+          }
+        }
     }
   }
 
