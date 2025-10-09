@@ -2,28 +2,13 @@ package com.jcotters.profile.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jcotters.movie.detail.domain.models.Movie
 import com.jcotters.profile.domain.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-data class Profile(
-  val username: String,
-)
-
-data class ProfileViewState(
-  val isLoading: Boolean = true,
-  val profile: Profile? = null,
-  val bookmarkedMovies: List<Movie> = emptyList(),
-)
-
-sealed interface ProfileViewEvent {
-  data class UserSessionFound(val userId: Int) : ProfileViewEvent
-  data object LogoutTapped : ProfileViewEvent
-}
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
@@ -41,9 +26,9 @@ class ProfileViewModel @Inject constructor(
   }
 
   private fun loadProfile(userId: Int) {
-//    viewModelUiState.update { current ->
-//      current.copy(isLoading = false)
-//    }
+    viewModelUiState.update { current ->
+      current.copy(isLoading = false)
+    }
   }
 
   private fun logout() {
