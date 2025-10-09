@@ -1,5 +1,6 @@
 package com.jcotters.movie.detail.data
 
+import com.jcotters.database.movies.MovieDao
 import com.jcotters.movie.MovieApi
 import com.jcotters.movie.detail.domain.IMovieDetailsRepository
 import com.jcotters.movie.detail.domain.models.Movie
@@ -9,6 +10,7 @@ import javax.inject.Inject
 
 class MovieDetailsRepository @Inject constructor(
   val api: MovieApi,
+  val movieDao: MovieDao,
   val movieMapper: MovieMapper,
 ) : IMovieDetailsRepository {
 
@@ -18,6 +20,10 @@ class MovieDetailsRepository @Inject constructor(
 
   override suspend fun getMovieWithId(id: Int): Result<Movie> = withContext(Dispatchers.IO) {
     try {
+      val dbMovie = movieDao.getMovieById(id)
+      if (dbMovie != null) {
+        return@withContext Result.success(movieMapper.toDomainModel(dbMovie))
+      }
       val movieDto = api.getMovieById(movieId = id)
       val movie = movieMapper.toDomainModel(movieDto)
       return@withContext if (movie != null) {
