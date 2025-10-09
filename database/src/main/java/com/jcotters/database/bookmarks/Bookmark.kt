@@ -18,7 +18,7 @@ import com.jcotters.database.user.User
     entity = DbMovie::class,
     parentColumns = arrayOf("id"),
     childColumns = arrayOf("movieId"),
-    onDelete = ForeignKey.CASCADE,
+    onDelete = ForeignKey.NO_ACTION,
   )]
 )
 data class Bookmark(

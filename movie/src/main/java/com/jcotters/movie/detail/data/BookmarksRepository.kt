@@ -1,5 +1,6 @@
 package com.jcotters.movie.detail.data
 
+import android.util.Log
 import com.jcotters.database.bookmarks.Bookmark
 import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.movies.DbMovie
@@ -31,7 +32,9 @@ class BookmarksRepository @Inject constructor(
   override suspend fun getUserBookmarks(userId: Int): Result<List<Movie>> = withContext(Dispatchers.IO) {
     try {
       val dbMovies: List<DbMovie> = bookmarkDao.getBookmarkedMoviesForUser(userId)
+      Log.d("TJ", "Mapping ${dbMovies.size} bookmarks...")
       val movies: List<Movie> = dbMovies.map(movieMapper::toDomainModel)
+      Log.d("TJ", "Returning ${movies.size} bookmarked movies...")
       return@withContext Result.success(movies)
     } catch (_: Throwable) {
       return@withContext Result.failure(Throwable(UNABLE_TO_GET_BOOKMARKS_MESSAGE))
