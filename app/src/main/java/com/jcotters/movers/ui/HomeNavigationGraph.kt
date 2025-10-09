@@ -1,8 +1,10 @@
 package com.jcotters.movers.ui
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,6 +25,7 @@ import com.jcotters.profile.ui.ProfileScreen
 import com.jcotters.profile.ui.ProfileViewEvent
 import com.jcotters.profile.ui.ProfileViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 
 fun NavGraphBuilder.homeNavigationGraph(
   navController: NavHostController,
@@ -61,20 +64,11 @@ fun NavGraphBuilder.homeNavigationGraph(
         slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
       },
     ) { backStackEntry ->
-      val context = LocalContext.current
       val movieId: Int = backStackEntry.toRoute<NavigationRoutes.MovieDetails>().movieId
       val viewModel: MovieDetailViewModel = hiltViewModel()
       val viewState by viewModel.uiState.collectAsState()
 
-      LaunchedEffect(Unit) {
-        viewModel.errorMessage.collect { message ->
-          Toast.makeText(
-            context,
-            message,
-            Toast.LENGTH_LONG,
-          ).show()
-        }
-      }
+      ErrorMessageHandler(errorMessage = viewModel.errorMessage, context = LocalContext.current)
 
       LaunchedEffect(movieId) {
         viewModel.onViewEvent(MovieDetailViewEvent.OnLoad(movieId))
@@ -99,6 +93,8 @@ fun NavGraphBuilder.homeNavigationGraph(
     val viewState by viewModel.uiState.collectAsState()
     val userSession by userSessionFlow.collectAsState(initial = UserSession.Unknown)
 
+    ErrorMessageHandler(errorMessage = viewModel.errorMessage, context = LocalContext.current)
+
     LaunchedEffect(userSession) {
       if (userSession is UserSession.Authenticated) {
         val userId = (userSession as UserSession.Authenticated).userId
@@ -111,4 +107,21 @@ fun NavGraphBuilder.homeNavigationGraph(
       onViewEvent = viewModel::onViewEvent,
     )
   }
+}
+
+@Composable
+fun ErrorMessageHandler(
+  errorMessage: SharedFlow<String>,
+  context: Context,
+) {
+  LaunchedEffect(Unit) {
+    errorMessage.collect { message ->
+      Toast.makeText(
+        context,
+        message,
+        Toast.LENGTH_LONG,
+      ).show()
+    }
+  }
+
 }

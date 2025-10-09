@@ -21,7 +21,8 @@ object DatabaseModule {
 
   private val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
-      db.execSQL("""
+      db.execSQL(
+        """
         CREATE TABLE IF NOT EXISTS movies (
           id INTEGER NOT NULL PRIMARY KEY,
           title TEXT NOT NULL,
@@ -30,7 +31,8 @@ object DatabaseModule {
           posterUrl TEXT,
           backdropUrl TEXT
         )
-      """)
+      """
+      )
     }
   }
 

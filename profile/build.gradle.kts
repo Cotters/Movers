@@ -48,6 +48,7 @@ dependencies {
 
   implementation(project(path = ":auth"))
   implementation(project(path = ":movie"))
+  implementation(project(path = ":database"))
 
   testImplementation(libs.junit)
   testImplementation(libs.mockk)
