@@ -2,7 +2,9 @@ package com.jcotters.movie
 
 import com.jcotters.movie.catalogue.data.MovieCatalogueRepository
 import com.jcotters.movie.catalogue.domain.IMovieCatalogueRepository
+import com.jcotters.movie.detail.data.BookmarksRepository
 import com.jcotters.movie.detail.data.MovieDetailsRepository
+import com.jcotters.movie.detail.domain.IBookmarksRepository
 import com.jcotters.movie.detail.domain.IMovieDetailsRepository
 import dagger.Module
 import dagger.Provides
@@ -61,4 +63,8 @@ object MovieModule {
     impl: MovieCatalogueRepository
   ): IMovieCatalogueRepository = impl
 
+  @Provides
+  fun provideBookmarksRepository(
+    impl: BookmarksRepository,
+  ): IBookmarksRepository = impl
 }

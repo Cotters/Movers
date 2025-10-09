@@ -46,6 +46,9 @@ dependencies {
   implementation(libs.coil.compose)
   implementation(libs.coil.network.okhttp)
 
+  implementation(project(path = ":auth"))
+  implementation(project(path = ":database"))
+
   testImplementation(libs.junit)
   testImplementation(libs.mockk)
 

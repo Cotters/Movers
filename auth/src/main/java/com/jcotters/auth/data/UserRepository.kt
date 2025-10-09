@@ -7,6 +7,7 @@ import com.jcotters.database.user.User
 import com.jcotters.database.user.UserDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -22,6 +23,10 @@ class UserRepository @Inject constructor(
     const val USERNAME_TAKEN_MESSAGE = "Username already in use."
     const val INCORRECT_DETAILS = "Incorrect username or password."
     const val SESSION_FAILED_MESSAGE = "Unable to create user session."
+  }
+
+  override suspend fun getUserIdOrNull(): Int? {
+    return sessionManager.sessionState.first().userId
   }
 
   override val userSession: Flow<UserSession> = sessionManager.sessionState.map { sessionState ->

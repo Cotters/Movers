@@ -2,6 +2,7 @@ package com.jcotters.database
 
 import android.content.Context
 import androidx.room.Room
+import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.user.UserDao
 import dagger.Module
 import dagger.Provides
@@ -21,11 +22,17 @@ object DatabaseModule {
       context,
       MoversDatabase::class.java,
       DATABASE_NAME,
-    ).build()
+    )
+      .build()
   }
 
   @Provides
   fun provideUserDao(database: MoversDatabase): UserDao {
     return database.userDao()
+  }
+
+  @Provides
+  fun provideBookmarkDao(database: MoversDatabase): BookmarkDao {
+    return database.bookmarkDao()
   }
 }

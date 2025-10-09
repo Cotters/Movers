@@ -1,10 +1,12 @@
 package com.jcotters.movers.ui
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -59,9 +61,20 @@ fun NavGraphBuilder.homeNavigationGraph(
         slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
       },
     ) { backStackEntry ->
+      val context = LocalContext.current
       val movieId: Int = backStackEntry.toRoute<NavigationRoutes.MovieDetails>().movieId
       val viewModel: MovieDetailViewModel = hiltViewModel()
       val viewState by viewModel.uiState.collectAsState()
+
+      LaunchedEffect(Unit) {
+        viewModel.errorMessage.collect { message ->
+          Toast.makeText(
+            context,
+            message,
+            Toast.LENGTH_SHORT,
+          ).show()
+        }
+      }
 
       LaunchedEffect(movieId) {
         viewModel.onViewEvent(MovieDetailViewEvent.OnLoad(movieId))
