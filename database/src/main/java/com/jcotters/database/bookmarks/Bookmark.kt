@@ -3,21 +3,25 @@ package com.jcotters.database.bookmarks
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.user.User
-import kotlin.random.Random
 
 @Entity(
   tableName = "bookmarks",
-  primaryKeys = ["id", "movieId"],
+  primaryKeys = ["movieId", "userId"],
   foreignKeys = [ForeignKey(
     entity = User::class,
     parentColumns = arrayOf("id"),
     childColumns = arrayOf("userId"),
     onDelete = ForeignKey.CASCADE,
+  ),ForeignKey(
+    entity = DbMovie::class,
+    parentColumns = arrayOf("id"),
+    childColumns = arrayOf("movieId"),
+    onDelete = ForeignKey.CASCADE,
   )]
 )
 data class Bookmark(
-  val id: Int = Random.Default.nextInt(),
   val movieId: Int,
   @ColumnInfo(index = true)
   val userId: Int,
