@@ -9,10 +9,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,18 +47,21 @@ fun MovieDetailScreen(
   modifier: Modifier = Modifier,
 ) {
   val horizontalPadding = 8.dp
+  val posterVerticalOffset = 50.dp
   Surface(
     modifier = modifier.fillMaxSize(),
   ) {
-    Column {
-      if (viewState.isLoading) {
-        Box(modifier = Modifier.fillMaxSize()) {
-          LinearProgressIndicator(
-            modifier = Modifier.fillMaxWidth(),
-          )
-        }
-      } else if (viewState.movie != null) {
-        val movie = viewState.movie
+    if (viewState.isLoading) {
+      Box(modifier = Modifier.fillMaxSize()) {
+        LinearProgressIndicator(
+          modifier = Modifier.fillMaxWidth(),
+        )
+      }
+    } else if (viewState.movie != null) {
+      val movie = viewState.movie
+      Column(
+        modifier = Modifier.fillMaxSize()
+      ) {
         Box(
           modifier = Modifier
             .fillMaxWidth()
@@ -67,10 +69,9 @@ fun MovieDetailScreen(
         ) {
           MoverImageView(
             posterUrl = movie.backdropUrl.orEmpty(),
-            contentDescription = "DbMovie backdrop image for ${movie.title}",
+            contentDescription = "Movie backdrop image for ${movie.title}",
             modifier = Modifier.fillMaxSize(),
           )
-
           Box(
             modifier = Modifier
               .fillMaxSize()
@@ -78,71 +79,56 @@ fun MovieDetailScreen(
                 brush = Brush.verticalGradient(
                   colors = listOf(
                     Color.Transparent,
-                    Color.Black.copy(alpha = 0.7f)
+                    Color.Black.copy(alpha = 0.6f)
                   ),
                   startY = 0f,
                   endY = Float.POSITIVE_INFINITY
                 )
               )
           )
-
-          Row(
+          sharedTransitionScope.MoverImageView(
+            posterUrl = movie.posterUrl.orEmpty(),
+            contentDescription = "Movie poster for ${movie.title}",
             modifier = Modifier
               .align(Alignment.BottomStart)
-              .fillMaxWidth()
-              .padding(horizontal = horizontalPadding, vertical = 8.dp)
-              .graphicsLayer {
-                alpha = 0.95f
-              },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+              .padding(start = 24.dp)
+              .offset(y = posterVerticalOffset)
+              .size(width = 120.dp, height = 180.dp),
+            animatedVisibilityScope = animatedVisibilityScope,
+          )
+          Box(
+            modifier = Modifier
+              .align(Alignment.BottomEnd)
+              .padding(16.dp)
+              .clip(CircleShape)
+              .size(40.dp)
+              .background(Color.Black.copy(alpha = 0.5f))
           ) {
-            Text(
-              text = movie.title,
-              modifier = Modifier
-                .weight(1f)
-                .padding(end = 16.dp),
-              style = MaterialTheme.typography.titleLarge.copy(
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold
-              ),
-              maxLines = 2,
-              overflow = TextOverflow.Ellipsis
-            )
-
-            Box(
-              modifier = Modifier
-                .padding(2.dp)
-                .clip(CircleShape)
-                .size(40.dp)
-                .background(Color.Black.copy(alpha = 0.5f))
-            ) {
-              val bookmarkIcon =
-                if (viewState.isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
-              IconButton(onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) }) {
-                Icon(
-                  painter = painterResource(bookmarkIcon),
-                  contentDescription = "Bookmark film button",
-                  modifier = Modifier.size(25.dp),
-                  tint = Color.White,
-                )
-              }
+            val bookmarkIcon =
+              if (viewState.isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
+            IconButton(onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) }) {
+              Icon(
+                painter = painterResource(bookmarkIcon),
+                contentDescription = "Bookmark movie button",
+                modifier = Modifier.size(25.dp),
+                tint = Color.White,
+              )
             }
           }
         }
-
         Column(
           modifier = Modifier
+            .padding(top = posterVerticalOffset)
             .padding(horizontal = horizontalPadding, vertical = 16.dp),
           verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          sharedTransitionScope.MoverImageView(
-            posterUrl = movie.posterUrl.orEmpty(),
-            contentDescription = "DbMovie poster for ${movie.title}",
-            modifier = Modifier
-              .padding(16.dp)
-              .size(width = 120.dp, height = 180.dp),
-            animatedVisibilityScope = animatedVisibilityScope,
+          Text(
+            text = movie.title,
+            style = MaterialTheme.typography.titleLarge.copy(
+              fontWeight = FontWeight.SemiBold
+            ),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
           )
           Text(text = movie.synopsis, style = MaterialTheme.typography.bodyMedium)
           Text(text = "Released ${movie.releaseDate}", style = MaterialTheme.typography.bodyMedium)
@@ -151,6 +137,7 @@ fun MovieDetailScreen(
     }
   }
 }
+
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Preview
@@ -167,7 +154,7 @@ private fun MovieDetailScreenPreview() {
           isBookmarked = true,
           movie = Movie(
             id = 1,
-            title = "Preview: The DbMovie",
+            title = "Preview: The Movie",
             synopsis = "A preview to die for...",
             releaseDate = "2025/10/07",
             posterUrl = "https://api.themoviedb.org/3/ovZ0zq0NwRghtWI1oLaM0lWuoEw.jpg"
