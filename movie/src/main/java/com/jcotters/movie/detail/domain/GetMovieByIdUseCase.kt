@@ -6,7 +6,7 @@ import javax.inject.Inject
 class GetMovieByIdUseCase @Inject constructor(
   private val repository: IMovieDetailsRepository,
 ) {
-  suspend operator fun invoke(id: Int): Result<Movie> {
+  suspend fun invoke(id: Int): Result<Movie> {
     return repository.getMovieWithId(id)
   }
 }

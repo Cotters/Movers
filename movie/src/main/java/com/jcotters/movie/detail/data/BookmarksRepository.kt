@@ -1,6 +1,5 @@
 package com.jcotters.movie.detail.data
 
-import android.util.Log
 import com.jcotters.database.bookmarks.Bookmark
 import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.movies.DbMovie
@@ -17,10 +16,11 @@ class BookmarksRepository @Inject constructor(
 
   companion object {
     const val UNABLE_TO_BOOKMARK_MESSAGE = "Unable to bookmark this movie."
+    const val UNABLE_TO_REMOVE_BOOKMARK_MESSAGE = "Unable to remove bookmark."
     const val UNABLE_TO_GET_BOOKMARKS_MESSAGE = "Unable to get bookmarked movies."
   }
 
-  override suspend fun bookmarkMovie(movieId: Int, userId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+  override suspend fun addBookmark(movieId: Int, userId: Int): Result<Unit> = withContext(Dispatchers.IO) {
     try {
       bookmarkDao.insertBookmark(Bookmark(movieId = movieId, userId = userId))
       return@withContext Result.success(Unit)
@@ -29,13 +29,29 @@ class BookmarksRepository @Inject constructor(
     }
   }
 
+  override suspend fun removeBookmark(movieId: Int, userId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+    try {
+      bookmarkDao.removeBookmark(userId = userId, movieId = movieId)
+      return@withContext Result.success(Unit)
+    } catch (_: Throwable) {
+      return@withContext Result.failure(Throwable(UNABLE_TO_REMOVE_BOOKMARK_MESSAGE))
+    }
+  }
+
   override suspend fun getUserBookmarks(userId: Int): Result<List<Movie>> = withContext(Dispatchers.IO) {
     try {
       val dbMovies: List<DbMovie> = bookmarkDao.getBookmarkedMoviesForUser(userId)
-      Log.d("TJ", "Mapping ${dbMovies.size} bookmarks...")
       val movies: List<Movie> = dbMovies.map(movieMapper::toDomainModel)
-      Log.d("TJ", "Returning ${movies.size} bookmarked movies...")
       return@withContext Result.success(movies)
+    } catch (_: Throwable) {
+      return@withContext Result.failure(Throwable(UNABLE_TO_GET_BOOKMARKS_MESSAGE))
+    }
+  }
+
+  override suspend fun isMovieBookmarked(userId: Int, movieId: Int): Result<Boolean> = withContext(Dispatchers.IO) {
+    try {
+      val isBookmarked: Boolean = bookmarkDao.hasUserBookmarkedMovie(userId = userId, movieId = movieId)
+      return@withContext Result.success(isBookmarked)
     } catch (_: Throwable) {
       return@withContext Result.failure(Throwable(UNABLE_TO_GET_BOOKMARKS_MESSAGE))
     }

@@ -36,10 +36,10 @@ class BookmarkMovieUseCaseShould {
   fun `return failure when no userId is found`() {
     coEvery { userRepository.getUserIdOrNull() } returns null
 
-    val result = runBlocking { underTest.invoke(MOVIE_ID) }
+    val result = runBlocking { underTest.addBookmark(MOVIE_ID) }
 
     assertFalse(result.isSuccess)
-    coVerify(exactly = 0) { bookmarksRepository.bookmarkMovie(MOVIE_ID, any()) }
+    coVerify(exactly = 0) { bookmarksRepository.addBookmark(MOVIE_ID, any()) }
     assertThat(result.exceptionOrNull()!!.message, equalTo("You must be logged in."))
   }
 
@@ -47,10 +47,31 @@ class BookmarkMovieUseCaseShould {
   fun `bookmark movie when userId found`() {
     coEvery { userRepository.getUserIdOrNull() } returns USER_ID
 
-    val result = runBlocking { underTest.invoke(MOVIE_ID) }
+    val result = runBlocking { underTest.addBookmark(MOVIE_ID) }
 
     assertTrue(result.isSuccess)
-    coVerify(exactly = 1) { bookmarksRepository.bookmarkMovie(MOVIE_ID, USER_ID) }
+    coVerify(exactly = 1) { bookmarksRepository.addBookmark(MOVIE_ID, USER_ID) }
+  }
+
+  @Test
+  fun `return failure when removing bookmark given no userId is found`() {
+    coEvery { userRepository.getUserIdOrNull() } returns null
+
+    val result = runBlocking { underTest.addBookmark(MOVIE_ID) }
+
+    assertFalse(result.isSuccess)
+    coVerify(exactly = 0) { bookmarksRepository.removeBookmark(MOVIE_ID, any()) }
+    assertThat(result.exceptionOrNull()!!.message, equalTo("You must be logged in."))
+  }
+
+  @Test
+  fun `remove bookmark when userId found`() {
+    coEvery { userRepository.getUserIdOrNull() } returns USER_ID
+
+    val result = runBlocking { underTest.removeBookmark(MOVIE_ID) }
+
+    assertTrue(result.isSuccess)
+    coVerify(exactly = 1) { bookmarksRepository.removeBookmark(MOVIE_ID, USER_ID) }
   }
 
   private companion object {

@@ -23,4 +23,17 @@ interface BookmarkDao {
   """
   )
   suspend fun getBookmarkedMoviesForUser(userId: Int): List<DbMovie>
+
+  @Query(
+    """
+    SELECT EXISTS(
+      SELECT * FROM bookmarks
+      WHERE userId = :userId AND movieId = :movieId
+    )
+  """
+  )
+  suspend fun hasUserBookmarkedMovie(userId: Int, movieId: Int): Boolean
+
+  @Query("DELETE FROM bookmarks WHERE userId = :userId AND movieId = :movieId")
+  suspend fun removeBookmark(userId: Int, movieId: Int)
 }

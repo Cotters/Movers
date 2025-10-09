@@ -12,10 +12,19 @@ class BookmarkMovieUseCase @Inject constructor(
     private const val LOGIN_REQUIRED_MESSAGE = "You must be logged in."
   }
 
-  suspend fun invoke(movieId: Int): Result<Unit> {
+  suspend fun addBookmark(movieId: Int): Result<Unit> {
     val userId = userRepository.getUserIdOrNull()
     return if (userId != null) {
-      bookmarksRepository.bookmarkMovie(movieId = movieId, userId = userId)
+      bookmarksRepository.addBookmark(movieId = movieId, userId = userId)
+    } else {
+      Result.failure(Throwable(LOGIN_REQUIRED_MESSAGE))
+    }
+  }
+
+  suspend fun removeBookmark(movieId: Int): Result<Unit> {
+    val userId = userRepository.getUserIdOrNull()
+    return if (userId != null) {
+      bookmarksRepository.removeBookmark(movieId = movieId, userId = userId)
     } else {
       Result.failure(Throwable(LOGIN_REQUIRED_MESSAGE))
     }

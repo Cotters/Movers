@@ -9,6 +9,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -28,18 +29,35 @@ class BookmarksRepositoryShould {
   }
 
   @Test
-  fun `return failure when failed to save bookmark to database`() {
+  fun `return failure when failed to add bookmark to database`() {
     coEvery { bookmarkDao.insertBookmark(any()) } throws Throwable("Test error")
 
-    val result = runBlocking { underTest.bookmarkMovie(MOVIE_ID, USER_ID) }
+    val result = runBlocking { underTest.addBookmark(MOVIE_ID, USER_ID) }
 
     assertTrue(result.isFailure)
     assertThat(result.exceptionOrNull()!!.message, equalTo("Unable to bookmark this movie."))
   }
 
   @Test
-  fun `bookmark film when successfully saved to database`() {
-    val result = runBlocking { underTest.bookmarkMovie(MOVIE_ID, USER_ID) }
+  fun `add bookmark when successfully added to database`() {
+    val result = runBlocking { underTest.addBookmark(MOVIE_ID, USER_ID) }
+
+    assertTrue(result.isSuccess)
+  }
+
+  @Test
+  fun `return failure when failed to remove bookmark from database`() {
+    coEvery { bookmarkDao.removeBookmark(any(), any()) } throws Throwable("Test error")
+
+    val result = runBlocking { underTest.removeBookmark(MOVIE_ID, USER_ID) }
+
+    assertTrue(result.isFailure)
+    assertThat(result.exceptionOrNull()!!.message, equalTo("Unable to remove bookmark."))
+  }
+
+  @Test
+  fun `remove bookmark when successfully removed from database`() {
+    val result = runBlocking { underTest.removeBookmark(MOVIE_ID, USER_ID) }
 
     assertTrue(result.isSuccess)
   }
@@ -63,6 +81,17 @@ class BookmarksRepositoryShould {
 
     assertTrue(result.isSuccess)
     assertThat(result.getOrNull()!!, equalTo(movies))
+  }
+
+  @Test
+  fun `use dao when checking if movie is bookmarked`() {
+    coEvery { bookmarkDao.hasUserBookmarkedMovie(USER_ID, MOVIE_ID) } returns true
+    var result = runBlocking { underTest.isMovieBookmarked(USER_ID, MOVIE_ID) }
+    assertTrue(result.getOrNull()!!)
+
+    coEvery { bookmarkDao.hasUserBookmarkedMovie(USER_ID, MOVIE_ID) } returns false
+    result = runBlocking { underTest.isMovieBookmarked(USER_ID, MOVIE_ID) }
+    assertFalse(result.getOrNull()!!)
   }
 
   private companion object {

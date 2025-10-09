@@ -50,6 +50,7 @@ class MovieDetailsRepositoryShould {
 
   @Test
   fun `return failure with message when api returns null`() {
+    coEvery { movieDao.getMovieById(any()) } returns null
     coEvery { movieApi.getMovieById(MOVIE_ID) } throws Throwable("Mocked error")
 
     val movie = runBlocking { underTest.getMovieWithId(MOVIE_ID) }
@@ -61,6 +62,7 @@ class MovieDetailsRepositoryShould {
 
   @Test
   fun `return movie when api returns movie`() {
+    coEvery { movieDao.getMovieById(any()) } returns null
     coEvery { movieApi.getMovieById(MOVIE_ID) } returns MOCKED_MOVIE_DTO
 
     val movie = runBlocking { underTest.getMovieWithId(MOVIE_ID) }
