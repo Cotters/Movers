@@ -73,7 +73,8 @@ fun MovieCatalogueScreen(
         MovieCatalogueListItem(
           movie = movie,
           modifier = Modifier
-            .height(150.dp)
+            .height(180.dp)
+            .fillParentMaxWidth()
             .clickable { onMovieTapped(movie.id) },
           sharedTransitionScope = sharedTransitionScope,
           animatedVisibilityScope = animatedVisibilityScope,

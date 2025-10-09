@@ -5,10 +5,13 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -19,21 +22,14 @@ fun SharedTransitionScope.MoverImageView(
   modifier: Modifier = Modifier,
   animatedVisibilityScope: AnimatedVisibilityScope,
 ) {
-  Box(
-    modifier = modifier
-      .sharedElement(
-        sharedContentState = rememberSharedContentState(key = posterUrl),
-        animatedVisibilityScope = animatedVisibilityScope,
-      )
-      .background(Color.LightGray.copy(alpha = 0.3f))
-  ) {
-    AsyncImage(
-      model = posterUrl,
-      contentDescription = contentDescription,
-      contentScale = ContentScale.Crop,
-      modifier = Modifier.matchParentSize()
+  MoverImageView(
+    posterUrl = posterUrl,
+    contentDescription = contentDescription,
+    modifier = modifier.sharedElement(
+      sharedContentState = rememberSharedContentState(key = posterUrl),
+      animatedVisibilityScope = animatedVisibilityScope,
     )
-  }
+  )
 }
 
 
@@ -45,6 +41,7 @@ fun MoverImageView(
 ) {
   Box(
     modifier = modifier
+      .clip(RoundedCornerShape(8.dp))
       .background(Color.LightGray.copy(alpha = 0.3f))
   ) {
     AsyncImage(

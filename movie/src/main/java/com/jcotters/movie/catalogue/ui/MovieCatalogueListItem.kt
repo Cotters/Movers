@@ -39,6 +39,7 @@ fun MovieCatalogueListItem(
       modifier = Modifier
         .fillMaxHeight()
         .aspectRatio(9f / 16f)
+        .padding(horizontal = 0.dp, vertical = 8.dp)
     )
 
     Column(

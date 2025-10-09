@@ -45,11 +45,9 @@ class MovieDetailViewModel @Inject constructor(
         }
         .onFailure { error ->
           viewModelUiState.update { current ->
-            current.copy(
-              isLoading = false,
-              errorMessage = error.message ?: "Failed to load mover.",
-            )
+            current.copy(isLoading = false)
           }
+          _errorMessage.emit(error.message ?: "Failed to load mover.")
         }
     }
   }
@@ -60,7 +58,6 @@ class MovieDetailViewModel @Inject constructor(
     }
     viewModelScope.launch {
       bookmarkMovieUseCase.invoke(movieId).onSuccess {
-        _errorMessage.emit("Success!")
       }.onFailure { error ->
         _errorMessage.emit(error.message ?: "Unable to bookmark film.")
         viewModelUiState.update { current ->

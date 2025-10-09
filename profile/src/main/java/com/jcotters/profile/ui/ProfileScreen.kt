@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -66,9 +67,11 @@ fun ProfileView(
 
     LazyRow(
       modifier = Modifier
-        .height(250.dp)
+        .height(200.dp)
         .fillMaxWidth()
         .background(color = MaterialTheme.colorScheme.surfaceContainer),
+      contentPadding = PaddingValues(vertical = 8.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       if (viewState.bookmarkedMovies.isEmpty()) {
         item {
@@ -79,7 +82,7 @@ fun ProfileView(
             contentAlignment = Alignment.Center,
           ) {
             Text(
-              text = "No Bookmarked Moovers",
+              text = "No Saved Moovers",
               style = MaterialTheme.typography.headlineSmall,
             )
           }
@@ -91,7 +94,8 @@ fun ProfileView(
           contentDescription = "Movie poster for ${movie.title}",
           modifier = Modifier
             .fillMaxHeight()
-            .aspectRatio(9f / 16f)
+            .aspectRatio(3f / 5f)
+//            .padding(vertical = 8.dp)
         )
       }
     }
