@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jcotters.movie.detail.domain.models.PreviewMovies
 import com.jcotters.movie.detail.ui.MoverImageView
+import com.jcotters.profile.domain.Profile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,18 +62,20 @@ fun ProfileView(
       ProfileDetailsView(it)
     }
 
+    Text(text = "Bookmarks", style = MaterialTheme.typography.headlineMedium)
+
     LazyRow(
       modifier = Modifier
         .height(250.dp)
         .fillMaxWidth()
         .background(color = MaterialTheme.colorScheme.surfaceContainer),
-      horizontalArrangement = Arrangement.Center,
     ) {
       if (viewState.bookmarkedMovies.isEmpty()) {
         item {
           Box(
             modifier = Modifier
-              .fillMaxHeight(),
+              .fillParentMaxWidth()
+              .fillParentMaxHeight(),
             contentAlignment = Alignment.Center,
           ) {
             Text(
@@ -139,7 +142,7 @@ private fun BookmarksPreview() {
     viewState = ProfileViewState(
       isLoading = false,
       profile = Profile(username = "Preview Account"),
-      bookmarkedMovies = PreviewMovies.movies,
+      bookmarkedMovies = PreviewMovies.movies.take(1),
     ),
     onViewEvent = {},
   )
