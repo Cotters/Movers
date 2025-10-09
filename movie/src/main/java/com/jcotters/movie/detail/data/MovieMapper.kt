@@ -42,4 +42,15 @@ class MovieMapper @Inject constructor() {
       )
     }
   }
+
+  fun toDomainModel(dbMovie: DbMovie): Movie {
+    return Movie(
+      id = dbMovie.id,
+      title = dbMovie.title,
+      synopsis = dbMovie.synopsis,
+      releaseDate = dbMovie.releaseDate,
+      posterUrl = dbMovie.posterUrl,
+      backdropUrl = dbMovie.backdropUrl
+    )
+  }
 }

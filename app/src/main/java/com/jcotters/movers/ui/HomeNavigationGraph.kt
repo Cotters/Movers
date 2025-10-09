@@ -71,7 +71,7 @@ fun NavGraphBuilder.homeNavigationGraph(
           Toast.makeText(
             context,
             message,
-            Toast.LENGTH_SHORT,
+            Toast.LENGTH_LONG,
           ).show()
         }
       }
