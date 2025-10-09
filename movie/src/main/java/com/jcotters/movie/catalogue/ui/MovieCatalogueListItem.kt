@@ -1,5 +1,10 @@
 package com.jcotters.movie.catalogue.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,13 +23,17 @@ import androidx.compose.ui.unit.dp
 import com.jcotters.movie.detail.domain.models.Movie
 import com.jcotters.movie.detail.ui.MoverImageView
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieCatalogueListItem(
   movie: Movie,
   modifier: Modifier = Modifier,
+  sharedTransitionScope: SharedTransitionScope,
+  animatedVisibilityScope: AnimatedVisibilityScope,
 ) {
   Row(modifier = modifier) {
-    MoverImageView(
+    sharedTransitionScope.MoverImageView(
+      animatedVisibilityScope = animatedVisibilityScope,
       posterUrl = movie.posterUrl.orEmpty(),
       contentDescription = "DbMovie poster for ${movie.title}",
       modifier = Modifier
@@ -49,15 +58,27 @@ fun MovieCatalogueListItem(
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(
   widthDp = 800,
   heightDp = 200,
 )
 @Composable
 private fun MovieCatalogueListItemPreview() {
-  Surface {
-    MovieCatalogueListItem(
-      movie = Movie(id = 1, title = "Preview: The DbMovie", synopsis = "A thrilling preview!", releaseDate = "Today"),
-    )
+  SharedTransitionLayout {
+    AnimatedVisibility(visible = true) {
+      Surface {
+        MovieCatalogueListItem(
+          sharedTransitionScope = this@SharedTransitionLayout,
+          animatedVisibilityScope = this,
+          movie = Movie(
+            id = 1,
+            title = "Preview: The DbMovie",
+            synopsis = "A thrilling preview!",
+            releaseDate = "Today"
+          ),
+        )
+      }
+    }
   }
 }

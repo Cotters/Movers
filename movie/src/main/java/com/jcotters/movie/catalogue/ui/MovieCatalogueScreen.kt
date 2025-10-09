@@ -1,5 +1,10 @@
 package com.jcotters.movie.catalogue.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,9 +31,11 @@ import com.jcotters.movie.R
 import com.jcotters.movie.detail.domain.models.Movie
 import com.jcotters.movie.detail.domain.models.PreviewMovies
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieCatalogueScreen(
+  sharedTransitionScope: SharedTransitionScope,
+  animatedVisibilityScope: AnimatedVisibilityScope,
   isAuthenticated: Boolean,
   movies: List<Movie>,
   onMovieTapped: (movieId: Int) -> Unit,
@@ -67,7 +74,9 @@ fun MovieCatalogueScreen(
           movie = movie,
           modifier = Modifier
             .height(150.dp)
-            .clickable { onMovieTapped(movie.id) }
+            .clickable { onMovieTapped(movie.id) },
+          sharedTransitionScope = sharedTransitionScope,
+          animatedVisibilityScope = animatedVisibilityScope,
         )
         HorizontalDivider()
       }
@@ -75,13 +84,20 @@ fun MovieCatalogueScreen(
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview
 @Composable
 private fun MovieCatalogueScreenPreview() {
-  MovieCatalogueScreen(
-    isAuthenticated = false,
-    movies = PreviewMovies.movies,
-    onMovieTapped = { movieId -> },
-    onAccountTapped = {},
-  )
+  SharedTransitionLayout {
+    AnimatedVisibility(visible = true) {
+      MovieCatalogueScreen(
+        sharedTransitionScope = this@SharedTransitionLayout,
+        animatedVisibilityScope = this,
+        isAuthenticated = false,
+        movies = PreviewMovies.movies,
+        onMovieTapped = { movieId -> },
+        onAccountTapped = {},
+      )
+    }
+  }
 }

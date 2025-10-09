@@ -42,6 +42,8 @@ dependencies {
   implementation(libs.retrofit.serialization)
   implementation(libs.retrofit.gson)
   implementation(libs.hilt)
+  implementation(libs.androidx.compose.animation)
+  implementation(libs.androidx.compose.foundation)
   ksp(libs.hilt.compiler)
   implementation(libs.coil.compose)
   implementation(libs.coil.network.okhttp)

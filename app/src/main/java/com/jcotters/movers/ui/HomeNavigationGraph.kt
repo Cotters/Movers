@@ -3,11 +3,16 @@ package com.jcotters.movers.ui
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.scaleIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -27,9 +32,11 @@ import com.jcotters.profile.ui.ProfileViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.homeNavigationGraph(
   navController: NavHostController,
   userSessionFlow: Flow<UserSession>,
+  sharedTransitionScope: SharedTransitionScope,
 ) {
 
   navigation<NavigationRoutes.Home>(startDestination = NavigationRoutes.Catalogue) {
@@ -39,6 +46,8 @@ fun NavGraphBuilder.homeNavigationGraph(
       val userSession by userSessionFlow.collectAsState(initial = UserSession.Unknown)
 
       MovieCatalogueScreen(
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = this@composable,
         isAuthenticated = userSession is UserSession.Authenticated,
         movies = viewState.movies,
         onMovieTapped = { movieId ->
@@ -58,10 +67,16 @@ fun NavGraphBuilder.homeNavigationGraph(
 
     composable<NavigationRoutes.MovieDetails>(
       enterTransition = {
-        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(350))
+        scaleIn(
+          tween(500, easing = LinearOutSlowInEasing),
+          transformOrigin = TransformOrigin.Center.copy(pivotFractionX = 0.5f, pivotFractionY = 1.0f)
+        )
       },
       exitTransition = {
-        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
+        slideOutOfContainer(
+          towards = AnimatedContentTransitionScope.SlideDirection.Down,
+          animationSpec = tween(500, easing = LinearOutSlowInEasing),
+        )
       },
     ) { backStackEntry ->
       val movieId: Int = backStackEntry.toRoute<NavigationRoutes.MovieDetails>().movieId
@@ -75,6 +90,8 @@ fun NavGraphBuilder.homeNavigationGraph(
       }
 
       MovieDetailScreen(
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = this@composable,
         viewState = viewState,
         onViewEvent = viewModel::onViewEvent,
       )
@@ -86,7 +103,7 @@ fun NavGraphBuilder.homeNavigationGraph(
       slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(350))
     },
     exitTransition = {
-      slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
+      slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, animationSpec = tween(350))
     },
   ) { backStackEntry ->
     val viewModel: ProfileViewModel = hiltViewModel()

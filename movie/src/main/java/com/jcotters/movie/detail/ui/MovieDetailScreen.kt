@@ -1,5 +1,10 @@
 package com.jcotters.movie.detail.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,9 +38,11 @@ import androidx.compose.ui.unit.dp
 import com.jcotters.movie.R
 import com.jcotters.movie.detail.domain.models.Movie
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieDetailScreen(
+  sharedTransitionScope: SharedTransitionScope,
+  animatedVisibilityScope: AnimatedVisibilityScope,
   onViewEvent: (MovieDetailViewEvent) -> Unit,
   viewState: MovieDetailViewState,
   modifier: Modifier = Modifier,
@@ -110,7 +117,8 @@ fun MovieDetailScreen(
                 .size(40.dp)
                 .background(Color.Black.copy(alpha = 0.5f))
             ) {
-              val bookmarkIcon = if (viewState.isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
+              val bookmarkIcon =
+                if (viewState.isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
               IconButton(onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) }) {
                 Icon(
                   painter = painterResource(bookmarkIcon),
@@ -128,30 +136,44 @@ fun MovieDetailScreen(
             .padding(horizontal = horizontalPadding, vertical = 16.dp),
           verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+          sharedTransitionScope.MoverImageView(
+            posterUrl = movie.posterUrl.orEmpty(),
+            contentDescription = "DbMovie poster for ${movie.title}",
+            modifier = Modifier
+              .padding(16.dp)
+              .size(width = 120.dp, height = 180.dp),
+            animatedVisibilityScope = animatedVisibilityScope,
+          )
           Text(text = movie.synopsis, style = MaterialTheme.typography.bodyMedium)
           Text(text = "Released ${movie.releaseDate}", style = MaterialTheme.typography.bodyMedium)
-
         }
       }
     }
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview
 @Composable
 private fun MovieDetailScreenPreview() {
-  MovieDetailScreen(
-    onViewEvent = { _ -> },
-    viewState = MovieDetailViewState(
-      isLoading = false,
-      isBookmarked = true,
-      movie = Movie(
-        id = 1,
-        title = "Preview: The DbMovie",
-        synopsis = "A preview to die for...",
-        releaseDate = "2025/10/07",
-        posterUrl = "https://api.themoviedb.org/3/ovZ0zq0NwRghtWI1oLaM0lWuoEw.jpg"
+  SharedTransitionLayout {
+    AnimatedVisibility(visible = true) {
+      MovieDetailScreen(
+        sharedTransitionScope = this@SharedTransitionLayout,
+        animatedVisibilityScope = this,
+        onViewEvent = { _ -> },
+        viewState = MovieDetailViewState(
+          isLoading = false,
+          isBookmarked = true,
+          movie = Movie(
+            id = 1,
+            title = "Preview: The DbMovie",
+            synopsis = "A preview to die for...",
+            releaseDate = "2025/10/07",
+            posterUrl = "https://api.themoviedb.org/3/ovZ0zq0NwRghtWI1oLaM0lWuoEw.jpg"
+          )
+        )
       )
-    )
-  )
+    }
+  }
 }

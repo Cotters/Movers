@@ -1,5 +1,7 @@
 package com.jcotters.movers.ui
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -11,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jcotters.auth.domain.UserSession
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MoversApp() {
 
@@ -29,19 +32,22 @@ fun MoversApp() {
     }
   }
 
-  NavHost(
-    navController = navController,
-    startDestination = NavigationRoutes.Splash,
-  ) {
-    composable<NavigationRoutes.Splash> {
-      MoversSplashScreen()
-    }
-
-    authNavGraph(navController = navController)
-
-    homeNavigationGraph(
+  SharedTransitionLayout {
+    NavHost(
       navController = navController,
-      userSessionFlow = viewModel.userSession,
-    )
+      startDestination = NavigationRoutes.Splash,
+    ) {
+      composable<NavigationRoutes.Splash> {
+        MoversSplashScreen()
+      }
+
+      authNavGraph(navController = navController)
+
+      homeNavigationGraph(
+        navController = navController,
+        userSessionFlow = viewModel.userSession,
+        sharedTransitionScope = this@SharedTransitionLayout,
+      )
+    }
   }
 }
