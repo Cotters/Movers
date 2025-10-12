@@ -2,8 +2,6 @@ package com.jcotters.database
 
 import android.content.Context
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.database.user.UserDao
@@ -19,23 +17,6 @@ object DatabaseModule {
 
   private const val DATABASE_NAME: String = "movers_database"
 
-  private val MIGRATION_2_3 = object : Migration(2, 3) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-      db.execSQL(
-        """
-        CREATE TABLE IF NOT EXISTS movies (
-          id INTEGER NOT NULL PRIMARY KEY,
-          title TEXT NOT NULL,
-          synopsis TEXT NOT NULL,
-          releaseDate TEXT NOT NULL,
-          posterUrl TEXT,
-          backdropUrl TEXT
-        )
-      """
-      )
-    }
-  }
-
   @Provides
   fun provideDatabase(@ApplicationContext context: Context): MoversDatabase {
     return Room.databaseBuilder(
@@ -43,7 +24,6 @@ object DatabaseModule {
       MoversDatabase::class.java,
       DATABASE_NAME,
     )
-      .addMigrations(MIGRATION_2_3)
       .build()
   }
 

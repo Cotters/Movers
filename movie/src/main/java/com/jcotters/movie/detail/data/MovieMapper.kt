@@ -30,7 +30,10 @@ class MovieMapper @Inject constructor() {
     }
   }
 
-  fun toDatabaseModel(movies: List<CatalogueMovieDto?>): List<DbMovie> {
+  fun toDatabaseModel(
+    movies: List<CatalogueMovieDto?>,
+    page: Int,
+  ): List<DbMovie> {
     return movies.mapNotNull { dto ->
       DbMovie(
         id = dto?.id ?: return@mapNotNull null,
@@ -39,6 +42,7 @@ class MovieMapper @Inject constructor() {
         releaseDate = dto.releaseDate ?: "Unknown release date",
         posterUrl = dto.posterPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
         backdropUrl = dto.backdropPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
+        page = page,
       )
     }
   }

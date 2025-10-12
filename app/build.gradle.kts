@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.hilt)
     implementation(libs.hilt.navigation)
     ksp(libs.hilt.compiler)
+    implementation(libs.androidx.paging.compose)
 
     implementation(project(path = ":movie"))
     implementation(project(path = ":auth"))

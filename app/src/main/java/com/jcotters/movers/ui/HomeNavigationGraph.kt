@@ -20,6 +20,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.jcotters.auth.domain.UserSession
 import com.jcotters.movie.catalogue.ui.MovieCatalogueScreen
 import com.jcotters.movie.catalogue.ui.MovieCatalogueViewModel
@@ -49,7 +50,7 @@ fun NavGraphBuilder.homeNavigationGraph(
         sharedTransitionScope = sharedTransitionScope,
         animatedVisibilityScope = this@composable,
         isAuthenticated = userSession is UserSession.Authenticated,
-        movies = viewState.movies,
+        movies = viewModel.popularMovies.collectAsLazyPagingItems(),
         onMovieTapped = { movieId ->
           navController.navigate(NavigationRoutes.MovieDetails(movieId = movieId))
         },

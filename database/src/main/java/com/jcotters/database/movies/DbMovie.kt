@@ -12,4 +12,5 @@ data class DbMovie(
   val releaseDate: String,
   val posterUrl: String? = null,
   val backdropUrl: String? = null,
+  val page: Int,
 )
