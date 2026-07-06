@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -43,8 +44,7 @@ fun NavGraphBuilder.homeNavigationGraph(
   navigation<NavigationRoutes.Home>(startDestination = NavigationRoutes.Catalogue) {
     composable<NavigationRoutes.Catalogue> {
       val viewModel: MovieCatalogueViewModel = hiltViewModel()
-      val viewState by viewModel.uiState.collectAsState()
-      val userSession by userSessionFlow.collectAsState(initial = UserSession.Unknown)
+      val userSession by userSessionFlow.collectAsStateWithLifecycle(UserSession.Unknown)
 
       MovieCatalogueScreen(
         sharedTransitionScope = sharedTransitionScope,
@@ -106,7 +106,7 @@ fun NavGraphBuilder.homeNavigationGraph(
     exitTransition = {
       slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
     },
-  ) { backStackEntry ->
+  ) { _ ->
     val viewModel: ProfileViewModel = hiltViewModel()
     val viewState by viewModel.uiState.collectAsState()
     val userSession by userSessionFlow.collectAsState(initial = UserSession.Unknown)

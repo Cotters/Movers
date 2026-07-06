@@ -10,7 +10,7 @@ class PasswordUtils @Inject constructor() {
   private companion object {
     const val SALT_SIZE_BYTES = 16
     const val HASHING_ALGORITHM = "PBKDF2WithHmacSHA256"
-    const val ITERATION_COUNT = 10000
+    const val ITERATION_COUNT = 600_000
     const val KEY_LENGTH_BITS = 256
   }
 
