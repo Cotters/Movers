@@ -26,7 +26,10 @@ class UserRepository @Inject constructor(
   }
 
   override suspend fun getUserIdOrNull(): Int? {
-    return sessionManager.sessionState.first().userId
+    return when (val session = userSession.first()) {
+      is UserSession.Authenticated -> session.userId
+      else -> null
+    }
   }
 
   override val userSession: Flow<UserSession> = sessionManager.sessionState.map { sessionState ->
@@ -63,6 +66,7 @@ class UserRepository @Inject constructor(
       val hashedPassword = passwordUtils.hashPassword(password = password, salt = salt)
       secureStorage.saveCredentials(username = username, saltHex = salt.toHexString(), hashHex = hashedPassword)
       val newUser = User(username = username)
+      // TODO: If this fails we have wrong/orphaned credentials being used in the app.
       userDao.insertUser(newUser)
       return@withContext Result.success(MoverUser(userId = newUser.id, username = newUser.username))
     } catch (e: Throwable) {
