@@ -10,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -18,6 +19,7 @@ object DatabaseModule {
   private const val DATABASE_NAME: String = "movers_database"
 
   @Provides
+  @Singleton
   fun provideDatabase(@ApplicationContext context: Context): MoversDatabase {
     return Room.databaseBuilder(
       context,

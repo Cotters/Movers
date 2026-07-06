@@ -10,11 +10,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.Authenticator
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.Route
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -29,13 +25,12 @@ object MovieModule {
   @Provides
   fun provideOkHttpClient(): OkHttpClient {
     return OkHttpClient.Builder()
-      .authenticator(object : Authenticator {
-        override fun authenticate(route: Route?, response: Response): Request? {
-          val requestBuilder = response.request.newBuilder()
-          requestBuilder.header("Authorization", "Bearer $API_TOKEN")
-          return requestBuilder.build()
-        }
-      })
+      .addInterceptor { chain ->
+        val requestBuilder = chain.request().newBuilder()
+        requestBuilder.header("Authorization", "Bearer $API_TOKEN")
+        val response = chain.proceed(requestBuilder.build())
+        response
+      }
       .build()
   }
 

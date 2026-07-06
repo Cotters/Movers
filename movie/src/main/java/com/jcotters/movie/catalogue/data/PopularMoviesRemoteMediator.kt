@@ -5,8 +5,9 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
+import androidx.room.withTransaction
+import com.jcotters.database.MoversDatabase
 import com.jcotters.database.movies.DbMovie
-import com.jcotters.database.movies.MovieDao
 import com.jcotters.movie.MovieApi
 import com.jcotters.movie.detail.data.MovieMapper
 import retrofit2.HttpException
@@ -16,12 +17,18 @@ import javax.inject.Inject
 @OptIn(ExperimentalPagingApi::class)
 class MovieRemoteMediator @Inject constructor(
   private val movieApi: MovieApi,
-  private val movieDao: MovieDao,
+  private val database: MoversDatabase,
   private val movieMapper: MovieMapper,
 ) : RemoteMediator<Int, DbMovie>() {
 
+  private val movieDao = database.movieDao()
+
   private companion object {
     const val START_PAGE = 1
+  }
+
+  override suspend fun initialize(): InitializeAction {
+    return InitializeAction.LAUNCH_INITIAL_REFRESH
   }
 
   override suspend fun load(
@@ -38,15 +45,19 @@ class MovieRemoteMediator @Inject constructor(
         }
       }
 
-//      delay(3000L)
+//      delay(3000.milliseconds)
       Log.d("TJ", "Fetching from API (page=$page)")
       val response = movieApi.getPopularMovies(page = page)
       val movies = response.results.orEmpty().filterNotNull()
       val endOfPaginationReached = movies.isEmpty() || page >= (response.totalPages ?: 0)
 
-      val dbMovies = movieMapper.toDatabaseModel(movies = movies, page = page)
-      movieDao.upsertAll(dbMovies)
-
+      database.withTransaction {
+        if (loadType == LoadType.REFRESH) {
+          movieDao.clearAll()
+        }
+        val dbMovies = movieMapper.toDatabaseModel(movies = movies, page = page)
+        movieDao.upsertAll(dbMovies)
+      }
       MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
     } catch (e: IOException) {
       MediatorResult.Error(e)

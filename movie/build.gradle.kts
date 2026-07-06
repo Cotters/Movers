@@ -49,6 +49,8 @@ dependencies {
   implementation(libs.coil.network.okhttp)
   implementation(libs.androidx.paging.runtime)
   implementation(libs.androidx.paging.compose)
+  implementation(libs.androidx.room)
+  implementation(libs.androidx.room.ktx)
 
   implementation(project(path = ":database"))
 
