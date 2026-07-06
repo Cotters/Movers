@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,10 +28,11 @@ fun PasswordField(
   var showPassword by remember { mutableStateOf(false) }
   val passwordTrailingIcon = if (showPassword) R.drawable.eye_open else R.drawable.eye_closed
   val passwordTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation()
-  TextField(
+  OutlinedTextField(
     value = password,
     onValueChange = onPasswordChanged,
     modifier = Modifier.fillMaxWidth(),
+    maxLines = 1,
     label = { Text(label) },
     visualTransformation = passwordTransformation,
     trailingIcon = {
