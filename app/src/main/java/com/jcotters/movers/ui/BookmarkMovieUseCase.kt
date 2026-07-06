@@ -1,6 +1,7 @@
-package com.jcotters.movie.detail.domain
+package com.jcotters.movers.ui
 
 import com.jcotters.auth.domain.IUserRepository
+import com.jcotters.movie.detail.domain.IBookmarksRepository
 import javax.inject.Inject
 
 class BookmarkMovieUseCase @Inject constructor(

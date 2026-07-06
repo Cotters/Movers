@@ -1,4 +1,4 @@
-package com.jcotters.movie.detail.ui
+package com.jcotters.movers.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jcotters.movie.R
 import com.jcotters.movie.detail.domain.models.Movie
+import com.jcotters.movie.detail.ui.MoverImageView
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -68,9 +69,9 @@ fun MovieDetailScreen(
             .aspectRatio(16f / 9f)
         ) {
           MoverImageView(
-            posterUrl = movie.backdropUrl.orEmpty(),
-            contentDescription = "Movie backdrop image for ${movie.title}",
-            modifier = Modifier.fillMaxSize(),
+              posterUrl = movie.backdropUrl.orEmpty(),
+              contentDescription = "Movie backdrop image for ${movie.title}",
+              modifier = Modifier.fillMaxSize(),
           )
           Box(
             modifier = Modifier

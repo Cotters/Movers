@@ -25,9 +25,6 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.jcotters.auth.domain.UserSession
 import com.jcotters.movie.catalogue.ui.MovieCatalogueScreen
 import com.jcotters.movie.catalogue.ui.MovieCatalogueViewModel
-import com.jcotters.movie.detail.ui.MovieDetailScreen
-import com.jcotters.movie.detail.ui.MovieDetailViewEvent
-import com.jcotters.movie.detail.ui.MovieDetailViewModel
 import com.jcotters.profile.ui.ProfileScreen
 import com.jcotters.profile.ui.ProfileViewEvent
 import com.jcotters.profile.ui.ProfileViewModel

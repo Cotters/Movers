@@ -50,7 +50,6 @@ dependencies {
   implementation(libs.androidx.paging.runtime)
   implementation(libs.androidx.paging.compose)
 
-  implementation(project(path = ":auth"))
   implementation(project(path = ":database"))
 
   testImplementation(libs.junit)

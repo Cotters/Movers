@@ -1,10 +1,8 @@
-package com.jcotters.movie.detail.ui
+package com.jcotters.movers.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jcotters.movie.detail.domain.BookmarkMovieUseCase
 import com.jcotters.movie.detail.domain.GetMovieByIdUseCase
-import com.jcotters.movie.detail.domain.IsMovieBookmarkedUseCase
 import com.jcotters.movie.detail.domain.models.Movie
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -69,6 +67,7 @@ class MovieDetailViewModel @Inject constructor(
   }
 
   private fun onBookmarkTapped(movieId: Int) {
+    // TODO: Prevent tapping again to avoid duplicate requests and out-of-sync saving.
     val isBookmarked = viewModelUiState.value.isBookmarked
     viewModelUiState.update { current ->
       current.copy(isBookmarked = current.isBookmarked.not())
