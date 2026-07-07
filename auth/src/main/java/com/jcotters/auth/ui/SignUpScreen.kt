@@ -35,6 +35,11 @@ fun SignUpScreen(
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
       Spacer(modifier = Modifier.height(30.dp))
+      Text(
+        text = "Join ${viewState.userCount} mover fanatics today!",
+        style = MaterialTheme.typography.bodyMedium,
+      )
+      Spacer(modifier = Modifier.height(16.dp))
       Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),

@@ -9,13 +9,16 @@ import androidx.room.Query
 @Dao
 interface UserDao {
   @Insert(onConflict = OnConflictStrategy.ABORT)
-  suspend fun insertUser(user: User)
+  suspend fun insertUser(user: User): Long
 
   @Query("SELECT * FROM users WHERE username like :username")
   suspend fun findByUsername(username: String): User?
 
   @Query("SELECT * FROM users WHERE id = :userId")
   suspend fun getUserById(userId: Int): User?
+
+  @Query("SELECT COUNT(*) FROM users")
+  suspend fun getUserCount(): Int
 
   @Delete
   suspend fun delete(user: User)

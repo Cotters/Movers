@@ -9,4 +9,5 @@ interface IUserRepository {
   suspend fun signUp(username: String, password: String): Result<MoverUser>
   suspend fun createUserSession(userId: Int): Result<Unit>
   suspend fun logout()
+  suspend fun getUserCount(): Int
 }

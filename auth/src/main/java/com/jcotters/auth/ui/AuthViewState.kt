@@ -11,6 +11,7 @@ data class AuthViewState(
   val confirmPassword: String = "",
   val successfulLogin: Boolean = false,
   val errorMessage: String = "",
+  val userCount: Int = 0,
 ) {
   val loginButtonEnabled: Boolean
     get() = username.isNotEmpty() && password.isNotEmpty()

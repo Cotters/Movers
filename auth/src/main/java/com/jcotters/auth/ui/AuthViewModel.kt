@@ -9,6 +9,7 @@ import androidx.credentials.PasswordCredential
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.auth.domain.LoginUseCase
 import com.jcotters.auth.domain.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +23,7 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
   private val loginUseCase: LoginUseCase,
   private val signUpUseCase: SignUpUseCase,
+  private val userRepository: IUserRepository,
 ) : ViewModel() {
 
   companion object {
@@ -80,6 +82,7 @@ class AuthViewModel @Inject constructor(
       AuthViewEvent.CreateAccountTapped -> {
         viewModelUiState.update { it.copy(authMode = AuthMode.SignUp) }
         clearErrorMessage()
+        fetchUserCount()
       }
 
       AuthViewEvent.HaveExistingAccountTapped -> {
@@ -149,6 +152,21 @@ class AuthViewModel @Inject constructor(
   private fun setErrorMessage(message: String) {
     viewModelUiState.update { current ->
       current.copy(errorMessage = message)
+    }
+  }
+
+  private fun fetchUserCount() {
+    viewModelScope.launch {
+      try {
+        val count = userRepository.getUserCount()
+        viewModelUiState.update { current ->
+          current.copy(userCount = count)
+        }
+      } catch (e: Exception) {
+        viewModelUiState.update { current ->
+          current.copy(userCount = 0)
+        }
+      }
     }
   }
 }
