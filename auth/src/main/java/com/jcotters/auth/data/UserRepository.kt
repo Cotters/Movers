@@ -75,6 +75,8 @@ class UserRepository @Inject constructor(
                     saltHex = salt.toHexString(),
                     hashHex = hashedPassword
                 )
+                // Warning: If this fails then we have invalid user credentials saved in our DataStore - see 'TOCTOU'.
+                // In reality, we'd use backend for Auth; this example is just to experiment with DataStore.
                 val userId = userDao.insertUser(newUser).toInt()
                 return@withContext Result.success(MoverUser(userId = userId, username = newUser.username))
             }
