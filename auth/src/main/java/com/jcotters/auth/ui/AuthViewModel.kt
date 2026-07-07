@@ -162,7 +162,7 @@ class AuthViewModel @Inject constructor(
         viewModelUiState.update { current ->
           current.copy(userCount = count)
         }
-      } catch (e: Exception) {
+      } catch (_: Exception) {
         viewModelUiState.update { current ->
           current.copy(userCount = 0)
         }

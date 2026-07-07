@@ -9,13 +9,13 @@ import com.jcotters.database.movies.MovieDao
 import com.jcotters.database.user.User
 import com.jcotters.database.user.UserDao
 
-@Database(entities = [User::class, Bookmark::class, DbMovie::class], version = 1)
+@Database(entities = [User::class, Bookmark::class, DbMovie::class], version = 2)
 abstract class MoversDatabase : RoomDatabase() {
 
-  abstract fun userDao(): UserDao
+    abstract fun userDao(): UserDao
 
-  abstract fun bookmarkDao(): BookmarkDao
+    abstract fun bookmarkDao(): BookmarkDao
 
-  abstract fun movieDao(): MovieDao
+    abstract fun movieDao(): MovieDao
 
 }
