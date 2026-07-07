@@ -38,6 +38,7 @@ dependencies {
   implementation(libs.androidx.compose.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.biometric.biometric)
   implementation(libs.kotlin.serialization.json)
   implementation(libs.hilt)
   ksp(libs.hilt.compiler)
