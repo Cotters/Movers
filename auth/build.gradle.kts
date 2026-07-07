@@ -7,7 +7,7 @@ plugins {
 
 android {
   namespace = "com.jcotters.auth"
-  compileSdk = 36
+  compileSdk = libs.versions.android.compileSdk.get().toInt()
 
   defaultConfig {
     minSdk = 28

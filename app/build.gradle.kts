@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.jcotters.movers"
-    compileSdk = 36
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.jcotters.movers"

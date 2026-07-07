@@ -7,7 +7,7 @@ plugins {
 
 android {
   namespace = "com.jcotters.movie"
-  compileSdk = 37
+  compileSdk = libs.versions.android.compileSdk.get().toInt()
 
   defaultConfig {
     minSdk = 28

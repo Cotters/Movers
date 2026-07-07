@@ -1,5 +1,6 @@
 [versions]
-agp = "8.13.0"
+android-compileSdk = "37"
+agp = "9.2.1"
 coilCompose = "3.3.0"
 credentials = "1.6.0-beta01"
 datastore = "1.1.7"
@@ -68,6 +69,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-ksp = { id = "com.google.devtools.ksp", version = "2.2.20-2.0.3" }
+kotlin-ksp = { id = "com.google.devtools.ksp", version = "2.3.2" }
 dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-

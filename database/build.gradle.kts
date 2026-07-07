@@ -6,7 +6,7 @@ plugins {
 
 android {
   namespace = "com.jcotters.database"
-  compileSdk = 36
+  compileSdk = libs.versions.android.compileSdk.get().toInt()
 
   defaultConfig {
     minSdk = 28
