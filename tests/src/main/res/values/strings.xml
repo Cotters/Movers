@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">tests</string>
+    <string name="back_button">Navigate back</string>
+    <string name="fingerprint_dialog_activity_label">Fingerprint</string>
+</resources>

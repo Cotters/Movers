@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Hidden" parent="Theme.AppCompat">
+    </style>
+    <style name="WhiteBackgroundTheme" parent="Theme.AppCompat">
+    </style>
+</resources>

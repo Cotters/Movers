@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoginScreen(
-  modifier: Modifier,
   viewState: AuthViewState,
   onViewEvent: (AuthViewEvent) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
   Surface {
     Column(
