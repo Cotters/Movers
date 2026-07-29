@@ -1,0 +1,16 @@
+package com.jcotters.internal.detail.data.models
+
+import androidx.annotation.Keep
+import com.google.gson.annotations.SerializedName
+
+@Keep
+data class ProductionCompany(
+  @SerializedName("id")
+  val id: Int? = null,
+  @SerializedName("logo_path")
+  val logoPath: String? = null,
+  @SerializedName("name")
+  val name: String? = null,
+  @SerializedName("origin_country")
+  val originCountry: String? = null
+)

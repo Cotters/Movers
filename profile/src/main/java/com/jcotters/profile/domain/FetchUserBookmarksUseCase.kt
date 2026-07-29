@@ -1,8 +1,8 @@
 package com.jcotters.profile.domain
 
 import com.jcotters.auth.domain.IUserRepository
-import com.jcotters.movie.detail.domain.IBookmarksRepository
-import com.jcotters.movie.detail.domain.models.Movie
+import com.jcotters.contract.detail.domain.IBookmarksRepository
+import com.jcotters.contract.detail.domain.models.Movie
 import javax.inject.Inject
 
 class FetchUserBookmarksUseCase @Inject constructor(

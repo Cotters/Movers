@@ -34,109 +34,109 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jcotters.movie.R
-import com.jcotters.movie.detail.domain.models.Movie
-import com.jcotters.movie.detail.ui.MoverImageView
+import com.jcotters.contract.detail.domain.models.Movie
+import com.jcotters.presentation.MoverImageView
+import com.jcotters.presentation.R
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieDetailScreen(
-  sharedTransitionScope: SharedTransitionScope,
-  animatedVisibilityScope: AnimatedVisibilityScope,
-  onViewEvent: (MovieDetailViewEvent) -> Unit,
-  viewState: MovieDetailViewState,
-  modifier: Modifier = Modifier,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onViewEvent: (MovieDetailViewEvent) -> Unit,
+    viewState: MovieDetailViewState,
+    modifier: Modifier = Modifier,
 ) {
-  val horizontalPadding = 8.dp
-  val posterVerticalOffset = 50.dp
-  Surface(
-    modifier = modifier.fillMaxSize(),
-  ) {
-    if (viewState.isLoading) {
-      Box(modifier = Modifier.fillMaxSize()) {
-        LinearProgressIndicator(
-          modifier = Modifier.fillMaxWidth(),
-        )
-      }
-    } else if (viewState.movie != null) {
-      val movie = viewState.movie
-      Column(
-        modifier = Modifier.fillMaxSize()
-      ) {
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(16f / 9f)
-        ) {
-          MoverImageView(
-              posterUrl = movie.backdropUrl.orEmpty(),
-              contentDescription = "Movie backdrop image for ${movie.title}",
-              modifier = Modifier.fillMaxSize(),
-          )
-          Box(
-            modifier = Modifier
-              .fillMaxSize()
-              .background(
-                brush = Brush.verticalGradient(
-                  colors = listOf(
-                    Color.Transparent,
-                    Color.Black.copy(alpha = 0.6f)
-                  ),
-                  startY = 0f,
-                  endY = Float.POSITIVE_INFINITY
+    val horizontalPadding = 8.dp
+    val posterVerticalOffset = 50.dp
+    Surface(
+        modifier = modifier.fillMaxSize(),
+    ) {
+        if (viewState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
                 )
-              )
-          )
-          sharedTransitionScope.MoverImageView(
-            posterUrl = movie.posterUrl.orEmpty(),
-            contentDescription = "Movie poster for ${movie.title}",
-            modifier = Modifier
-              .align(Alignment.BottomStart)
-              .padding(start = 24.dp)
-              .offset(y = posterVerticalOffset)
-              .size(width = 120.dp, height = 180.dp),
-            animatedVisibilityScope = animatedVisibilityScope,
-          )
-          Box(
-            modifier = Modifier
-              .align(Alignment.BottomEnd)
-              .padding(16.dp)
-              .clip(CircleShape)
-              .size(40.dp)
-              .background(Color.Black.copy(alpha = 0.5f))
-          ) {
-            val bookmarkIcon =
-              if (viewState.isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
-            IconButton(onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) }) {
-              Icon(
-                painter = painterResource(bookmarkIcon),
-                contentDescription = "Bookmark movie button",
-                modifier = Modifier.size(25.dp),
-                tint = Color.White,
-              )
             }
-          }
+        } else if (viewState.movie != null) {
+            val movie = viewState.movie
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                ) {
+                    MoverImageView(
+                        posterUrl = movie.backdropUrl.orEmpty(),
+                        contentDescription = "Movie backdrop image for ${movie.title}",
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.6f)
+                                    ),
+                                    startY = 0f,
+                                    endY = Float.POSITIVE_INFINITY
+                                )
+                            )
+                    )
+                    sharedTransitionScope.MoverImageView(
+                        posterUrl = movie.posterUrl.orEmpty(),
+                        contentDescription = "Movie poster for ${movie.title}",
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(start = 24.dp)
+                            .offset(y = posterVerticalOffset)
+                            .size(width = 120.dp, height = 180.dp),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                    )
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                            .clip(CircleShape)
+                            .size(40.dp)
+                            .background(Color.Black.copy(alpha = 0.5f))
+                    ) {
+                        val bookmarkIcon =
+                            if (viewState.isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
+                        IconButton(onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) }) {
+                            Icon(
+                                painter = painterResource(bookmarkIcon),
+                                contentDescription = "Bookmark movie button",
+                                modifier = Modifier.size(25.dp),
+                                tint = Color.White,
+                            )
+                        }
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .padding(top = posterVerticalOffset)
+                        .padding(horizontal = horizontalPadding, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = movie.title,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(text = movie.synopsis, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Released ${movie.releaseDate}", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
         }
-        Column(
-          modifier = Modifier
-            .padding(top = posterVerticalOffset)
-            .padding(horizontal = horizontalPadding, vertical = 16.dp),
-          verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-          Text(
-            text = movie.title,
-            style = MaterialTheme.typography.titleLarge.copy(
-              fontWeight = FontWeight.SemiBold
-            ),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-          )
-          Text(text = movie.synopsis, style = MaterialTheme.typography.bodyMedium)
-          Text(text = "Released ${movie.releaseDate}", style = MaterialTheme.typography.bodyMedium)
-        }
-      }
     }
-  }
 }
 
 
@@ -144,24 +144,24 @@ fun MovieDetailScreen(
 @Preview
 @Composable
 private fun MovieDetailScreenPreview() {
-  SharedTransitionLayout {
-    AnimatedVisibility(visible = true) {
-      MovieDetailScreen(
-        sharedTransitionScope = this@SharedTransitionLayout,
-        animatedVisibilityScope = this,
-        onViewEvent = { _ -> },
-        viewState = MovieDetailViewState(
-          isLoading = false,
-          isBookmarked = true,
-          movie = Movie(
-            id = 1,
-            title = "Preview: The Movie",
-            synopsis = "A preview to die for...",
-            releaseDate = "2025/10/07",
-            posterUrl = "https://api.themoviedb.org/3/ovZ0zq0NwRghtWI1oLaM0lWuoEw.jpg"
-          )
-        )
-      )
+    SharedTransitionLayout {
+        AnimatedVisibility(visible = true) {
+            MovieDetailScreen(
+                sharedTransitionScope = this@SharedTransitionLayout,
+                animatedVisibilityScope = this,
+                onViewEvent = { _ -> },
+                viewState = MovieDetailViewState(
+                    isLoading = false,
+                    isBookmarked = true,
+                    movie = Movie(
+                        id = 1,
+                        title = "Preview: The Movie",
+                        synopsis = "A preview to die for...",
+                        releaseDate = "2025/10/07",
+                        posterUrl = "https://api.themoviedb.org/3/ovZ0zq0NwRghtWI1oLaM0lWuoEw.jpg"
+                    )
+                )
+            )
+        }
     }
-  }
 }

@@ -25,129 +25,129 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jcotters.movie.detail.domain.models.PreviewMovies
-import com.jcotters.movie.detail.ui.MoverImageView
+import com.jcotters.contract.detail.domain.models.PreviewMovies
+import com.jcotters.presentation.MoverImageView
 import com.jcotters.profile.domain.Profile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-  viewState: ProfileViewState,
-  onViewEvent: (ProfileViewEvent) -> Unit,
+    viewState: ProfileViewState,
+    onViewEvent: (ProfileViewEvent) -> Unit,
 ) {
-  Scaffold { innerPadding ->
-    if (viewState.isLoading) {
-      LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-    } else {
-      ProfileView(
-        modifier = Modifier.padding(innerPadding),
-        viewState = viewState,
-        onViewEvent = onViewEvent,
-      )
+    Scaffold { innerPadding ->
+        if (viewState.isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        } else {
+            ProfileView(
+                modifier = Modifier.padding(innerPadding),
+                viewState = viewState,
+                onViewEvent = onViewEvent,
+            )
+        }
     }
-  }
 }
 
 @Composable
 fun ProfileView(
-  modifier: Modifier,
-  viewState: ProfileViewState,
-  onViewEvent: (ProfileViewEvent) -> Unit,
+    modifier: Modifier,
+    viewState: ProfileViewState,
+    onViewEvent: (ProfileViewEvent) -> Unit,
 ) {
-  Column(
-    modifier = modifier
-      .padding(horizontal = 8.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp)
-  ) {
-    viewState.profile?.let {
-      ProfileDetailsView(it)
-    }
-
-    Text(text = "Bookmarks", style = MaterialTheme.typography.headlineMedium)
-
-    LazyRow(
-      modifier = Modifier
-        .height(200.dp)
-        .fillMaxWidth()
-        .background(color = MaterialTheme.colorScheme.surfaceContainer),
-      contentPadding = PaddingValues(vertical = 8.dp),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+    Column(
+        modifier = modifier
+            .padding(horizontal = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-      if (viewState.bookmarkedMovies.isEmpty()) {
-        item {
-          Box(
-            modifier = Modifier
-              .fillParentMaxWidth()
-              .fillParentMaxHeight(),
-            contentAlignment = Alignment.Center,
-          ) {
-            Text(
-              text = "No Saved Moovers",
-              style = MaterialTheme.typography.headlineSmall,
-            )
-          }
+        viewState.profile?.let {
+            ProfileDetailsView(it)
         }
-      }
-      items(viewState.bookmarkedMovies) { movie ->
-        MoverImageView(
-          posterUrl = movie.posterUrl.orEmpty(),
-          contentDescription = "Movie poster for ${movie.title}",
-          modifier = Modifier
-            .fillMaxHeight()
-            .aspectRatio(3f / 5f)
+
+        Text(text = "Bookmarks", style = MaterialTheme.typography.headlineMedium)
+
+        LazyRow(
+            modifier = Modifier
+                .height(200.dp)
+                .fillMaxWidth()
+                .background(color = MaterialTheme.colorScheme.surfaceContainer),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (viewState.bookmarkedMovies.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillParentMaxWidth()
+                            .fillParentMaxHeight(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "No Saved Moovers",
+                            style = MaterialTheme.typography.headlineSmall,
+                        )
+                    }
+                }
+            }
+            items(viewState.bookmarkedMovies) { movie ->
+                MoverImageView(
+                    posterUrl = movie.posterUrl.orEmpty(),
+                    contentDescription = "Movie poster for ${movie.title}",
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(3f / 5f)
 //            .padding(vertical = 8.dp)
-        )
-      }
-    }
+                )
+            }
+        }
 
-    Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
 
-    Button(
-      onClick = { onViewEvent(ProfileViewEvent.LogoutTapped) },
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(all = 8.dp),
-      shape = RoundedCornerShape(8.dp),
-    ) {
-      Text("Logout")
+        Button(
+            onClick = { onViewEvent(ProfileViewEvent.LogoutTapped) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(all = 8.dp),
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Text("Logout")
+        }
     }
-  }
 }
 
 @Composable
 fun ProfileDetailsView(
-  profile: Profile,
+    profile: Profile,
 ) {
-  Column {
-    Text(
-      text = profile.username,
-      style = MaterialTheme.typography.headlineLarge,
-    )
-  }
+    Column {
+        Text(
+            text = profile.username,
+            style = MaterialTheme.typography.headlineLarge,
+        )
+    }
 }
 
 @Preview
 @Composable
 private fun NoBookmarksPreview() {
-  ProfileScreen(
-    viewState = ProfileViewState(
-      isLoading = false,
-      profile = Profile(username = "Preview Account"),
-      bookmarkedMovies = emptyList(),
-    ),
-    onViewEvent = {},
-  )
+    ProfileScreen(
+        viewState = ProfileViewState(
+            isLoading = false,
+            profile = Profile(username = "Preview Account"),
+            bookmarkedMovies = emptyList(),
+        ),
+        onViewEvent = {},
+    )
 }
 
 @Preview
 @Composable
 private fun BookmarksPreview() {
-  ProfileScreen(
-    viewState = ProfileViewState(
-      isLoading = false,
-      profile = Profile(username = "Preview Account"),
-      bookmarkedMovies = PreviewMovies.movies.take(1),
-    ),
-    onViewEvent = {},
-  )
+    ProfileScreen(
+        viewState = ProfileViewState(
+            isLoading = false,
+            profile = Profile(username = "Preview Account"),
+            bookmarkedMovies = PreviewMovies.movies.take(1),
+        ),
+        onViewEvent = {},
+    )
 }

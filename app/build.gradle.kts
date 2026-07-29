@@ -28,8 +28,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
@@ -53,7 +53,11 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.paging.compose)
 
-    implementation(project(path = ":movie"))
+    implementation(project(path = ":presentation"))
+    implementation(project(path = ":movie:contract"))
+    implementation(project(path = ":movie:internal"))
+    implementation(project(path = ":features:catalogue"))
+    implementation(project(path = ":features:details"))
     implementation(project(path = ":auth"))
     implementation(project(path = ":profile"))
 

@@ -23,8 +23,8 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.jcotters.auth.domain.UserSession
-import com.jcotters.movie.catalogue.ui.MovieCatalogueScreen
-import com.jcotters.movie.catalogue.ui.MovieCatalogueViewModel
+import com.jcotters.catalogue.MovieCatalogueScreen
+import com.jcotters.catalogue.MovieCatalogueViewModel
 import com.jcotters.profile.ui.ProfileScreen
 import com.jcotters.profile.ui.ProfileViewEvent
 import com.jcotters.profile.ui.ProfileViewModel
