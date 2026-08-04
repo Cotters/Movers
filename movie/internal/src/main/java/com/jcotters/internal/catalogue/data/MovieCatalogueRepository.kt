@@ -27,7 +27,6 @@ internal class MovieCatalogueRepository @Inject constructor(
     private companion object {
         const val PAGE_SIZE: Int = 20
         const val PREFETCH_DISTANCE: Int = 50
-        const val INITIAL_LOAD_SIZE: Int = 20
     }
 
     override fun getPopularMoviesPaging(): Flow<PagingData<Movie>> {
@@ -36,7 +35,6 @@ internal class MovieCatalogueRepository @Inject constructor(
                 pageSize = PAGE_SIZE,
                 enablePlaceholders = false,
                 prefetchDistance = PREFETCH_DISTANCE,
-                initialLoadSize = INITIAL_LOAD_SIZE
             ),
             remoteMediator = remoteMediator,
             pagingSourceFactory = { movieDao.getMoviesPagingSource() }
