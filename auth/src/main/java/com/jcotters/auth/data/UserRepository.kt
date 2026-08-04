@@ -1,5 +1,6 @@
 package com.jcotters.auth.data
 
+import android.database.sqlite.SQLiteConstraintException
 import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.auth.domain.MoverUser
 import com.jcotters.auth.domain.UserSession
@@ -64,22 +65,19 @@ class UserRepository @Inject constructor(
     override suspend fun signUp(username: String, password: String): Result<MoverUser> = withContext(Dispatchers.IO) {
         try {
             mutex.withLock {
-                if (userDao.findByUsername(username) != null) {
-                    throw Throwable(USERNAME_TAKEN_MESSAGE)
-                }
+                val newUser = User(username = username)
+                val userId = userDao.insertUser(newUser).toInt()
                 val salt = passwordUtils.generateSalt()
                 val hashedPassword = passwordUtils.hashPassword(password = password, salt = salt)
-                val newUser = User(username = username)
                 secureStorage.saveCredentials(
                     username = username,
                     saltHex = salt.toHexString(),
                     hashHex = hashedPassword
                 )
-                // Warning: If this fails then we have invalid user credentials saved in our DataStore - see 'TOCTOU'.
-                // In reality, we'd use backend for Auth; this example is just to experiment with DataStore.
-                val userId = userDao.insertUser(newUser).toInt()
                 return@withContext Result.success(MoverUser(userId = userId, username = newUser.username))
             }
+        } catch (e: SQLiteConstraintException) {
+            return@withContext Result.failure(Throwable(USERNAME_TAKEN_MESSAGE))
         } catch (e: Throwable) {
             return@withContext Result.failure(e)
         }
