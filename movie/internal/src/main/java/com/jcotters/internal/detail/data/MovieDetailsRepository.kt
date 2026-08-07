@@ -24,6 +24,7 @@ internal class MovieDetailsRepository @Inject constructor(
             if (dbMovie != null) {
                 return@withContext Result.success(movieMapper.toDomainModel(dbMovie))
             }
+            // Never called. Atm we just display the basic details from catalogue.
             val movieDto = api.getMovieById(movieId = id)
             val movie = movieMapper.toDomainModel(movieDto)
             return@withContext if (movie != null) {
