@@ -1,5 +1,6 @@
 package com.jcotters.auth.data
 
+import android.database.sqlite.SQLiteConstraintException
 import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.database.user.User
 import com.jcotters.database.user.UserDao
@@ -80,14 +81,14 @@ class UserRepositoryShould {
 
   @Test
   fun `fail sign up when username already taken`() {
-    coEvery { userDao.findByUsername(USERNAME) } returns DB_USER
+    coEvery { userDao.insertUser(DB_USER) } throws SQLiteConstraintException("Username taken.")
 
     runBlocking { underTest.signUp(USERNAME, PASSWORD) }
 
+    coVerify(exactly = 1) { userDao.insertUser(any()) }
     coVerify(exactly = 0) { passwordUtils.generateSalt() }
     coVerify(exactly = 0) { passwordUtils.hashPassword(PASSWORD, any()) }
     coVerify(exactly = 0) { secureStorage.saveCredentials(USERNAME, any(), HASHED_PASSWORD) }
-    coVerify(exactly = 0) { userDao.insertUser(any()) }
   }
 
   @Test
@@ -95,17 +96,17 @@ class UserRepositoryShould {
     val salt = generateSalt()
     val saltHex = salt.toHexString()
 
-    coEvery { userDao.findByUsername(USERNAME) } returns null
+    coEvery { userDao.insertUser(any()) } returns 1
     coEvery { passwordUtils.generateSalt() } returns salt
     coEvery { passwordUtils.hashPassword(PASSWORD, salt) } returns HASHED_PASSWORD
     coEvery { secureStorage.saveCredentials(USERNAME, saltHex, HASHED_PASSWORD) } returns Unit
 
     runBlocking { underTest.signUp(USERNAME, PASSWORD) }
 
+    coVerify(exactly = 1) { userDao.insertUser(any()) }
     coVerify(exactly = 1) { passwordUtils.generateSalt() }
     coVerify(exactly = 1) { passwordUtils.hashPassword(PASSWORD, salt) }
     coVerify(exactly = 1) { secureStorage.saveCredentials(USERNAME, saltHex, HASHED_PASSWORD) }
-    coVerify(exactly = 1) { userDao.insertUser(any()) }
   }
 
   @Test

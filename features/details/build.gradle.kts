@@ -39,14 +39,12 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-//    implementation(libs.androidx.paging.runtime)
-//    implementation(libs.androidx.paging.compose)
 
     implementation(project(path = ":presentation"))
     implementation(project(path = ":movie:contract"))
 
     testImplementation(libs.junit)
-
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }

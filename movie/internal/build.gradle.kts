@@ -50,6 +50,7 @@ dependencies {
     implementation(project(path = ":database"))
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }

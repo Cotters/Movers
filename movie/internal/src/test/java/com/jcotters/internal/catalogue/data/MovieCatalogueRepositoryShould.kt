@@ -1,11 +1,11 @@
 package com.jcotters.internal.catalogue.data
 
+import com.jcotters.contract.catalogue.domain.IMovieCatalogueRepository
 import com.jcotters.database.movies.MovieDao
-import com.jcotters.movie.MovieApi
-import com.jcotters.movie.catalogue.data.models.CatalogueMovieDto
-import com.jcotters.movie.catalogue.data.models.CataloguePageResponse
-import com.jcotters.movie.catalogue.domain.IMovieCatalogueRepository
-import com.jcotters.movie.detail.data.MovieMapper
+import com.jcotters.internal.MovieApi
+import com.jcotters.internal.catalogue.data.models.CatalogueMovieDto
+import com.jcotters.internal.catalogue.data.models.CataloguePageResponse
+import com.jcotters.internal.detail.data.MovieMapper
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -19,81 +19,90 @@ import org.junit.Test
 
 class MovieCatalogueRepositoryShould {
 
-  @RelaxedMockK
-  private lateinit var movieApi: MovieApi
-  private val movieMapper: MovieMapper = MovieMapper()
+    @RelaxedMockK
+    private lateinit var movieApi: MovieApi
 
-  @RelaxedMockK
-  private lateinit var movieDao: MovieDao
+    private val movieMapper: MovieMapper = MovieMapper()
 
-  private lateinit var underTest: IMovieCatalogueRepository
+    @RelaxedMockK
+    private lateinit var movieDao: MovieDao
 
-  @Before
-  fun setUp() {
-    MockKAnnotations.init(this)
-    underTest = MovieCatalogueRepository(movieApi = movieApi, movieMapper = movieMapper, movieDao = movieDao)
-  }
+    @RelaxedMockK
+    private lateinit var remoteMediator: MovieRemoteMediator
 
-  @Test
-  fun `return empty list of popular movies when error occurs`() {
-    coEvery { movieApi.getPopularMovies(page = 1) } throws Throwable("Mock error")
+    private lateinit var underTest: IMovieCatalogueRepository
 
-    val response = runBlocking { underTest.getPopularMovies(page = 1) }
-
-    assertTrue(response.isEmpty())
-    coVerify(exactly = 1) { movieApi.getPopularMovies(page = 1) }
-  }
-
-  @Test
-  fun `return empty list of popular movies when first page requested given result is empty`() {
-    coEvery { movieApi.getPopularMovies(page = 1) } returns EMPTY_FIRST_PAGE
-
-    val response = runBlocking { underTest.getPopularMovies(page = 1) }
-
-    assertTrue(response.isEmpty())
-    coVerify(exactly = 1) { movieApi.getPopularMovies(page = 1) }
-  }
-
-  @Test
-  fun `return list of popular movies when first page requested`() {
-    coEvery { movieApi.getPopularMovies(page = 1) } returns MOCK_FIRST_PAGE
-
-    val response = runBlocking { underTest.getPopularMovies(page = 1) }
-
-    assertTrue(response.isNotEmpty())
-    (0..<3).forEach { index ->
-      assertThat(response[index].id, equalTo(index))
+    @Before
+    fun setUp() {
+        MockKAnnotations.init(this)
+        underTest = MovieCatalogueRepository(
+            movieApi = movieApi,
+            movieMapper = movieMapper,
+            movieDao = movieDao,
+            remoteMediator = remoteMediator
+        )
     }
-    coVerify(exactly = 1) { movieApi.getPopularMovies(page = 1) }
-  }
 
-  @Test
-  fun `save movies to database when fetched`() {
-    coEvery { movieApi.getPopularMovies(page = 1) } returns MOCK_FIRST_PAGE
+    @Test
+    fun `return empty list of popular movies when error occurs`() {
+        coEvery { movieApi.getPopularMovies(page = 1) } throws Throwable("Mock error")
 
-    runBlocking { underTest.getPopularMovies(page = 1) }
-    val mappedMovies = movieMapper.toDatabaseModel(MOCK_FIRST_PAGE.results.orEmpty())
+        val response = runBlocking { underTest.getPopularMovies(page = 1) }
 
-    coVerify(exactly = 1) { movieDao.insertMovies(mappedMovies) }
+        assertTrue(response.isEmpty())
+        coVerify(exactly = 1) { movieApi.getPopularMovies(page = 1) }
+    }
 
-  }
+    @Test
+    fun `return empty list of popular movies when first page requested given result is empty`() {
+        coEvery { movieApi.getPopularMovies(page = 1) } returns EMPTY_FIRST_PAGE
 
-  private companion object {
-    val EMPTY_FIRST_PAGE = CataloguePageResponse(
-      page = 1,
-      results = emptyList(),
-      totalPages = 0,
-      totalResults = 0,
-    )
-    val MOCK_FIRST_PAGE = CataloguePageResponse(
-      page = 1,
-      results = listOf(
-        CatalogueMovieDto(id = 0, title = "DbMovie 1", overview = "DbMovie 1"),
-        CatalogueMovieDto(id = 1, title = "DbMovie 2", overview = "DbMovie 2"),
-        CatalogueMovieDto(id = 2, title = "DbMovie 3", overview = "DbMovie 3"),
-      ),
-      totalPages = 1,
-      totalResults = 3,
-    )
-  }
+        val response = runBlocking { underTest.getPopularMovies(page = 1) }
+
+        assertTrue(response.isEmpty())
+        coVerify(exactly = 1) { movieApi.getPopularMovies(page = 1) }
+    }
+
+    @Test
+    fun `return list of popular movies when first page requested`() {
+        coEvery { movieApi.getPopularMovies(page = 1) } returns MOCK_FIRST_PAGE
+
+        val response = runBlocking { underTest.getPopularMovies(page = 1) }
+
+        assertTrue(response.isNotEmpty())
+        (0..<3).forEach { index ->
+            assertThat(response[index].id, equalTo(index))
+        }
+        coVerify(exactly = 1) { movieApi.getPopularMovies(page = 1) }
+    }
+
+    @Test
+    fun `save movies to database when fetched`() {
+        coEvery { movieApi.getPopularMovies(page = 1) } returns MOCK_FIRST_PAGE
+
+        runBlocking { underTest.getPopularMovies(page = 1) }
+        val mappedMovies = movieMapper.toDatabaseModel(movies = MOCK_FIRST_PAGE.results.orEmpty(), page = 1)
+
+        coVerify(exactly = 1) { movieDao.insertMovies(mappedMovies) }
+
+    }
+
+    private companion object {
+        val EMPTY_FIRST_PAGE = CataloguePageResponse(
+            page = 1,
+            results = emptyList(),
+            totalPages = 0,
+            totalResults = 0,
+        )
+        val MOCK_FIRST_PAGE = CataloguePageResponse(
+            page = 1,
+            results = listOf(
+                CatalogueMovieDto(id = 0, title = "DbMovie 1", overview = "DbMovie 1"),
+                CatalogueMovieDto(id = 1, title = "DbMovie 2", overview = "DbMovie 2"),
+                CatalogueMovieDto(id = 2, title = "DbMovie 3", overview = "DbMovie 3"),
+            ),
+            totalPages = 1,
+            totalResults = 3,
+        )
+    }
 }
