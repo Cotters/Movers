@@ -1,10 +1,8 @@
 package com.jcotters.catalogue
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,58 +26,54 @@ import com.jcotters.presentation.MoverImageView
 fun MovieCatalogueListItem(
     movie: Movie,
     modifier: Modifier = Modifier,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
+    posterModifier: Modifier = Modifier,
 ) {
-  Row(modifier = modifier) {
-    sharedTransitionScope.MoverImageView(
-      animatedVisibilityScope = animatedVisibilityScope,
-      posterUrl = movie.posterUrl.orEmpty(),
-      contentDescription = "DbMovie poster for ${movie.title}",
-      modifier = Modifier
-        .fillMaxHeight()
-        .aspectRatio(9f / 16f)
-        .padding(horizontal = 0.dp, vertical = 8.dp)
-    )
+    Row(modifier = modifier) {
+        MoverImageView(
+            posterUrl = movie.posterUrl.orEmpty(),
+            contentDescription = "DbMovie poster for ${movie.title}",
+            modifier = posterModifier
+                .fillMaxHeight()
+                .aspectRatio(9f / 16f)
+                .padding(horizontal = 0.dp, vertical = 8.dp)
+        )
 
-    Column(
-      modifier = Modifier
-        .fillMaxHeight()
-        .padding(all = 8.dp),
-      verticalArrangement = Arrangement.spacedBy(space = 8.dp, alignment = Alignment.CenterVertically)
-    ) {
-      Text(text = movie.title, style = MaterialTheme.typography.titleLarge)
-      Text(
-        text = movie.synopsis,
-        style = MaterialTheme.typography.bodyMedium,
-        maxLines = 4,
-        overflow = TextOverflow.Ellipsis,
-      )
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(all = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(space = 8.dp, alignment = Alignment.CenterVertically)
+        ) {
+            Text(text = movie.title, style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = movie.synopsis,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 4,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
-  }
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(
-  widthDp = 800,
-  heightDp = 200,
+    widthDp = 800,
+    heightDp = 200,
 )
 @Composable
 private fun MovieCatalogueListItemPreview() {
-  SharedTransitionLayout {
-    AnimatedVisibility(visible = true) {
-      Surface {
-        MovieCatalogueListItem(
-          sharedTransitionScope = this@SharedTransitionLayout,
-          animatedVisibilityScope = this,
-          movie = Movie(
-            id = 1,
-            title = "Preview: The DbMovie",
-            synopsis = "A thrilling preview!",
-            releaseDate = "Today"
-          ),
-        )
-      }
+    SharedTransitionLayout {
+        AnimatedVisibility(visible = true) {
+            Surface {
+                MovieCatalogueListItem(
+                    movie = Movie(
+                        id = 1,
+                        title = "Preview: The DbMovie",
+                        synopsis = "A thrilling preview!",
+                        releaseDate = "Today"
+                    ),
+                )
+            }
+        }
     }
-  }
 }

@@ -1,9 +1,7 @@
 package com.jcotters.catalogue
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
@@ -51,10 +49,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieCatalogueScreen(
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     isAuthenticated: Boolean,
     movies: LazyPagingItems<Movie>,
+    posterModifier: @Composable (Movie) -> Modifier,
     onMovieTapped: (Int) -> Unit,
     onAccountTapped: () -> Unit,
     modifier: Modifier = Modifier,
@@ -118,8 +115,7 @@ fun MovieCatalogueScreen(
                 listState = listState,
                 movies = movies,
                 onMovieTapped = onMovieTapped,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope
+                posterModifier = posterModifier,
             )
         }
     }
@@ -132,8 +128,7 @@ private fun PopularMoviesList(
     listState: LazyListState,
     movies: LazyPagingItems<Movie>,
     onMovieTapped: (Int) -> Unit,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope
+    posterModifier: @Composable (Movie) -> Modifier,
 ) {
     val refreshState = movies.loadState.refresh
     val appendState = movies.loadState.append
@@ -171,8 +166,8 @@ private fun PopularMoviesList(
                             .height(180.dp)
                             .fillParentMaxWidth()
                             .clickable { onMovieTapped(movie.id) },
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope,
+                        posterModifier = posterModifier(movie)
+
                     )
                 }
                 Text("Index: $index")

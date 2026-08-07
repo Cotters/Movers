@@ -1,10 +1,8 @@
 package com.jcotters.details.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,11 +39,10 @@ import com.jcotters.presentation.R
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieDetailScreen(
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onViewEvent: (MovieDetailViewEvent) -> Unit,
     viewState: MovieDetailViewState,
     modifier: Modifier = Modifier,
+    posterModifier: Modifier = Modifier,
 ) {
     val horizontalPadding = 8.dp
     val posterVerticalOffset = 50.dp
@@ -87,15 +84,14 @@ fun MovieDetailScreen(
                                 )
                             )
                     )
-                    sharedTransitionScope.MoverImageView(
+                    MoverImageView(
                         posterUrl = movie.posterUrl.orEmpty(),
                         contentDescription = "Movie poster for ${movie.title}",
-                        modifier = Modifier
+                        modifier = posterModifier
                             .align(Alignment.BottomStart)
                             .padding(start = 24.dp)
                             .offset(y = posterVerticalOffset)
                             .size(width = 120.dp, height = 180.dp),
-                        animatedVisibilityScope = animatedVisibilityScope,
                     )
                     Box(
                         modifier = Modifier
@@ -147,8 +143,6 @@ private fun MovieDetailScreenPreview() {
     SharedTransitionLayout {
         AnimatedVisibility(visible = true) {
             MovieDetailScreen(
-                sharedTransitionScope = this@SharedTransitionLayout,
-                animatedVisibilityScope = this,
                 onViewEvent = { _ -> },
                 viewState = MovieDetailViewState(
                     isLoading = false,
@@ -160,7 +154,7 @@ private fun MovieDetailScreenPreview() {
                         releaseDate = "2025/10/07",
                         posterUrl = "https://api.themoviedb.org/3/ovZ0zq0NwRghtWI1oLaM0lWuoEw.jpg"
                     )
-                )
+                ),
             )
         }
     }
