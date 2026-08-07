@@ -20,7 +20,7 @@ internal object MovieModule {
 
     const val API_VERSION = "3"
     const val API_URL = "https://api.themoviedb.org/$API_VERSION/"
-    const val API_TOKEN = "PASTE YOUR OWN TOKEN HERE"
+    const val API_TOKEN = ApiConstants.API_KEY // Use your own key.
 
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
