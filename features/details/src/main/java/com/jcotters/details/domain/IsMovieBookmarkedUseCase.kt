@@ -1,4 +1,4 @@
-package com.jcotters.movers.domain
+package com.jcotters.details.domain
 
 import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.contract.detail.domain.IBookmarksRepository

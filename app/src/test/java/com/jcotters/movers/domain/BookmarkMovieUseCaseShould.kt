@@ -2,6 +2,7 @@ package com.jcotters.movers.domain
 
 import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.contract.detail.domain.IBookmarksRepository
+import com.jcotters.details.domain.BookmarkMovieUseCase
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify

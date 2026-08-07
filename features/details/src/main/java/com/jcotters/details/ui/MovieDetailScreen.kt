@@ -1,4 +1,4 @@
-package com.jcotters.movers.ui
+package com.jcotters.details.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope

@@ -1,11 +1,11 @@
-package com.jcotters.movers.ui
+package com.jcotters.details.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jcotters.contract.detail.domain.models.Movie
+import com.jcotters.details.domain.BookmarkMovieUseCase
 import com.jcotters.details.domain.GetMovieByIdUseCase
-import com.jcotters.movers.domain.BookmarkMovieUseCase
-import com.jcotters.movers.domain.IsMovieBookmarkedUseCase
+import com.jcotters.details.domain.IsMovieBookmarkedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

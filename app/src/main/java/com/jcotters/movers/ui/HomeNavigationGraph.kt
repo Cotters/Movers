@@ -25,6 +25,9 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.jcotters.auth.domain.UserSession
 import com.jcotters.catalogue.MovieCatalogueScreen
 import com.jcotters.catalogue.MovieCatalogueViewModel
+import com.jcotters.details.ui.MovieDetailScreen
+import com.jcotters.details.ui.MovieDetailViewEvent
+import com.jcotters.details.ui.MovieDetailViewModel
 import com.jcotters.profile.ui.ProfileScreen
 import com.jcotters.profile.ui.ProfileViewEvent
 import com.jcotters.profile.ui.ProfileViewModel
@@ -87,12 +90,12 @@ fun NavGraphBuilder.homeNavigationGraph(
         viewModel.onViewEvent(MovieDetailViewEvent.OnLoad(movieId))
       }
 
-      MovieDetailScreen(
-        sharedTransitionScope = sharedTransitionScope,
-        animatedVisibilityScope = this@composable,
-        viewState = viewState,
-        onViewEvent = viewModel::onViewEvent,
-      )
+        MovieDetailScreen(
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this@composable,
+            viewState = viewState,
+            onViewEvent = viewModel::onViewEvent,
+        )
     }
   }
 

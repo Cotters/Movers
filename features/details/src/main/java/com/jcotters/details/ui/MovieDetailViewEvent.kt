@@ -1,4 +1,4 @@
-package com.jcotters.movers.ui
+package com.jcotters.details.ui
 
 sealed interface MovieDetailViewEvent {
   class OnLoad(val movieId: Int) : MovieDetailViewEvent

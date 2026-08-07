@@ -1,4 +1,4 @@
-package com.jcotters.movers.ui
+package com.jcotters.details.ui
 
 import com.jcotters.contract.detail.domain.models.Movie
 
