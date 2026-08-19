@@ -2,16 +2,18 @@ package com.jcotters.auth
 
 import com.jcotters.auth.data.UserRepository
 import com.jcotters.auth.domain.IUserRepository
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AuthModule {
+interface AuthModule {
 
-    @Provides
-    fun provideUserRepository(impl: UserRepository): IUserRepository = impl
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(impl: UserRepository): IUserRepository
 
 }

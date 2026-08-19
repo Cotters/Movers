@@ -13,6 +13,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -23,18 +24,19 @@ internal object MovieModule {
     const val API_TOKEN = ApiConstants.API_KEY // Use your own key.
 
     @Provides
+    @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val requestBuilder = chain.request().newBuilder()
                 requestBuilder.header("Authorization", "Bearer $API_TOKEN")
-                val response = chain.proceed(requestBuilder.build())
-                response
+                chain.proceed(requestBuilder.build())
             }
             .build()
     }
 
     @Provides
+    @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(API_URL)
@@ -44,6 +46,7 @@ internal object MovieModule {
     }
 
     @Provides
+    @Singleton
     fun provideMovieApi(retrofit: Retrofit): MovieApi {
         return retrofit.create(MovieApi::class.java)
     }
@@ -54,6 +57,7 @@ internal object MovieModule {
     ): IMovieDetailsRepository = impl
 
     @Provides
+    @Singleton
     fun provideMovieCatalogueRepository(
         impl: MovieCatalogueRepository
     ): IMovieCatalogueRepository = impl
