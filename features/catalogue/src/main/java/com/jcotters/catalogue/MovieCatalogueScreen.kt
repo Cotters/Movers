@@ -106,7 +106,7 @@ fun MovieCatalogueScreen(
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = movies.loadState.refresh is LoadState.Loading,
-            onRefresh = { movies.refresh() },
+            onRefresh = movies::refresh,
             state = pullToRefreshState,
             modifier = Modifier.padding(innerPadding)
         ) {
@@ -135,7 +135,7 @@ private fun PopularMoviesList(
 
     when (refreshState) {
         is LoadState.Error -> {
-            val error = (movies.loadState.refresh as LoadState.Error).error
+            val error = refreshState.error
             ErrorItem(
                 message = error.message ?: "Failed to load movies",
                 onRetry = { movies.retry() }
@@ -187,9 +187,8 @@ private fun PopularMoviesList(
                     }
 
                     is LoadState.Error -> {
-                        val error = (movies.loadState.append as LoadState.Error).error
                         ErrorItem(
-                            message = error.message ?: "Failed to load more",
+                            message = appendState.error.message ?: "Failed to load more",
                             onRetry = { movies.retry() }
                         )
                     }
