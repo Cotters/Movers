@@ -2,6 +2,7 @@ package com.jcotters.internal.detail.data
 
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.database.movies.DbMovie
+import com.jcotters.database.movies.DbMovieCatalogueEntry
 import com.jcotters.internal.catalogue.data.models.CatalogueMovieDto
 import com.jcotters.internal.detail.data.models.MovieDto
 import javax.inject.Inject
@@ -32,7 +33,6 @@ internal class MovieMapper @Inject constructor() {
 
   fun toDatabaseModel(
     movies: List<CatalogueMovieDto?>,
-    page: Int,
   ): List<DbMovie> {
     return movies.mapNotNull { dto ->
       DbMovie(
@@ -42,7 +42,6 @@ internal class MovieMapper @Inject constructor() {
         releaseDate = dto.releaseDate ?: "Unknown release date",
         posterUrl = dto.posterPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
         backdropUrl = dto.backdropPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
-        page = page,
       )
     }
   }
@@ -57,4 +56,10 @@ internal class MovieMapper @Inject constructor() {
       backdropUrl = dbMovie.backdropUrl
     )
   }
+
+    fun toCatalogueEntry(catalogue: String, movies: List<DbMovie>, page: Int): List<DbMovieCatalogueEntry> {
+        return movies.mapIndexed { index, movie ->
+            DbMovieCatalogueEntry(catalogue, movie.id, page, index)
+        }
+    }
 }

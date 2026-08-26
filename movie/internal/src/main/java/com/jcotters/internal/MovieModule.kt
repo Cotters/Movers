@@ -11,6 +11,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -27,6 +28,14 @@ internal object MovieModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
+            .addInterceptor(
+                HttpLoggingInterceptor()
+                    .apply {
+//                        if (isDebug) {
+                            setLevel(HttpLoggingInterceptor.Level.BODY)
+//                        }
+                    },
+            )
             .addInterceptor { chain ->
                 val requestBuilder = chain.request().newBuilder()
                 requestBuilder.header("Authorization", "Bearer $API_TOKEN")

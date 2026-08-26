@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.serialization)
     implementation(libs.retrofit.gson)
+    implementation(libs.logging.interceptor)
     implementation(libs.androidx.room)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.paging.runtime)

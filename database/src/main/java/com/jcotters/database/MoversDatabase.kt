@@ -5,11 +5,18 @@ import androidx.room.RoomDatabase
 import com.jcotters.database.bookmarks.Bookmark
 import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.movies.DbMovie
+import com.jcotters.database.movies.DbMovieCatalogueEntry
+import com.jcotters.database.movies.DbMovieCatalogueRemoteKey
+import com.jcotters.database.movies.MovieCatalogueDao
+import com.jcotters.database.movies.MovieCatalogueRemoteKeysDao
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.database.user.User
 import com.jcotters.database.user.UserDao
 
-@Database(entities = [User::class, Bookmark::class, DbMovie::class], version = 2)
+@Database(
+    entities = [User::class, Bookmark::class, DbMovie::class, DbMovieCatalogueEntry::class, DbMovieCatalogueRemoteKey::class],
+    version = 2,
+)
 abstract class MoversDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
@@ -17,5 +24,9 @@ abstract class MoversDatabase : RoomDatabase() {
     abstract fun bookmarkDao(): BookmarkDao
 
     abstract fun movieDao(): MovieDao
+
+    abstract fun movieCatalogueDao(): MovieCatalogueDao
+
+    abstract fun movieCatalogueRemoteKeysDao(): MovieCatalogueRemoteKeysDao
 
 }

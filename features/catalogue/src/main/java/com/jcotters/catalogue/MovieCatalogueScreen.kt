@@ -42,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.features.catalogue.R
 import kotlinx.coroutines.launch
@@ -152,25 +153,22 @@ private fun PopularMoviesList(
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.background)
                 ) {
-                    Text(text = "Total Items: ${movies.itemCount}")
+                    Text(text = "Popular Movies", style = MaterialTheme.typography.bodyMedium)
                 }
             }
             items(
                 count = movies.itemCount,
-                key = { index -> movies[index]?.id ?: index },
+                key = movies.itemKey(Movie::id),
             ) { index ->
-                movies[index]?.let { movie ->
-                    MovieCatalogueListItem(
-                        movie = movie,
-                        modifier = Modifier
-                            .height(180.dp)
-                            .fillParentMaxWidth()
-                            .clickable { onMovieTapped(movie.id) },
-                        posterModifier = posterModifier(movie)
-
-                    )
-                }
-                Text("Index: $index")
+                val movie = movies[index] ?: return@items
+                MovieCatalogueListItem(
+                    movie = movie,
+                    modifier = Modifier
+                        .height(180.dp)
+                        .fillParentMaxWidth()
+                        .clickable { onMovieTapped(movie.id) },
+                    posterModifier = posterModifier(movie)
+                )
                 HorizontalDivider()
             }
             item {

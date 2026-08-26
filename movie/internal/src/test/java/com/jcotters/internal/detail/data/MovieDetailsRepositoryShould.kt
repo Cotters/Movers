@@ -78,7 +78,6 @@ class MovieDetailsRepositoryShould {
         private const val MOVIE_OVERVIEW = "The hilarious mocking of unit testing."
         private const val MOVIE_RELEASE_DATE = "2025/12/25"
         private const val MOVIE_REVENUE = 345245234
-        private const val PAGE: Int = 2
         private val MOVIE_GENRES = listOf(Genre(id = 12, name = "Comedy"))
         private val MOCKED_MOVIE_DTO = MovieDto(
             id = MOVIE_ID,
@@ -93,7 +92,6 @@ class MovieDetailsRepositoryShould {
             title = MOVIE_TITLE,
             synopsis = MOVIE_OVERVIEW,
             releaseDate = MOVIE_RELEASE_DATE,
-            page = PAGE,
         )
 
         private val MOCKED_MOVIE = MovieMapper().toDomainModel(MOCKED_MOVIE_DTO)

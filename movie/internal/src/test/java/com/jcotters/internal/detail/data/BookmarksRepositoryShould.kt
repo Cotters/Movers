@@ -98,9 +98,9 @@ class BookmarksRepositoryShould {
         const val MOVIE_ID = 1
         const val USER_ID = 1
         val DB_MOVIES = listOf(
-            DbMovie(id = 1, title = "Movie 1", synopsis = "Movie 1 synopsis", releaseDate = "2022", page = 1),
-            DbMovie(id = 2, title = "Movie 2", synopsis = "Movie 2 synopsis", releaseDate = "2023", page = 1),
-            DbMovie(id = 3, title = "Movie 3", synopsis = "Movie 3 synopsis", releaseDate = "2024", page = 1),
+            DbMovie(id = 1, title = "Movie 1", synopsis = "Movie 1 synopsis", releaseDate = "2022"),
+            DbMovie(id = 2, title = "Movie 2", synopsis = "Movie 2 synopsis", releaseDate = "2023"),
+            DbMovie(id = 3, title = "Movie 3", synopsis = "Movie 3 synopsis", releaseDate = "2024"),
         )
     }
 }
