@@ -114,12 +114,7 @@ fun NavGraphBuilder.homeNavigationGraph(
     }
 
     composable<NavigationRoutes.Profile>(
-        enterTransition = {
-            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, animationSpec = tween(350))
-        },
-        exitTransition = {
-            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, animationSpec = tween(350))
-        },
+
     ) { _ ->
         val viewModel: ProfileViewModel = hiltViewModel()
         val viewState by viewModel.uiState.collectAsState()
@@ -129,6 +124,19 @@ fun NavGraphBuilder.homeNavigationGraph(
         ProfileScreen(
             viewState = viewState,
             onViewEvent = viewModel::onViewEvent,
+            posterModifier = { movie ->
+                with(sharedTransitionScope) {
+                    Modifier.sharedElement(
+                        sharedContentState = rememberSharedContentState(
+                            key = "movie-poster-${movie.id}"
+                        ),
+                        animatedVisibilityScope = this@composable,
+                    )
+                }
+            },
+            onMovieTapped = { movieId ->
+                navController.navigate(NavigationRoutes.MovieDetails(movieId = movieId))
+            },
         )
     }
 }

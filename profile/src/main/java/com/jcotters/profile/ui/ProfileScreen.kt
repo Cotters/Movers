@@ -1,6 +1,7 @@
 package com.jcotters.profile.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.PreviewMovies
 import com.jcotters.presentation.MoverImageView
 import com.jcotters.profile.domain.Profile
@@ -34,6 +36,8 @@ import com.jcotters.profile.domain.Profile
 fun ProfileScreen(
     viewState: ProfileViewState,
     onViewEvent: (ProfileViewEvent) -> Unit,
+    posterModifier: @Composable (Movie) -> Modifier,
+    onMovieTapped: (movieId: Int) -> Unit,
 ) {
     Scaffold { innerPadding ->
         if (viewState.isLoading) {
@@ -43,6 +47,8 @@ fun ProfileScreen(
                 modifier = Modifier.padding(innerPadding),
                 viewState = viewState,
                 onViewEvent = onViewEvent,
+                posterModifier = posterModifier,
+                onMovieTapped = onMovieTapped,
             )
         }
     }
@@ -53,6 +59,8 @@ fun ProfileView(
     modifier: Modifier,
     viewState: ProfileViewState,
     onViewEvent: (ProfileViewEvent) -> Unit,
+    posterModifier: @Composable (Movie) -> Modifier,
+    onMovieTapped: (Int) -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -92,10 +100,10 @@ fun ProfileView(
                 MoverImageView(
                     posterUrl = movie.posterUrl.orEmpty(),
                     contentDescription = "Movie poster for ${movie.title}",
-                    modifier = Modifier
+                    modifier = posterModifier(movie)
                         .fillMaxHeight()
                         .aspectRatio(3f / 5f)
-//            .padding(vertical = 8.dp)
+                        .clickable { onMovieTapped(movie.id) }
                 )
             }
         }
@@ -136,6 +144,8 @@ private fun NoBookmarksPreview() {
             bookmarkedMovies = emptyList(),
         ),
         onViewEvent = {},
+        posterModifier = { Modifier },
+        onMovieTapped = {},
     )
 }
 
@@ -149,5 +159,7 @@ private fun BookmarksPreview() {
             bookmarkedMovies = PreviewMovies.movies.take(1),
         ),
         onViewEvent = {},
+        posterModifier = { Modifier },
+        onMovieTapped = {},
     )
 }
