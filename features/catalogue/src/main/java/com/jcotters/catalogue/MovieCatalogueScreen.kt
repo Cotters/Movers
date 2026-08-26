@@ -145,7 +145,7 @@ private fun PopularMoviesList(
 
         else -> LazyColumn(
             state = listState,
-            modifier = modifier,
+            modifier = modifier.padding(horizontal = 8.dp),
         ) {
             stickyHeader {
                 Box(
@@ -153,7 +153,7 @@ private fun PopularMoviesList(
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.background)
                 ) {
-                    Text(text = "Popular Movies", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Popular Movies", style = MaterialTheme.typography.titleLarge)
                 }
             }
             items(
