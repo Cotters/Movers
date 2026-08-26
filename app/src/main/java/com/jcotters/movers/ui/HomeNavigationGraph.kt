@@ -12,11 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -32,20 +32,22 @@ import com.jcotters.details.ui.MovieDetailViewModel
 import com.jcotters.profile.ui.ProfileScreen
 import com.jcotters.profile.ui.ProfileViewEvent
 import com.jcotters.profile.ui.ProfileViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
+
+val LocalUserSession = staticCompositionLocalOf<UserSession> {
+    error("User Session was expected.")
+}
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.homeNavigationGraph(
     navController: NavHostController,
-    userSessionFlow: Flow<UserSession>,
     sharedTransitionScope: SharedTransitionScope,
 ) {
 
     navigation<NavigationRoutes.Home>(startDestination = NavigationRoutes.Catalogue) {
         composable<NavigationRoutes.Catalogue> {
             val viewModel: MovieCatalogueViewModel = hiltViewModel()
-            val userSession by userSessionFlow.collectAsStateWithLifecycle(UserSession.Unknown)
+            val userSession = LocalUserSession.current
 
             MovieCatalogueScreen(
                 isAuthenticated = userSession is UserSession.Authenticated,
@@ -122,14 +124,13 @@ fun NavGraphBuilder.homeNavigationGraph(
     ) { _ ->
         val viewModel: ProfileViewModel = hiltViewModel()
         val viewState by viewModel.uiState.collectAsState()
-        val userSession by userSessionFlow.collectAsState(initial = UserSession.Unknown)
+        val userSession = LocalUserSession.current
 
         ErrorMessageHandler(errorMessage = viewModel.errorMessage, context = LocalContext.current)
 
-        LaunchedEffect(userSession) {
+        LaunchedEffect(Unit) {
             if (userSession is UserSession.Authenticated) {
-                val userId = (userSession as UserSession.Authenticated).userId
-                viewModel.onViewEvent(ProfileViewEvent.UserSessionFound(userId))
+                viewModel.onViewEvent(ProfileViewEvent.UserSessionFound(userSession.userId))
             }
         }
 

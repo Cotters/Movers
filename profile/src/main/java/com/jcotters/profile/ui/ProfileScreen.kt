@@ -82,7 +82,7 @@ fun ProfileView(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = "No Saved Moovers",
+                            text = "No Saved Movies",
                             style = MaterialTheme.typography.headlineSmall,
                         )
                     }
