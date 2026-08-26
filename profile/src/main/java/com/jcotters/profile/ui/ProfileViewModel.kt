@@ -16,56 +16,59 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-  private val fetchUserProfileUseCase: FetchUserProfileUseCase,
-  private val fetchUserBookmarksUseCase: FetchUserBookmarksUseCase,
-  private val logoutUseCase: LogoutUseCase,
+    private val fetchUserProfileUseCase: FetchUserProfileUseCase,
+    private val fetchUserBookmarksUseCase: FetchUserBookmarksUseCase,
+    private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
-  private val viewModelUiState = MutableStateFlow(ProfileViewState())
-  val uiState: StateFlow<ProfileViewState> = viewModelUiState
+    private val viewModelUiState = MutableStateFlow(ProfileViewState())
+    val uiState: StateFlow<ProfileViewState> = viewModelUiState
 
-  private val _errorMessage = MutableSharedFlow<String>()
-  val errorMessage = _errorMessage.asSharedFlow()
+    private val _errorMessage = MutableSharedFlow<String>()
+    val errorMessage = _errorMessage.asSharedFlow()
 
-  fun onViewEvent(event: ProfileViewEvent) {
-    when (event) {
-      is ProfileViewEvent.UserSessionFound -> loadProfile(event.userId)
-      ProfileViewEvent.LogoutTapped -> logout()
+    init {
+        loadProfile()
     }
-  }
 
-  private fun loadProfile(userId: Int) {
-    viewModelScope.launch {
-      fetchUserProfileUseCase.invoke(userId)
-        .onSuccess {
-          viewModelUiState.update { current ->
-            current.copy(
-              isLoading = false,
-              profile = it,
-            )
-          }
-        }
-      fetchUserBookmarksUseCase.invoke()
-        .onSuccess { movies ->
-          viewModelUiState.update { current ->
-            current.copy(
-              isLoading = false,
-              bookmarkedMovies = movies,
-            )
-          }
-        }
-        .onFailure {
-          viewModelUiState.update { current ->
-            current.copy(isLoading = false)
-          }
-          _errorMessage.emit(it.message ?: "Failed loading bookmarks.")
+    fun onViewEvent(event: ProfileViewEvent) {
+        when (event) {
+            ProfileViewEvent.LogoutTapped -> logout()
         }
     }
-  }
 
-  private fun logout() {
-    viewModelScope.launch {
-      logoutUseCase.invoke()
+    private fun loadProfile() {
+        viewModelScope.launch {
+            fetchUserProfileUseCase.invoke()
+                .onSuccess {
+                    viewModelUiState.update { current ->
+                        current.copy(
+                            isLoading = false,
+                            profile = it,
+                        )
+                    }
+                }
+            fetchUserBookmarksUseCase.invoke()
+                .onSuccess { movies ->
+                    viewModelUiState.update { current ->
+                        current.copy(
+                            isLoading = false,
+                            bookmarkedMovies = movies,
+                        )
+                    }
+                }
+                .onFailure {
+                    viewModelUiState.update { current ->
+                        current.copy(isLoading = false)
+                    }
+                    _errorMessage.emit(it.message ?: "Failed loading bookmarks.")
+                }
+        }
     }
-  }
+
+    private fun logout() {
+        viewModelScope.launch {
+            logoutUseCase.invoke()
+        }
+    }
 }

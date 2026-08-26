@@ -30,7 +30,6 @@ import com.jcotters.details.ui.MovieDetailScreen
 import com.jcotters.details.ui.MovieDetailViewEvent
 import com.jcotters.details.ui.MovieDetailViewModel
 import com.jcotters.profile.ui.ProfileScreen
-import com.jcotters.profile.ui.ProfileViewEvent
 import com.jcotters.profile.ui.ProfileViewModel
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -59,7 +58,7 @@ fun NavGraphBuilder.homeNavigationGraph(
                                 key = "movie-poster-${movie.id}"
                             ),
                             animatedVisibilityScope = this@composable,
-                            )
+                        )
                     }
                 },
                 onMovieTapped = { movieId ->
@@ -124,15 +123,8 @@ fun NavGraphBuilder.homeNavigationGraph(
     ) { _ ->
         val viewModel: ProfileViewModel = hiltViewModel()
         val viewState by viewModel.uiState.collectAsState()
-        val userSession = LocalUserSession.current
 
         ErrorMessageHandler(errorMessage = viewModel.errorMessage, context = LocalContext.current)
-
-        LaunchedEffect(Unit) {
-            if (userSession is UserSession.Authenticated) {
-                viewModel.onViewEvent(ProfileViewEvent.UserSessionFound(userSession.userId))
-            }
-        }
 
         ProfileScreen(
             viewState = viewState,
