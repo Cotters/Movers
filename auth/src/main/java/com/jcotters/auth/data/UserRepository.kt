@@ -6,23 +6,32 @@ import com.jcotters.auth.domain.MoverUser
 import com.jcotters.auth.domain.UserSession
 import com.jcotters.database.user.User
 import com.jcotters.database.user.UserDao
+import java.io.IOException
+import java.time.Clock
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 class UserRepository @Inject constructor(
     private val passwordUtils: PasswordUtils,
     private val secureStorage: SecureStorage,
     private val userDao: UserDao,
     private val sessionManager: SessionManager,
+    private val clock: Clock,
 ) : IUserRepository {
 
     private val mutex = Mutex()
+    private val sessionRechecks = MutableStateFlow(0L)
 
     private companion object {
         const val USERNAME_TAKEN_MESSAGE = "Username already in use."
@@ -37,12 +46,19 @@ class UserRepository @Inject constructor(
         }
     }
 
-    override val userSession: Flow<UserSession> = sessionManager.sessionState.map { sessionState ->
-        if (sessionState.expiresAt <= System.currentTimeMillis() || sessionState.userId == null) {
-            return@map UserSession.NotAuthenticated
-        } else {
-            return@map UserSession.Authenticated(sessionState.userId)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val userSession: Flow<UserSession> = sessionRechecks.flatMapLatest {
+        sessionManager.sessionState.observeUserSession(clock).catch { error ->
+            if (error is IOException) {
+                emit(UserSession.NotAuthenticated)
+            } else {
+                throw error
+            }
         }
+    }.distinctUntilChanged()
+
+    override fun refreshSession() {
+        sessionRechecks.update { it + 1 }
     }
 
     override suspend fun login(username: String, password: String): Result<MoverUser> = withContext(Dispatchers.IO) {

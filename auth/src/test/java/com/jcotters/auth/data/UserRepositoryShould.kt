@@ -10,12 +10,17 @@ import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.security.SecureRandom
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
+import io.mockk.every
 
 class UserRepositoryShould {
 
@@ -36,11 +41,13 @@ class UserRepositoryShould {
   @Before
   fun setUp() {
     MockKAnnotations.init(this)
+    every { sessionManager.sessionState } returns MutableStateFlow(SessionState())
     underTest = UserRepository(
       passwordUtils = passwordUtils,
       secureStorage = secureStorage,
       userDao = userDao,
       sessionManager = sessionManager,
+      clock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC),
     )
   }
 

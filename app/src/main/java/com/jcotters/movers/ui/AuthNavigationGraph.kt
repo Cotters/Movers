@@ -5,7 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,14 +34,9 @@ fun NavGraphBuilder.authNavGraph(
     ) {
       val context = LocalContext.current
       val viewModel: AuthViewModel = hiltViewModel()
-      val viewState by viewModel.uiState.collectAsState()
+      val viewState by viewModel.uiState.collectAsStateWithLifecycle()
       LaunchedEffect(Unit) {
         viewModel.onViewEvent(AuthViewEvent.OnLoad(context))
-      }
-      LaunchedEffect(viewState.successfulLogin) {
-        if (viewState.successfulLogin) {
-          navController.navigate(NavigationRoutes.Catalogue)
-        }
       }
       Scaffold { innerPadding ->
         when (viewState.authMode) {

@@ -10,7 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -92,7 +92,7 @@ fun NavGraphBuilder.homeNavigationGraph(
         ) { backStackEntry ->
             val movieId: Int = backStackEntry.toRoute<NavigationRoutes.MovieDetails>().movieId
             val viewModel: MovieDetailViewModel = hiltViewModel()
-            val viewState by viewModel.uiState.collectAsState()
+            val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
             ErrorMessageHandler(errorMessage = viewModel.errorMessage, context = LocalContext.current)
 
@@ -114,8 +114,10 @@ fun NavGraphBuilder.homeNavigationGraph(
     }
 
     composable<NavigationRoutes.Profile> { _ ->
+        // A restored Profile must not load or render until its session is authorized.
+        if (LocalUserSession.current !is UserSession.Authenticated) return@composable
         val viewModel: ProfileViewModel = hiltViewModel()
-        val viewState by viewModel.uiState.collectAsState()
+        val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
         ErrorMessageHandler(errorMessage = viewModel.errorMessage, context = LocalContext.current)
 

@@ -7,14 +7,16 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.Clock
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 private val Context.sessionDataStore by preferencesDataStore(SessionManager.SESSION_DATA_STORE_NAME)
 
 class SessionManager @Inject constructor(
   @param:ApplicationContext private val context: Context,
+  private val clock: Clock,
 ) {
 
   internal companion object {
@@ -38,7 +40,7 @@ class SessionManager @Inject constructor(
   }
 
   suspend fun createSession(userId: Int, durationMillis: Long = ONE_DAY_MILLIS) {
-    val expiresAt = System.currentTimeMillis() + durationMillis
+    val expiresAt = clock.millis() + durationMillis
     dataStore.edit { prefs ->
       prefs[userIdKey] = userId
       prefs[expiresAtKey] = expiresAt

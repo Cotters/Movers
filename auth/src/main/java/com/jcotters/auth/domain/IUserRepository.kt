@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface IUserRepository {
   val userSession: Flow<UserSession>
+  fun refreshSession()
   suspend fun getUserIdOrNull(): Int?
   suspend fun login(username: String, password: String): Result<MoverUser>
   suspend fun signUp(username: String, password: String): Result<MoverUser>
