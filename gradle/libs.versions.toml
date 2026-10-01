@@ -1,6 +1,6 @@
 [versions]
 android-compileSdk = "37"
-agp = "9.2.1"
+agp = "9.3.3"
 coilCompose = "3.5.0"
 credentials = "1.6.0"
 datastore = "1.2.1"
