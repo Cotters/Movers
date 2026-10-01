@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.migrations.MIGRATION_1_2
+import com.jcotters.database.migrations.MIGRATION_2_3
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.database.user.UserDao
 import dagger.Module
@@ -27,7 +28,7 @@ object DatabaseModule {
       MoversDatabase::class.java,
       DATABASE_NAME,
     )
-      .addMigrations(MIGRATION_1_2)
+      .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
       .build()
   }
 
