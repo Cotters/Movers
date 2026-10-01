@@ -6,11 +6,8 @@ import com.jcotters.auth.domain.MoverUser
 import com.jcotters.auth.domain.UserSession
 import com.jcotters.database.user.User
 import com.jcotters.database.user.UserDao
-import java.io.IOException
-import java.time.Clock
-import javax.inject.Inject
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +18,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.time.Clock
+import javax.inject.Inject
 
 class UserRepository @Inject constructor(
     private val passwordUtils: PasswordUtils,
@@ -92,7 +92,7 @@ class UserRepository @Inject constructor(
             val userId = userDao.insertUser(user).toInt()
             Result.success(MoverUser(userId = userId, username = username))
         } catch (e: SQLiteConstraintException) {
-            return@withContext Result.failure(Throwable(USERNAME_TAKEN_MESSAGE))
+            return@withContext Result.failure(IllegalArgumentException(USERNAME_TAKEN_MESSAGE, e))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -106,8 +106,8 @@ class UserRepository @Inject constructor(
             Result.success(Unit)
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
-            Result.failure(Throwable(SESSION_FAILED_MESSAGE))
+        } catch (error: Exception) {
+            Result.failure(IllegalStateException(SESSION_FAILED_MESSAGE, error))
         }
     }
 

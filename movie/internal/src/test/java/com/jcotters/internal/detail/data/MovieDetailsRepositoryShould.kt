@@ -10,9 +10,13 @@ import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.RelaxedMockK
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -50,15 +54,64 @@ class MovieDetailsRepositoryShould {
     }
 
     @Test
-    fun `return failure with message when api returns null`() {
+    fun `return failure with its cause when a network request fails`() {
+        val failure = RuntimeException("Network unavailable")
         coEvery { movieDao.getMovieById(any()) } returns null
-        coEvery { movieApi.getMovieById(MOVIE_ID) } throws Throwable("Mocked error")
+        coEvery { movieApi.getMovieById(MOVIE_ID) } throws failure
 
         val movie = runBlocking { underTest.getMovieWithId(MOVIE_ID) }
 
         coVerify(exactly = 1) { movieApi.getMovieById(MOVIE_ID) }
         val error = movie.exceptionOrNull()
         assertThat(error!!.message, equalTo("Could not find requested movie."))
+        assertSame(failure, error.cause)
+    }
+
+    @Test
+    fun `propagate cancellation during a database read without fetching remotely`() {
+        val cancellation = CancellationException("Screen closed")
+        coEvery { movieDao.getMovieById(MOVIE_ID) } throws cancellation
+
+        val thrown = assertThrows(CancellationException::class.java) {
+            runBlocking { underTest.getMovieWithId(MOVIE_ID) }
+        }
+
+        assertSame(cancellation, thrown)
+        coVerify(exactly = 0) { movieApi.getMovieById(any()) }
+    }
+
+    @Test
+    fun `propagate cancellation during a network request`() {
+        val cancellation = CancellationException("Screen closed")
+        coEvery { movieDao.getMovieById(MOVIE_ID) } returns null
+        coEvery { movieApi.getMovieById(MOVIE_ID) } throws cancellation
+
+        val thrown = assertThrows(CancellationException::class.java) {
+            runBlocking { underTest.getMovieWithId(MOVIE_ID) }
+        }
+
+        assertSame(cancellation, thrown)
+    }
+
+    @Test
+    fun `report a missing movie when the response omits required fields`() {
+        coEvery { movieDao.getMovieById(MOVIE_ID) } returns null
+        coEvery { movieApi.getMovieById(MOVIE_ID) } returns MovieDto()
+
+        val result = runBlocking { underTest.getMovieWithId(MOVIE_ID) }
+
+        assertTrue(result.isFailure)
+        assertThat(result.exceptionOrNull()?.message, equalTo("Could not find requested movie."))
+        assertTrue(result.exceptionOrNull()?.cause is NoSuchElementException)
+    }
+
+    @Test
+    fun `do not turn fatal errors into a missing movie result`() {
+        coEvery { movieDao.getMovieById(MOVIE_ID) } throws AssertionError("Broken invariant")
+
+        assertThrows(AssertionError::class.java) {
+            runBlocking { underTest.getMovieWithId(MOVIE_ID) }
+        }
     }
 
     @Test

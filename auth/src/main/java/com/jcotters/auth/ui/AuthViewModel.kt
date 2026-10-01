@@ -13,6 +13,7 @@ import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.auth.domain.LoginUseCase
 import com.jcotters.auth.domain.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -69,6 +70,8 @@ class AuthViewModel @Inject constructor(
                     request = credentialRequest
                 )
                 handleSignIn(result)
+            } catch (error: CancellationException) {
+                throw error
             } catch (_: GetCredentialException) {
                 clearErrorMessage()
             } catch (e: Exception) {
@@ -162,6 +165,8 @@ class AuthViewModel @Inject constructor(
                 viewModelUiState.update { current ->
                     current.copy(userCount = count)
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (_: Exception) {
                 viewModelUiState.update { current ->
                     current.copy(userCount = 0)

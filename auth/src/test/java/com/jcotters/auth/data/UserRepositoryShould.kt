@@ -7,21 +7,22 @@ import com.jcotters.database.user.UserDao
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
-import io.mockk.every
 
 class UserRepositoryShould {
 
@@ -168,6 +169,17 @@ class UserRepositoryShould {
     runBlocking{ underTest.createUserSession(USER_ID) }
 
     coVerify(exactly = 1) { sessionManager.createSession(userId = USER_ID) }
+  }
+
+  @Test
+  fun `preserve the cause of a failed session write`() {
+    val failure = java.io.IOException("Disk full")
+    coEvery { sessionManager.createSession(USER_ID) } throws failure
+
+    val result = runBlocking { underTest.createUserSession(USER_ID) }
+
+    assertThat(result.exceptionOrNull()?.message, equalTo("Unable to create user session."))
+    assertSame(failure, result.exceptionOrNull()?.cause)
   }
 
   @Test

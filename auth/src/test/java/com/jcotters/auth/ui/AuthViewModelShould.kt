@@ -17,6 +17,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
@@ -26,6 +27,7 @@ import kotlinx.coroutines.test.setMain
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -149,6 +151,17 @@ class AuthViewModelShould {
         val state = underTest.uiState.value
         assertThat(state.authMode, equalTo(AuthMode.SignUp))
         assertThat(state.userCount, equalTo(0))
+    }
+
+    @Test
+    fun `retain the last user count when refreshing it is cancelled`() {
+        coEvery { userRepository.getUserCount() } returns EXPECTED_USER_COUNT
+        underTest.onViewEvent(AuthViewEvent.CreateAccountTapped)
+        coEvery { userRepository.getUserCount() } throws CancellationException("Screen closed")
+
+        underTest.onViewEvent(AuthViewEvent.CreateAccountTapped)
+
+        assertThat(underTest.uiState.value.userCount, equalTo(EXPECTED_USER_COUNT))
     }
 
     @Test
@@ -315,6 +328,22 @@ class AuthViewModelShould {
 
         val state = underTest.uiState.value
         assertThat(state.errorMessage, equalTo(""))
+    }
+
+    @Test
+    fun `leave auth state unchanged when credential retrieval is cancelled`() {
+        mockkObject(CredentialManager.Companion)
+        every { CredentialManager.create(context) } returns credentialManager
+        coEvery { credentialManager.getCredential(context = context, request = any()) } throws
+            CancellationException("Screen closed")
+        underTest.onViewEvent(AuthViewEvent.PasswordUpdated(TEST_PASSWORD))
+        underTest.onViewEvent(AuthViewEvent.SignUpTapped)
+        val before = underTest.uiState.value
+
+        underTest.onViewEvent(AuthViewEvent.OnLoad(context))
+
+        assertEquals(before, underTest.uiState.value)
+        coVerify(exactly = 0) { loginUseCase.invoke(any(), any()) }
     }
 
     @Test
