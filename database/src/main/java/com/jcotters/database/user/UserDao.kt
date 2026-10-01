@@ -11,7 +11,7 @@ interface UserDao {
   @Insert(onConflict = OnConflictStrategy.ABORT)
   suspend fun insertUser(user: User): Long
 
-  @Query("SELECT * FROM users WHERE username like :username")
+  @Query("SELECT * FROM users WHERE username = :username")
   suspend fun findByUsername(username: String): User?
 
   @Query("SELECT * FROM users WHERE id = :userId")
