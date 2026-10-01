@@ -59,7 +59,6 @@ class AuthViewModel @Inject constructor(
 
     private fun launchCredentialManagerFlow(context: Context) {
         val credentialManager = CredentialManager.create(context)  // TODO: Remove context and inject into ViewModel.
-        // Retrieves the user's saved password for your app from their password provider.
         val getPasswordOption = GetPasswordOption()
 
         val credentialRequest = GetCredentialRequest(listOf(getPasswordOption))
@@ -71,7 +70,6 @@ class AuthViewModel @Inject constructor(
                 )
                 handleSignIn(result)
             } catch (_: GetCredentialException) {
-                // This is fine; no credentials available.
                 clearErrorMessage()
             } catch (e: Exception) {
                 setErrorMessage(e.message ?: CREDENTIAL_MANAGER_FAILED_MESSAGE)

@@ -10,13 +10,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -114,7 +114,6 @@ fun NavGraphBuilder.homeNavigationGraph(
     }
 
     composable<NavigationRoutes.Profile> { _ ->
-        // A restored Profile must not load or render until its session is authorized.
         if (LocalUserSession.current !is UserSession.Authenticated) return@composable
         val viewModel: ProfileViewModel = hiltViewModel()
         val viewState by viewModel.uiState.collectAsStateWithLifecycle()
