@@ -39,12 +39,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.jcotters.contract.detail.domain.models.Movie
+import com.jcotters.contract.detail.domain.models.PreviewMovies
 import com.jcotters.features.catalogue.R
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
@@ -139,7 +144,7 @@ private fun PopularMoviesList(
             val error = refreshState.error
             ErrorItem(
                 message = error.message ?: "Failed to load movies",
-                onRetry = { movies.retry() }
+                onRetry = movies::retry,
             )
         }
 
@@ -187,7 +192,7 @@ private fun PopularMoviesList(
                     is LoadState.Error -> {
                         ErrorItem(
                             message = appendState.error.message ?: "Failed to load more",
-                            onRetry = { movies.retry() }
+                            onRetry = movies::retry
                         )
                     }
 
@@ -230,20 +235,18 @@ fun ErrorItem(
     }
 }
 
-//@OptIn(ExperimentalSharedTransitionApi::class)
-//@Preview
-//@Composable
-//private fun MovieCatalogueScreenPreview() {
-//  SharedTransitionLayout {
-//    AnimatedVisibility(visible = true) {
-//      MovieCatalogueScreen(
-//        sharedTransitionScope = this@SharedTransitionLayout,
-//        animatedVisibilityScope = this,
-//        isAuthenticated = false,
-//        movies = PreviewMovies.movies,
-//        onMovieTapped = { movieId -> },
-//        onAccountTapped = {},
-//      )
-//    }
-//  }
-//}
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Preview
+@Composable
+private fun MovieCatalogueScreenPreview() {
+    val pagingData = PagingData.from(PreviewMovies.movies)
+    val lazyPagingItems = flowOf(pagingData)
+        .collectAsLazyPagingItems()
+    MovieCatalogueScreen(
+        isAuthenticated = false,
+        movies = lazyPagingItems,
+        posterModifier = { _ -> Modifier },
+        onMovieTapped = { _ -> },
+        onAccountTapped = {},
+    )
+}
