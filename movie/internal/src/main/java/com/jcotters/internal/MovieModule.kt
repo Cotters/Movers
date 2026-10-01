@@ -4,6 +4,7 @@ import com.jcotters.contract.catalogue.domain.IMovieCatalogueRepository
 import com.jcotters.contract.detail.domain.IBookmarksRepository
 import com.jcotters.contract.detail.domain.IMovieDetailsRepository
 import com.jcotters.internal.catalogue.data.MovieCatalogueRepository
+import com.jcotters.internal.catalogue.data.CatalogueClock
 import com.jcotters.internal.detail.data.BookmarksRepository
 import com.jcotters.internal.detail.data.MovieDetailsRepository
 import dagger.Module
@@ -15,10 +16,15 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
+import java.time.Clock
 
 @Module
 @InstallIn(SingletonComponent::class)
 internal object MovieModule {
+
+    @Provides
+    @CatalogueClock
+    fun provideCatalogueClock(): Clock = Clock.systemUTC()
 
     const val API_VERSION = "3"
     const val API_URL = "https://api.themoviedb.org/$API_VERSION/"

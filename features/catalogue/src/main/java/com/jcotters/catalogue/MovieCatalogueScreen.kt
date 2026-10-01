@@ -39,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -139,8 +140,8 @@ private fun PopularMoviesList(
     val refreshState = movies.loadState.refresh
     val appendState = movies.loadState.append
 
-    when (refreshState) {
-        is LoadState.Error -> {
+    when {
+        refreshState is LoadState.Error && movies.itemCount == 0 -> {
             val error = refreshState.error
             ErrorItem(
                 message = error.message ?: "Failed to load movies",
@@ -159,6 +160,14 @@ private fun PopularMoviesList(
                         .background(MaterialTheme.colorScheme.background)
                 ) {
                     Text(text = "Popular Movies", style = MaterialTheme.typography.titleLarge)
+                }
+            }
+            if (refreshState is LoadState.Error) {
+                item(key = "refresh-error") {
+                    ErrorItem(
+                        message = stringResource(R.string.cached_movies_refresh_error),
+                        onRetry = movies::retry,
+                    )
                 }
             }
             items(

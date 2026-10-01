@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">catalogue</string>
+    <string name="cached_movies_refresh_error">Couldn’t refresh movies. Showing saved results.</string>
 </resources>

@@ -57,21 +57,27 @@ class DatabaseMigrationTest {
         assertUpgrade(version = 3, withCatalogue = true, movieDeleteAction = "NO ACTION")
     }
 
+    @Test
+    fun migrateVersionFour() = runTest {
+        assertUpgrade(version = 4, withCatalogue = true, movieDeleteAction = "NO ACTION")
+    }
+
     private suspend fun assertUpgrade(version: Int, withCatalogue: Boolean, movieDeleteAction: String) {
         createLegacyDatabase(version, withCatalogue, movieDeleteAction)
         val migrated = Room.databaseBuilder(context, MoversDatabase::class.java, DATABASE_NAME)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
         database = migrated
 
         // Opening through Room validates the complete final schema, not just our SELECT queries.
         assertEquals("existing-user", migrated.userDao().getUserById(1)?.username)
-        assertEquals(null, migrated.userDao().getUserById(1)?.passwordHash)
+        assertEquals(if (version >= 4) "existing-hash" else null, migrated.userDao().getUserById(1)?.passwordHash)
         migrated.userDao().importCredentials(1, "0f", "existing-hash")
         assertEquals("existing-hash", migrated.userDao().getUserById(1)?.passwordHash)
         assertNotNull(migrated.movieDao().getMovieById(7))
         assertEquals(listOf(7), migrated.bookmarkDao().getBookmarkedMoviesForUser(1).map { it.id })
         if (withCatalogue) {
+            assertEquals(null, migrated.movieCatalogueRemoteKeysDao().getRemoteKey("popular")?.lastRefreshedAt)
             assertEquals(2, migrated.movieCatalogueRemoteKeysDao().getRemoteKey("popular")?.nextPage)
             val rows = migrated.openHelper.readableDatabase.query("SELECT COUNT(*) FROM movie_catalogue_entries")
             rows.use {
@@ -123,6 +129,11 @@ class DatabaseMigrationTest {
                 db.execSQL("CREATE TABLE movie_catalogue_remote_keys (catalogue TEXT NOT NULL PRIMARY KEY, nextPage INTEGER)")
                 db.execSQL("INSERT INTO movie_catalogue_entries VALUES('popular', 7, 1, 0)")
                 db.execSQL("INSERT INTO movie_catalogue_remote_keys VALUES('popular', 2)")
+            }
+            if (version >= 4) {
+                db.execSQL("ALTER TABLE users ADD COLUMN passwordSalt TEXT")
+                db.execSQL("ALTER TABLE users ADD COLUMN passwordHash TEXT")
+                db.execSQL("UPDATE users SET passwordSalt = '0f', passwordHash = 'existing-hash' WHERE id = 1")
             }
             db.version = version
         }

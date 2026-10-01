@@ -14,12 +14,16 @@ import com.jcotters.internal.detail.data.MovieMapper
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
+import java.time.Clock
+import java.time.Duration
+import kotlinx.coroutines.CancellationException
 
 @OptIn(ExperimentalPagingApi::class)
 internal class PopularMoviesRemoteMediator @Inject constructor(
     private val movieApi: MovieApi,
     private val database: MoversDatabase,
     private val movieMapper: MovieMapper,
+    @param:CatalogueClock private val clock: Clock,
 ) : RemoteMediator<Int, DbMovie>() {
 
     private val movieDao = database.movieDao()
@@ -28,13 +32,19 @@ internal class PopularMoviesRemoteMediator @Inject constructor(
 
     private companion object {
         const val START_PAGE = 1
+        val CACHE_TTL_MILLIS = Duration.ofHours(6).toMillis()
         val catalogue = MovieCatalogue.Popular.key
     }
 
     override suspend fun initialize(): InitializeAction {
-        // TODO: Also check for stale data here; requires adding cacheTTL to DB model.
-        val remoteKey = remoteKeysDao.getRemoteKey(catalogue)
-        return if (remoteKey == null) InitializeAction.LAUNCH_INITIAL_REFRESH else InitializeAction.SKIP_INITIAL_REFRESH
+        val lastRefreshedAt = remoteKeysDao.getRemoteKey(catalogue)?.lastRefreshedAt
+            ?: return InitializeAction.LAUNCH_INITIAL_REFRESH
+        val now = clock.millis()
+        return if (lastRefreshedAt <= now && now - lastRefreshedAt < CACHE_TTL_MILLIS) {
+            InitializeAction.SKIP_INITIAL_REFRESH
+        } else {
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        }
     }
 
     override suspend fun load(
@@ -64,6 +74,11 @@ internal class PopularMoviesRemoteMediator @Inject constructor(
             val endOfPaginationReached = movies.isEmpty() || response.totalPages?.let { responsePage >= it } == true
 
             database.withTransaction {
+                val lastRefreshedAt = if (loadType == LoadType.REFRESH) {
+                    clock.millis()
+                } else {
+                    remoteKeysDao.getRemoteKey(catalogue)?.lastRefreshedAt
+                }
                 if (loadType == LoadType.REFRESH) {
                     removeCatalogueData()
                 }
@@ -72,9 +87,11 @@ internal class PopularMoviesRemoteMediator @Inject constructor(
                 val catalogueEntries = movieMapper.toCatalogueEntry(catalogue, dbMovies, responsePage)
                 movieCatalogueDao.insertCatalogueEntries(catalogueEntries)
                 val nextPage = if (endOfPaginationReached) null else responsePage + 1
-                remoteKeysDao.insertKey(DbMovieCatalogueRemoteKey(catalogue, nextPage))
+                remoteKeysDao.insertKey(DbMovieCatalogueRemoteKey(catalogue, nextPage, lastRefreshedAt))
             }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: IOException) {
             MediatorResult.Error(e)
         } catch (e: HttpException) {

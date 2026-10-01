@@ -8,4 +8,5 @@ data class DbMovieCatalogueRemoteKey(
     @PrimaryKey
     val catalogue: String,
     val nextPage: Int?,
+    val lastRefreshedAt: Long? = null,
 )
