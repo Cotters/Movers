@@ -18,7 +18,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
-import java.security.SecureRandom
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -44,6 +43,10 @@ class UserRepositoryShould {
   fun setUp() {
     MockKAnnotations.init(this)
     every { sessionManager.sessionState } returns MutableStateFlow(SessionState())
+    coEvery { userDao.findByUsername(USERNAME) } returns User(id = USER_ID, username = USERNAME)
+    coEvery { userDao.importCredentials(any(), any(), any()) } returns Unit
+    every { passwordUtils.generateSalt() } returns byteArrayOf(15)
+    every { passwordUtils.hashPassword(any(), any()) } returns HASHED_PASSWORD
     underTest = UserRepository(
       passwordUtils = passwordUtils,
       secureStorage = secureStorage,
@@ -56,7 +59,7 @@ class UserRepositoryShould {
   @Test
   fun `fail login auth when password is incorrect`() {
     coEvery { secureStorage.loadCredentials(USERNAME) } returns
-        AuthStorageCredentials(salt = "salt", hash = "other_hashed_password")
+        AuthStorageCredentials(salt = "0f", hash = "other_hashed_password")
     coEvery { passwordUtils.hashPassword(PASSWORD, any()) } returns HASHED_PASSWORD
 
     val result = runBlocking { underTest.login(USERNAME, PASSWORD) }
@@ -77,7 +80,7 @@ class UserRepositoryShould {
   @Test
   fun `succeed login auth when password is correct`() {
     coEvery { secureStorage.loadCredentials(USERNAME) } returns
-        AuthStorageCredentials(salt = "salt", hash = HASHED_PASSWORD)
+        AuthStorageCredentials(salt = "0f", hash = HASHED_PASSWORD)
     coEvery { passwordUtils.hashPassword(PASSWORD, any()) } returns HASHED_PASSWORD
     coEvery { userDao.findByUsername(USERNAME) } returns
         User(username = USERNAME)
@@ -90,32 +93,74 @@ class UserRepositoryShould {
 
   @Test
   fun `fail sign up when username already taken`() {
-    coEvery { userDao.insertUser(DB_USER) } throws SQLiteConstraintException("Username taken.")
+    coEvery { userDao.insertUser(any()) } throws SQLiteConstraintException("Username taken.")
 
-    runBlocking { underTest.signUp(USERNAME, PASSWORD) }
+    val result = runBlocking { underTest.signUp(USERNAME, PASSWORD) }
 
-    coVerify(exactly = 1) { userDao.insertUser(any()) }
-    coVerify(exactly = 0) { passwordUtils.generateSalt() }
-    coVerify(exactly = 0) { passwordUtils.hashPassword(PASSWORD, any()) }
-    coVerify(exactly = 0) { secureStorage.saveCredentials(USERNAME, any(), HASHED_PASSWORD) }
+    assertTrue(result.isFailure)
+    coVerify(exactly = 0) { secureStorage.saveCredentials(any(), any(), any()) }
   }
 
   @Test
-  fun `generate and store salt and hash when signing up`() {
-    val salt = generateSalt()
-    val saltHex = salt.toHexString()
+  fun `store the account and credentials in one insert`() {
+    coEvery { userDao.insertUser(any()) } returns USER_ID.toLong()
 
-    coEvery { userDao.insertUser(any()) } returns 1
-    coEvery { passwordUtils.generateSalt() } returns salt
-    coEvery { passwordUtils.hashPassword(PASSWORD, salt) } returns HASHED_PASSWORD
-    coEvery { secureStorage.saveCredentials(USERNAME, saltHex, HASHED_PASSWORD) } returns Unit
+    val result = runBlocking { underTest.signUp(USERNAME, PASSWORD) }
 
-    runBlocking { underTest.signUp(USERNAME, PASSWORD) }
+    assertTrue(result.isSuccess)
+    coVerify { userDao.insertUser(User(username = USERNAME, passwordSalt = "0f", passwordHash = HASHED_PASSWORD)) }
+    coVerify(exactly = 0) { secureStorage.saveCredentials(any(), any(), any()) }
+  }
 
-    coVerify(exactly = 1) { userDao.insertUser(any()) }
-    coVerify(exactly = 1) { passwordUtils.generateSalt() }
-    coVerify(exactly = 1) { passwordUtils.hashPassword(PASSWORD, salt) }
-    coVerify(exactly = 1) { secureStorage.saveCredentials(USERNAME, saltHex, HASHED_PASSWORD) }
+  @Test
+  fun `leave no account behind when hashing fails and allow retry`() {
+    var savedUser: User? = null
+    coEvery { userDao.insertUser(any()) } answers {
+      check(savedUser == null)
+      savedUser = firstArg()
+      USER_ID.toLong()
+    }
+    every { passwordUtils.hashPassword(any(), any()) } throws IllegalStateException("Hashing failed")
+    assertTrue(runBlocking { underTest.signUp(USERNAME, PASSWORD) }.isFailure)
+    assertTrue(savedUser == null)
+    every { passwordUtils.hashPassword(any(), any()) } returns HASHED_PASSWORD
+
+    assertTrue(runBlocking { underTest.signUp(USERNAME, PASSWORD) }.isSuccess)
+    assertThat(savedUser?.passwordHash, equalTo(HASHED_PASSWORD))
+  }
+
+  @Test
+  fun `allow retry after an insert fails`() {
+    coEvery { userDao.insertUser(any()) } throws java.io.IOException("Disk full")
+    assertTrue(runBlocking { underTest.signUp(USERNAME, PASSWORD) }.isFailure)
+    coEvery { userDao.insertUser(any()) } returns USER_ID.toLong()
+    assertTrue(runBlocking { underTest.signUp(USERNAME, PASSWORD) }.isSuccess)
+    coVerify(exactly = 0) { secureStorage.saveCredentials(any(), any(), any()) }
+  }
+
+  @Test
+  fun `import legacy credentials without changing the user identity`() {
+    coEvery { secureStorage.loadCredentials(USERNAME) } returns AuthStorageCredentials("0f", HASHED_PASSWORD)
+    val result = runBlocking { underTest.login(USERNAME, PASSWORD) }
+    assertThat(result.getOrThrow().userId, equalTo(USER_ID))
+    coVerify { userDao.importCredentials(USER_ID, "0f", HASHED_PASSWORD) }
+  }
+
+  @Test
+  fun `use Room credentials without reading legacy storage`() {
+    coEvery { userDao.findByUsername(USERNAME) } returns
+      User(USER_ID, USERNAME, "0f", HASHED_PASSWORD)
+    assertTrue(runBlocking { underTest.login(USERNAME, PASSWORD) }.isSuccess)
+    coVerify(exactly = 0) { secureStorage.loadCredentials(any()) }
+  }
+
+  @Test
+  fun `retain legacy credentials when their import fails`() {
+    coEvery { secureStorage.loadCredentials(USERNAME) } returns AuthStorageCredentials("0f", HASHED_PASSWORD)
+    coEvery { userDao.importCredentials(any(), any(), any()) } throws java.io.IOException("Disk full")
+    assertTrue(runBlocking { underTest.login(USERNAME, PASSWORD) }.isFailure)
+    coEvery { userDao.importCredentials(any(), any(), any()) } returns Unit
+    assertTrue(runBlocking { underTest.login(USERNAME, PASSWORD) }.isSuccess)
   }
 
   @Test
@@ -149,18 +194,10 @@ class UserRepositoryShould {
     }
   }
 
-  private fun generateSalt(): ByteArray {
-    val salt = ByteArray(16)
-    SecureRandom().nextBytes(salt)
-    return salt
-  }
-
-
   private companion object {
     const val USER_ID = 1
     const val USERNAME = "username"
     const val PASSWORD = "password"
     const val HASHED_PASSWORD = "hashed_password"
-    val DB_USER = User(id = 1, username = USERNAME)
   }
 }

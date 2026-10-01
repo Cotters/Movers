@@ -15,7 +15,7 @@ import com.jcotters.database.user.UserDao
 
 @Database(
     entities = [User::class, Bookmark::class, DbMovie::class, DbMovieCatalogueEntry::class, DbMovieCatalogueRemoteKey::class],
-    version = 3,
+    version = 4,
 )
 abstract class MoversDatabase : RoomDatabase() {
 

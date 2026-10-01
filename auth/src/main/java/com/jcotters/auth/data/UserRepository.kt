@@ -9,6 +9,7 @@ import com.jcotters.database.user.UserDao
 import java.io.IOException
 import java.time.Clock
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,8 +20,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class UserRepository @Inject constructor(
@@ -29,9 +28,9 @@ class UserRepository @Inject constructor(
     private val userDao: UserDao,
     private val sessionManager: SessionManager,
     private val clock: Clock,
+    @param:AuthDispatcher private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IUserRepository {
 
-    private val mutex = Mutex()
     private val sessionRechecks = MutableStateFlow(0L)
 
     private companion object {
@@ -62,49 +61,46 @@ class UserRepository @Inject constructor(
         sessionRechecks.update { it + 1 }
     }
 
-    override suspend fun login(username: String, password: String): Result<MoverUser> = withContext(Dispatchers.IO) {
+    override suspend fun login(username: String, password: String): Result<MoverUser> = withContext(dispatcher) {
         try {
-            val credentials = secureStorage.loadCredentials(username)
-            val storedHashedPassword = credentials.hash ?: throw Throwable(INCORRECT_DETAILS)
-            val salt = credentials.salt ?: throw Throwable(INCORRECT_DETAILS)
-            val hashedPassword = passwordUtils.hashPassword(password = password, salt = salt.toBytes())
-            if (storedHashedPassword == hashedPassword) {
-                val user = userDao.findByUsername(username) ?: throw Throwable(INCORRECT_DETAILS)
-                return@withContext Result.success(MoverUser(userId = user.id, username = user.username))
+            val user = userDao.findByUsername(username) ?: throw IllegalArgumentException(INCORRECT_DETAILS)
+            val credentials = if (user.passwordSalt != null && user.passwordHash != null) {
+                AuthStorageCredentials(salt = user.passwordSalt, hash = user.passwordHash)
             } else {
-                throw Throwable(INCORRECT_DETAILS)
+                secureStorage.loadCredentials(username)
             }
+            val salt = credentials.salt ?: throw IllegalArgumentException(INCORRECT_DETAILS)
+            val storedHash = credentials.hash ?: throw IllegalArgumentException(INCORRECT_DETAILS)
+            val hash = passwordUtils.hashPassword(password, salt.toBytes())
+            require(storedHash == hash) { INCORRECT_DETAILS }
+            if (user.passwordSalt == null || user.passwordHash == null) {
+                userDao.importCredentials(user.id, salt, storedHash)
+            }
+            Result.success(MoverUser(userId = user.id, username = user.username))
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             return@withContext Result.failure(e)
         }
     }
 
-    override suspend fun signUp(username: String, password: String): Result<MoverUser> = withContext(Dispatchers.IO) {
+    override suspend fun signUp(username: String, password: String): Result<MoverUser> = withContext(dispatcher) {
         try {
-            mutex.withLock {
-                val newUser = User(username = username)
-                val userId = userDao.insertUser(newUser).toInt()
-                val salt = passwordUtils.generateSalt()
-                val hashedPassword = passwordUtils.hashPassword(password = password, salt = salt)
-                secureStorage.saveCredentials(
-                    username = username,
-                    saltHex = salt.toHexString(),
-                    hashHex = hashedPassword
-                )
-                return@withContext Result.success(MoverUser(userId = userId, username = newUser.username))
-            }
+            val salt = passwordUtils.generateSalt()
+            val hash = passwordUtils.hashPassword(password, salt)
+            val user = User(username = username, passwordSalt = salt.toHexString(), passwordHash = hash)
+            val userId = userDao.insertUser(user).toInt()
+            Result.success(MoverUser(userId = userId, username = username))
         } catch (e: SQLiteConstraintException) {
             return@withContext Result.failure(Throwable(USERNAME_TAKEN_MESSAGE))
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             return@withContext Result.failure(e)
         }
     }
 
-    override suspend fun createUserSession(userId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun createUserSession(userId: Int): Result<Unit> = withContext(dispatcher) {
         return@withContext try {
             sessionManager.createSession(userId)
             Result.success(Unit)
@@ -115,22 +111,18 @@ class UserRepository @Inject constructor(
         }
     }
 
-    override suspend fun logout() = withContext(Dispatchers.IO) {
+    override suspend fun logout() = withContext(dispatcher) {
         sessionManager.clearSession()
     }
 
-    override suspend fun getUserCount(): Int = withContext(Dispatchers.IO) {
+    override suspend fun getUserCount(): Int = withContext(dispatcher) {
         return@withContext userDao.getUserCount()
     }
 }
 
 fun String.toBytes(): ByteArray {
-    val len = this.length
-    val data = ByteArray(len / 2)
-    var i = 0
-    while (i < len) {
-        data[i / 2] = ((Character.digit(this[i], 16) shl 4) + Character.digit(this[i + 1], 16)).toByte()
-        i += 2
+    require(length % 2 == 0 && all { it.digitToIntOrNull(16) != null }) { "Invalid password salt" }
+    return ByteArray(length / 2) { index ->
+        substring(index * 2, index * 2 + 2).toInt(16).toByte()
     }
-    return data
 }

@@ -14,6 +14,9 @@ interface UserDao {
   @Query("SELECT * FROM users WHERE username = :username")
   suspend fun findByUsername(username: String): User?
 
+  @Query("UPDATE users SET passwordSalt = :salt, passwordHash = :hash WHERE id = :userId AND passwordSalt IS NULL AND passwordHash IS NULL")
+  suspend fun importCredentials(userId: Int, salt: String, hash: String)
+
   @Query("SELECT * FROM users WHERE id = :userId")
   suspend fun getUserById(userId: Int): User?
 

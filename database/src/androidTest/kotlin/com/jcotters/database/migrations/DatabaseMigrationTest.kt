@@ -52,15 +52,23 @@ class DatabaseMigrationTest {
         assertUpgrade(version = 2, withCatalogue = true, movieDeleteAction = "NO ACTION")
     }
 
+    @Test
+    fun migrateVersionThree() = runTest {
+        assertUpgrade(version = 3, withCatalogue = true, movieDeleteAction = "NO ACTION")
+    }
+
     private suspend fun assertUpgrade(version: Int, withCatalogue: Boolean, movieDeleteAction: String) {
         createLegacyDatabase(version, withCatalogue, movieDeleteAction)
         val migrated = Room.databaseBuilder(context, MoversDatabase::class.java, DATABASE_NAME)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
         database = migrated
 
         // Opening through Room validates the complete final schema, not just our SELECT queries.
         assertEquals("existing-user", migrated.userDao().getUserById(1)?.username)
+        assertEquals(null, migrated.userDao().getUserById(1)?.passwordHash)
+        migrated.userDao().importCredentials(1, "0f", "existing-hash")
+        assertEquals("existing-hash", migrated.userDao().getUserById(1)?.passwordHash)
         assertNotNull(migrated.movieDao().getMovieById(7))
         assertEquals(listOf(7), migrated.bookmarkDao().getBookmarkedMoviesForUser(1).map { it.id })
         if (withCatalogue) {
