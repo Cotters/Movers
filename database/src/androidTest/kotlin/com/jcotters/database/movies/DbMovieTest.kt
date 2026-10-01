@@ -6,6 +6,7 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.jcotters.database.MoversDatabase
+import com.jcotters.database.user.User
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -47,5 +48,18 @@ class DbMovieTest {
         val movieById = movieDao.getMovieById(movieId)
 
         assertEquals(movie, movieById)
+    }
+
+    @Test
+    fun usernamesAreExactIdentifiers() = runTest {
+        val users = database.userDao()
+        val names = listOf("Alice", "alice", "Al%", "A_ice")
+        val ids = names.associateWith { users.insertUser(User(username = it)).toInt() }
+
+        names.forEach { name ->
+            val found = users.findByUsername(name)
+            assertEquals(name, found?.username)
+            assertEquals(ids.getValue(name), found?.id)
+        }
     }
 }
