@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Movers</string>
     <string name="back_button">Navigate back</string>
+    <string name="offline_message">You’re offline.</string>
 </resources>

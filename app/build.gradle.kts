@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.paging.compose)
 
     implementation(project(path = ":presentation"))
+    implementation(project(path = ":data:network"))
     implementation(project(path = ":movie:contract"))
     implementation(project(path = ":movie:internal"))
     implementation(project(path = ":features:catalogue"))

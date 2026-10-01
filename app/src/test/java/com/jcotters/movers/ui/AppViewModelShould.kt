@@ -1,6 +1,8 @@
 package com.jcotters.movers.ui
 
 import androidx.lifecycle.viewModelScope
+import com.cotters.data.network.DeviceNetworkMonitor
+import com.cotters.data.network.NetworkStatus
 import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.auth.domain.UserSession
 import io.mockk.every
@@ -10,6 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -26,12 +31,16 @@ class AppViewModelShould {
     private val repository = mockk<IUserRepository>(relaxed = true) {
         every { userSession } returns sessions
     }
+    private val connectivity = MutableStateFlow(NetworkStatus.Online)
+    private val networkMonitor = mockk<DeviceNetworkMonitor> {
+        every { networkStatus } returns connectivity
+    }
     private lateinit var viewModel: AppViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
-        viewModel = AppViewModel(repository)
+        viewModel = AppViewModel(repository, networkMonitor)
     }
 
     @After
@@ -61,5 +70,30 @@ class AppViewModelShould {
     fun `recheck persisted expiry on resume`() {
         viewModel.onResume()
         verify(exactly = 1) { repository.refreshSession() }
+    }
+
+    @Test
+    fun `connectivity starts unknown instead of showing a false offline message`() = runTest {
+        assertEquals(NetworkStatus.Unknown, viewModel.networkStatus.value)
+        backgroundScope.launch { viewModel.networkStatus.collect { } }
+        runCurrent()
+        assertEquals(NetworkStatus.Online, viewModel.networkStatus.value)
+    }
+
+    @Test
+    fun `drop stale connectivity when collection stops and refresh it on return`() = runTest {
+        connectivity.value = NetworkStatus.Offline
+        val collection = backgroundScope.launch { viewModel.networkStatus.collect { } }
+        runCurrent()
+        assertEquals(NetworkStatus.Offline, viewModel.networkStatus.value)
+        collection.cancel()
+        runCurrent()
+        advanceTimeBy(5_001)
+        runCurrent()
+        assertEquals(NetworkStatus.Unknown, viewModel.networkStatus.value)
+        connectivity.value = NetworkStatus.Online
+        backgroundScope.launch { viewModel.networkStatus.collect { } }
+        runCurrent()
+        assertEquals(NetworkStatus.Online, viewModel.networkStatus.value)
     }
 }

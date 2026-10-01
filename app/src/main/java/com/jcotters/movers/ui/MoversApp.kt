@@ -2,6 +2,8 @@ package com.jcotters.movers.ui
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -9,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +31,7 @@ fun MoversApp() {
     val navController: NavHostController = rememberNavController()
     val viewModel: AppViewModel = hiltViewModel()
     val userSession by viewModel.userSession.collectAsStateWithLifecycle()
+    val networkStatus by viewModel.networkStatus.collectAsStateWithLifecycle()
     val backStackEntry by navController.currentBackStackEntryAsState()
     var previousSession: UserSession by remember { mutableStateOf(UserSession.Loading) }
 
@@ -35,12 +40,8 @@ fun MoversApp() {
         onPauseOrDispose { }
     }
 
-    if (userSession == UserSession.Loading) {
-        MoversSplashScreen()
-        return
-    }
-
     LaunchedEffect(userSession, backStackEntry) {
+        if (userSession == UserSession.Loading) return@LaunchedEffect
         val destination = backStackEntry?.destination ?: return@LaunchedEffect
         val hasProfileInBackStack = try {
             navController.getBackStackEntry(NavigationRoutes.Profile)
@@ -66,23 +67,30 @@ fun MoversApp() {
         }
     }
 
-    SharedTransitionLayout {
-        CompositionLocalProvider(LocalUserSession provides userSession) {
-            NavHost(
-                navController = navController,
-                startDestination = NavigationRoutes.Splash,
-            ) {
-                composable<NavigationRoutes.Splash> {
-                    MoversSplashScreen()
+    Box(Modifier.fillMaxSize()) {
+        if (userSession == UserSession.Loading) {
+            MoversSplashScreen()
+        } else {
+            SharedTransitionLayout {
+                CompositionLocalProvider(LocalUserSession provides userSession) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = NavigationRoutes.Splash,
+                    ) {
+                        composable<NavigationRoutes.Splash> {
+                            MoversSplashScreen()
+                        }
+
+                        authNavGraph(navController = navController)
+
+                        homeNavigationGraph(
+                            navController = navController,
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                        )
+                    }
                 }
-
-                authNavGraph(navController = navController)
-
-                homeNavigationGraph(
-                    navController = navController,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                )
             }
         }
+        OfflineNotice(networkStatus, Modifier.align(Alignment.BottomCenter))
     }
 }
