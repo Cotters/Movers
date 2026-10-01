@@ -9,6 +9,7 @@ import com.jcotters.database.user.UserDao
 import java.io.IOException
 import java.time.Clock
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -73,6 +74,8 @@ class UserRepository @Inject constructor(
             } else {
                 throw Throwable(INCORRECT_DETAILS)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             return@withContext Result.failure(e)
         }
@@ -94,6 +97,8 @@ class UserRepository @Inject constructor(
             }
         } catch (e: SQLiteConstraintException) {
             return@withContext Result.failure(Throwable(USERNAME_TAKEN_MESSAGE))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             return@withContext Result.failure(e)
         }
@@ -103,6 +108,8 @@ class UserRepository @Inject constructor(
         return@withContext try {
             sessionManager.createSession(userId)
             Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Result.failure(Throwable(SESSION_FAILED_MESSAGE))
         }

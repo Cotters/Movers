@@ -10,10 +10,12 @@ import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import java.security.SecureRandom
@@ -121,6 +123,30 @@ class UserRepositoryShould {
     runBlocking{ underTest.createUserSession(USER_ID) }
 
     coVerify(exactly = 1) { sessionManager.createSession(userId = USER_ID) }
+  }
+
+  @Test
+  fun `propagate cancellation while reading login credentials`() {
+    coEvery { secureStorage.loadCredentials(USERNAME) } throws CancellationException("Screen closed")
+    assertThrows(CancellationException::class.java) {
+      runBlocking { underTest.login(USERNAME, PASSWORD) }
+    }
+  }
+
+  @Test
+  fun `propagate cancellation during account creation`() {
+    coEvery { userDao.insertUser(any()) } throws CancellationException("Screen closed")
+    assertThrows(CancellationException::class.java) {
+      runBlocking { underTest.signUp(USERNAME, PASSWORD) }
+    }
+  }
+
+  @Test
+  fun `propagate cancellation while creating the persisted session`() {
+    coEvery { sessionManager.createSession(USER_ID) } throws CancellationException("Screen closed")
+    assertThrows(CancellationException::class.java) {
+      runBlocking { underTest.createUserSession(USER_ID) }
+    }
   }
 
   private fun generateSalt(): ByteArray {
