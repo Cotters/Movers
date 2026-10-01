@@ -1,11 +1,20 @@
 package com.jcotters.internal.detail.data
 
 import com.jcotters.contract.detail.domain.IBookmarksRepository
+import com.jcotters.contract.detail.domain.models.Movie
+import io.mockk.every
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertThrows
 import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.movies.DbMovie
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.RelaxedMockK
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -14,6 +23,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class BookmarksRepositoryShould {
 
     @RelaxedMockK
@@ -30,7 +40,7 @@ class BookmarksRepositoryShould {
 
     @Test
     fun `return failure when failed to add bookmark to database`() {
-        coEvery { bookmarkDao.insertBookmark(any()) } throws Throwable("Test error")
+        coEvery { bookmarkDao.insertBookmark(any()) } throws IllegalStateException("Test error")
 
         val result = runBlocking { underTest.addBookmark(MOVIE_ID, USER_ID) }
 
@@ -47,7 +57,7 @@ class BookmarksRepositoryShould {
 
     @Test
     fun `return failure when failed to remove bookmark from database`() {
-        coEvery { bookmarkDao.removeBookmark(any(), any()) } throws Throwable("Test error")
+        coEvery { bookmarkDao.removeBookmark(any(), any()) } throws IllegalStateException("Test error")
 
         val result = runBlocking { underTest.removeBookmark(MOVIE_ID, USER_ID) }
 
@@ -63,35 +73,36 @@ class BookmarksRepositoryShould {
     }
 
     @Test
-    fun `return failure when failed to get bookmarks from database`() {
-        coEvery { bookmarkDao.getBookmarkedMoviesForUser(USER_ID) } throws Throwable("Test error")
-
-        val result = runBlocking { underTest.getUserBookmarks(USER_ID) }
-
-        assertTrue(result.isFailure)
-        assertThat(result.exceptionOrNull()!!.message, equalTo("Unable to get bookmarked movies."))
+    fun `observe changes to saved movies without recreating the repository`() = runTest {
+        val rows = MutableStateFlow(DB_MOVIES)
+        every { bookmarkDao.observeBookmarkedMovies(USER_ID) } returns rows
+        val observed = mutableListOf<List<Movie>>()
+        backgroundScope.launch { underTest.observeUserBookmarks(USER_ID).collect { observed += it } }
+        runCurrent()
+        rows.value = emptyList()
+        runCurrent()
+        assertThat(observed.first(), equalTo(DB_MOVIES.map(movieMapper::toDomainModel)))
+        assertTrue(observed.last().isEmpty())
     }
 
     @Test
-    fun `return list of movies when getting bookmarks`() {
-        coEvery { bookmarkDao.getBookmarkedMoviesForUser(USER_ID) } returns DB_MOVIES
-
-        val result = runBlocking { underTest.getUserBookmarks(USER_ID) }
-        val movies = DB_MOVIES.map(movieMapper::toDomainModel)
-
-        assertTrue(result.isSuccess)
-        assertThat(result.getOrNull()!!, equalTo(movies))
+    fun `observe bookmark status changes`() = runTest {
+        val saved = MutableStateFlow(false)
+        every { bookmarkDao.observeMovieBookmark(USER_ID, MOVIE_ID) } returns saved
+        val observed = mutableListOf<Boolean>()
+        backgroundScope.launch { underTest.observeMovieBookmark(USER_ID, MOVIE_ID).collect { observed += it } }
+        runCurrent()
+        saved.value = true
+        runCurrent()
+        assertThat(observed, equalTo(listOf(false, true)))
     }
 
     @Test
-    fun `use dao when checking if movie is bookmarked`() {
-        coEvery { bookmarkDao.hasUserBookmarkedMovie(USER_ID, MOVIE_ID) } returns true
-        var result = runBlocking { underTest.isMovieBookmarked(USER_ID, MOVIE_ID) }
-        assertTrue(result.getOrNull()!!)
-
-        coEvery { bookmarkDao.hasUserBookmarkedMovie(USER_ID, MOVIE_ID) } returns false
-        result = runBlocking { underTest.isMovieBookmarked(USER_ID, MOVIE_ID) }
-        assertFalse(result.getOrNull()!!)
+    fun `preserve cancellation when writing a bookmark`() {
+        coEvery { bookmarkDao.insertBookmark(any()) } throws CancellationException()
+        assertThrows(CancellationException::class.java) {
+            runBlocking { underTest.addBookmark(MOVIE_ID, USER_ID) }
+        }
     }
 
     private companion object {

@@ -6,5 +6,7 @@ data class MovieDetailViewState(
     val isLoading: Boolean = true,
     val movie: Movie? = null,
     val isBookmarked: Boolean = false,
+    val isBookmarkLoaded: Boolean = false,
+    val isSavingBookmark: Boolean = false,
     val errorMessage: String = "",
 )

@@ -2,7 +2,7 @@ package com.jcotters.profile.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jcotters.profile.domain.FetchUserBookmarksUseCase
+import com.jcotters.profile.domain.ObserveUserBookmarksUseCase
 import com.jcotters.profile.domain.FetchUserProfileUseCase
 import com.jcotters.profile.domain.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,13 +11,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val fetchUserProfileUseCase: FetchUserProfileUseCase,
-    private val fetchUserBookmarksUseCase: FetchUserBookmarksUseCase,
+    private val observeUserBookmarks: ObserveUserBookmarksUseCase,
     private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
@@ -40,28 +41,22 @@ class ProfileViewModel @Inject constructor(
     private fun loadProfile() {
         viewModelScope.launch {
             fetchUserProfileUseCase.invoke()
-                .onSuccess {
-                    viewModelUiState.update { current ->
-                        current.copy(
-                            isLoading = false,
-                            profile = it,
-                        )
-                    }
+                .onSuccess { profile ->
+                    viewModelUiState.update { it.copy(isLoading = false, profile = profile) }
                 }
-            fetchUserBookmarksUseCase.invoke()
-                .onSuccess { movies ->
-                    viewModelUiState.update { current ->
-                        current.copy(
-                            isLoading = false,
-                            bookmarkedMovies = movies,
-                        )
-                    }
+                .onFailure { error ->
+                    viewModelUiState.update { it.copy(isLoading = false) }
+                    _errorMessage.emit(error.message ?: "Failed loading profile.")
                 }
-                .onFailure {
-                    viewModelUiState.update { current ->
-                        current.copy(isLoading = false)
-                    }
-                    _errorMessage.emit(it.message ?: "Failed loading bookmarks.")
+        }
+        viewModelScope.launch {
+            observeUserBookmarks()
+                .catch { error ->
+                    viewModelUiState.update { it.copy(isLoading = false) }
+                    _errorMessage.emit(error.message ?: "Failed loading bookmarks.")
+                }
+                .collect { movies ->
+                    viewModelUiState.update { it.copy(bookmarkedMovies = movies) }
                 }
         }
     }

@@ -103,7 +103,10 @@ fun MovieDetailScreen(
                     ) {
                         val bookmarkIcon =
                             if (viewState.isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
-                        IconButton(onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) }) {
+                        IconButton(
+                            onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) },
+                            enabled = viewState.isBookmarkLoaded && !viewState.isSavingBookmark,
+                        ) {
                             Icon(
                                 painter = painterResource(bookmarkIcon),
                                 contentDescription = "Bookmark movie button",

@@ -5,20 +5,24 @@ import androidx.lifecycle.viewModelScope
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.details.domain.BookmarkMovieUseCase
 import com.jcotters.details.domain.GetMovieByIdUseCase
-import com.jcotters.details.domain.IsMovieBookmarkedUseCase
+import com.jcotters.details.domain.ObserveMovieBookmarkUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MovieDetailViewModel @Inject constructor(
     private val getMovieById: GetMovieByIdUseCase,
-    private val isMovieBookmarked: IsMovieBookmarkedUseCase,
+    private val observeMovieBookmark: ObserveMovieBookmarkUseCase,
     private val bookmarkMovieUseCase: BookmarkMovieUseCase,
 ) : ViewModel() {
 
@@ -28,6 +32,9 @@ class MovieDetailViewModel @Inject constructor(
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage = _errorMessage.asSharedFlow()
 
+    private var bookmarkObservation: Job? = null
+    private var loadedMovieId: Int? = null
+
     fun onViewEvent(event: MovieDetailViewEvent) {
         when (event) {
             is MovieDetailViewEvent.OnLoad -> onViewLoaded(event.movieId)
@@ -36,17 +43,19 @@ class MovieDetailViewModel @Inject constructor(
     }
 
     private fun onViewLoaded(movieId: Int) {
-        viewModelScope.launch {
-            isMovieBookmarked.invoke(movieId).let(::handleIsBookmarked)
-            getMovieById.invoke(movieId).let(::handleMovieResult)
+        if (loadedMovieId == movieId) return
+        loadedMovieId = movieId
+        bookmarkObservation?.cancel()
+        viewModelUiState.value = MovieDetailViewState()
+        bookmarkObservation = viewModelScope.launch {
+            observeMovieBookmark(movieId)
+                .catch { error -> emitError(error.message ?: "Unable to load bookmark.") }
+                .collect { bookmarked ->
+                    viewModelUiState.update { it.copy(isBookmarked = bookmarked, isBookmarkLoaded = true) }
+                }
         }
-    }
-
-    private fun handleIsBookmarked(result: Result<Boolean>) {
-        result.onSuccess {
-            viewModelUiState.update { current ->
-                current.copy(isBookmarked = it)
-            }
+        viewModelScope.launch {
+            getMovieById.invoke(movieId).let(::handleMovieResult)
         }
     }
 
@@ -69,28 +78,30 @@ class MovieDetailViewModel @Inject constructor(
     }
 
     private fun onBookmarkTapped(movieId: Int) {
-        // TODO: Prevent tapping again to avoid duplicate requests and out-of-sync saving.
-        val isBookmarked = viewModelUiState.value.isBookmarked
-        viewModelUiState.update { current ->
-            current.copy(isBookmarked = current.isBookmarked.not())
-        }
+        val state = viewModelUiState.value
+        if (state.isSavingBookmark || !state.isBookmarkLoaded || loadedMovieId != movieId) return
+        viewModelUiState.update { it.copy(isSavingBookmark = true) }
         viewModelScope.launch {
-            if (isBookmarked) {
-                bookmarkMovieUseCase.removeBookmark(movieId).let(::handleBookmarkResult)
-            } else {
-                bookmarkMovieUseCase.addBookmark(movieId).let(::handleBookmarkResult)
+            try {
+                val result = if (state.isBookmarked) {
+                    bookmarkMovieUseCase.removeBookmark(movieId)
+                } else {
+                    bookmarkMovieUseCase.addBookmark(movieId)
+                }
+                result.onSuccess {
+                    val bookmarked = observeMovieBookmark(movieId).first()
+                    viewModelUiState.update { it.copy(isBookmarked = bookmarked) }
+                }.onFailure { error ->
+                    emitError(error.message ?: "Unable to bookmark film.")
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                emitError(error.message ?: "Unable to save bookmark.")
+            } finally {
+                viewModelUiState.update { it.copy(isSavingBookmark = false) }
             }
         }
-    }
-
-    private fun handleBookmarkResult(result: Result<Unit>) {
-        result
-            .onFailure { error ->
-                emitError(error.message ?: "Unable to bookmark film.")
-                viewModelUiState.update { current ->
-                    current.copy(isBookmarked = current.isBookmarked.not())
-                }
-            }
     }
 
     private fun emitError(message: String) {
