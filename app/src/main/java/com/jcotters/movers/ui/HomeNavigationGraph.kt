@@ -113,9 +113,7 @@ fun NavGraphBuilder.homeNavigationGraph(
         }
     }
 
-    composable<NavigationRoutes.Profile>(
-
-    ) { _ ->
+    composable<NavigationRoutes.Profile> { _ ->
         val viewModel: ProfileViewModel = hiltViewModel()
         val viewState by viewModel.uiState.collectAsState()
 
