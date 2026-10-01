@@ -22,77 +22,75 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SignUpScreen(
-  modifier: Modifier,
-  viewState: AuthViewState,
-  onViewEvent: (AuthViewEvent) -> Unit,
+    modifier: Modifier,
+    viewState: AuthViewState,
+    onViewEvent: (AuthViewEvent) -> Unit,
 ) {
-  Surface {
-    Column(
-      modifier = modifier
-        .fillMaxSize()
-        .padding(horizontal = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-      Spacer(modifier = Modifier.height(30.dp))
-      Text(
-        text = "Join ${viewState.userCount} mover fanatics today!",
-        style = MaterialTheme.typography.bodyMedium,
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-      Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-      ) {
-        Text(
-          text = "Sign Up",
-          style = MaterialTheme.typography.headlineLarge,
-        )
-        OutlinedTextField(
-          value = viewState.username,
-          onValueChange = { onViewEvent(AuthViewEvent.UsernameUpdated(it)) },
-          modifier = Modifier.fillMaxWidth(),
-          maxLines = 1,
-          label = { Text("Username") },
-        )
-        PasswordField(
-          password = viewState.password,
-          onPasswordChanged = { onViewEvent(AuthViewEvent.PasswordUpdated(it)) }
-        )
+    Surface {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Spacer(modifier = Modifier.height(30.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "Sign Up",
+                    style = MaterialTheme.typography.headlineLarge,
+                )
+                Text(
+                    text = "Join ${viewState.userCount} mover fanatics today!",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedTextField(
+                    value = viewState.username,
+                    onValueChange = { onViewEvent(AuthViewEvent.UsernameUpdated(it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1,
+                    label = { Text("Username") },
+                )
+                PasswordField(
+                    password = viewState.password,
+                    onPasswordChanged = { onViewEvent(AuthViewEvent.PasswordUpdated(it)) })
 
-        PasswordField(
-          password = viewState.confirmPassword,
-          onPasswordChanged = { onViewEvent(AuthViewEvent.ConfirmPasswordUpdated(it)) },
-          label = "Confirm Password",
-        )
-      }
-      Button(
-        onClick = { onViewEvent(AuthViewEvent.SignUpTapped) },
-        enabled = viewState.signUpButtonEnabled,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RectangleShape,
-      ) {
-        Text(text = "Sign Up")
-      }
-      TextButton(onClick = { onViewEvent(AuthViewEvent.HaveExistingAccountTapped) }) {
-        Text(text = "Already have an Account?")
-      }
-      AuthErrorView(errorMessage = viewState.errorMessage)
+                PasswordField(
+                    password = viewState.confirmPassword,
+                    onPasswordChanged = { onViewEvent(AuthViewEvent.ConfirmPasswordUpdated(it)) },
+                    label = "Confirm Password",
+                )
+            }
+            Button(
+                onClick = { onViewEvent(AuthViewEvent.SignUpTapped) },
+                enabled = viewState.signUpButtonEnabled,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RectangleShape,
+            ) {
+                Text(text = "Sign Up")
+            }
+            TextButton(onClick = { onViewEvent(AuthViewEvent.HaveExistingAccountTapped) }) {
+                Text(text = "Already have an Account?")
+            }
+            AuthErrorView(errorMessage = viewState.errorMessage)
+        }
     }
-  }
 }
 
 @Preview
 @Composable
 private fun SignUpScreenPreview() {
-  Surface {
-    SignUpScreen(
-      modifier = Modifier,
-      viewState = AuthViewState(
-        errorMessage = "Preview error message!"
-      ),
-      onViewEvent = { _ -> }
-    )
-  }
+    Surface {
+        SignUpScreen(
+            modifier = Modifier,
+            viewState = AuthViewState(
+                errorMessage = "Preview error message!"
+            ),
+            onViewEvent = { _ -> },
+        )
+    }
 }
