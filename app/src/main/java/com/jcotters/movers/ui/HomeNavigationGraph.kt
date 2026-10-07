@@ -29,6 +29,7 @@ import com.jcotters.catalogue.MovieCatalogueViewModel
 import com.jcotters.details.ui.MovieDetailScreen
 import com.jcotters.details.ui.MovieDetailViewEvent
 import com.jcotters.details.ui.MovieDetailViewModel
+import com.jcotters.presentation.moviePosterKey
 import com.jcotters.profile.ui.ProfileScreen
 import com.jcotters.profile.ui.ProfileViewModel
 import kotlinx.coroutines.flow.SharedFlow
@@ -55,14 +56,14 @@ fun NavGraphBuilder.homeNavigationGraph(
                     with(sharedTransitionScope) {
                         Modifier.sharedElement(
                             sharedContentState = rememberSharedContentState(
-                                key = "movie-poster-${movie.id}"
+                                key = moviePosterKey(movie.id)
                             ),
                             animatedVisibilityScope = this@composable,
                         )
                     }
                 },
                 onMovieTapped = { movieId ->
-                    navController.navigate(NavigationRoutes.MovieDetails(movieId = movieId))
+                    navController.navigate(NavigationRoutes.MovieDetails(movieId))
                 },
                 onAccountTapped = {
                     if (userSession is UserSession.Authenticated) {
@@ -90,7 +91,7 @@ fun NavGraphBuilder.homeNavigationGraph(
                 )
             },
         ) { backStackEntry ->
-            val movieId: Int = backStackEntry.toRoute<NavigationRoutes.MovieDetails>().movieId
+            val movieId = backStackEntry.toRoute<NavigationRoutes.MovieDetails>().movieId
             val viewModel: MovieDetailViewModel = hiltViewModel()
             val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -101,11 +102,12 @@ fun NavGraphBuilder.homeNavigationGraph(
             }
 
             MovieDetailScreen(
+                movieId = movieId,
                 viewState = viewState,
                 onViewEvent = viewModel::onViewEvent,
                 posterModifier = with(sharedTransitionScope) {
                     Modifier.sharedElement(
-                        sharedContentState = rememberSharedContentState(key = "movie-poster-$movieId"),
+                        sharedContentState = rememberSharedContentState(key = moviePosterKey(movieId)),
                         animatedVisibilityScope = this@composable
                     )
                 }
@@ -127,14 +129,14 @@ fun NavGraphBuilder.homeNavigationGraph(
                 with(sharedTransitionScope) {
                     Modifier.sharedElement(
                         sharedContentState = rememberSharedContentState(
-                            key = "movie-poster-${movie.id}"
+                            key = moviePosterKey(movie.id)
                         ),
                         animatedVisibilityScope = this@composable,
                     )
                 }
             },
             onMovieTapped = { movieId ->
-                navController.navigate(NavigationRoutes.MovieDetails(movieId = movieId))
+                navController.navigate(NavigationRoutes.MovieDetails(movieId))
             },
         )
     }

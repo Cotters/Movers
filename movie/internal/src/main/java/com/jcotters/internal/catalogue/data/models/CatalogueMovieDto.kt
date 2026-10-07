@@ -23,4 +23,8 @@ data class CatalogueMovieDto(
   val posterPath: String? = null,
   @SerializedName("video")
   val video: Boolean? = null,
+  @SerializedName("vote_average")
+  val voteAverage: Double? = null,
+  @SerializedName("vote_count")
+  val voteCount: Int? = null,
 )

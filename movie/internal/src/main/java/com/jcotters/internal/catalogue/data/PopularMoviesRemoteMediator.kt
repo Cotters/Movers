@@ -11,12 +11,12 @@ import com.jcotters.database.movies.DbMovieCatalogueRemoteKey
 import com.jcotters.database.movies.MovieCatalogue
 import com.jcotters.internal.MovieApi
 import com.jcotters.internal.detail.data.MovieMapper
+import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import java.io.IOException
-import javax.inject.Inject
 import java.time.Clock
 import java.time.Duration
-import kotlinx.coroutines.CancellationException
+import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
 internal class PopularMoviesRemoteMediator @Inject constructor(
@@ -83,7 +83,7 @@ internal class PopularMoviesRemoteMediator @Inject constructor(
                     removeCatalogueData()
                 }
                 val dbMovies = movieMapper.toDatabaseModel(movies = movies)
-                movieDao.upsertAll(dbMovies)
+                movieDao.upsertCatalogueMovies(dbMovies)
                 val catalogueEntries = movieMapper.toCatalogueEntry(catalogue, dbMovies, responsePage)
                 movieCatalogueDao.insertCatalogueEntries(catalogueEntries)
                 val nextPage = if (endOfPaginationReached) null else responsePage + 1

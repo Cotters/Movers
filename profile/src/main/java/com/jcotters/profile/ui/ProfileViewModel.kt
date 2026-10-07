@@ -2,16 +2,16 @@ package com.jcotters.profile.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jcotters.profile.domain.ObserveUserBookmarksUseCase
+import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.profile.domain.FetchUserProfileUseCase
-import com.jcotters.profile.domain.LogoutUseCase
+import com.jcotters.profile.domain.ObserveUserBookmarksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,7 +19,7 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val fetchUserProfileUseCase: FetchUserProfileUseCase,
     private val observeUserBookmarks: ObserveUserBookmarksUseCase,
-    private val logoutUseCase: LogoutUseCase,
+    private val userRepository: IUserRepository,
 ) : ViewModel() {
 
     private val viewModelUiState = MutableStateFlow(ProfileViewState())
@@ -63,7 +63,7 @@ class ProfileViewModel @Inject constructor(
 
     private fun logout() {
         viewModelScope.launch {
-            logoutUseCase.invoke()
+            userRepository.logout()
         }
     }
 }

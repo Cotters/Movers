@@ -62,10 +62,15 @@ class DatabaseMigrationTest {
         assertUpgrade(version = 4, withCatalogue = true, movieDeleteAction = "NO ACTION")
     }
 
+    @Test
+    fun migrateVersionFive() = runTest {
+        assertUpgrade(version = 5, withCatalogue = true, movieDeleteAction = "NO ACTION")
+    }
+
     private suspend fun assertUpgrade(version: Int, withCatalogue: Boolean, movieDeleteAction: String) {
         createLegacyDatabase(version, withCatalogue, movieDeleteAction)
         val migrated = Room.databaseBuilder(context, MoversDatabase::class.java, DATABASE_NAME)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
             .build()
         database = migrated
 
@@ -74,10 +79,15 @@ class DatabaseMigrationTest {
         assertEquals(if (version >= 4) "existing-hash" else null, migrated.userDao().getUserById(1)?.passwordHash)
         migrated.userDao().importCredentials(1, "0f", "existing-hash")
         assertEquals("existing-hash", migrated.userDao().getUserById(1)?.passwordHash)
-        assertNotNull(migrated.movieDao().getMovieById(7))
+        val movie = migrated.movieDao().getMovieById(7)
+        assertNotNull(movie)
+        assertEquals("Saved movie", movie?.title)
+        assertEquals(null, movie?.detailsFetchedAt)
+        assertEquals(null, movie?.genres)
+        assertEquals(null, movie?.runtimeMinutes)
         assertEquals(listOf(7), migrated.bookmarkDao().getBookmarkedMoviesForUser(1).map { it.id })
         if (withCatalogue) {
-            assertEquals(null, migrated.movieCatalogueRemoteKeysDao().getRemoteKey("popular")?.lastRefreshedAt)
+            assertEquals(if (version >= 5) 123L else null, migrated.movieCatalogueRemoteKeysDao().getRemoteKey("popular")?.lastRefreshedAt)
             assertEquals(2, migrated.movieCatalogueRemoteKeysDao().getRemoteKey("popular")?.nextPage)
             val rows = migrated.openHelper.readableDatabase.query("SELECT COUNT(*) FROM movie_catalogue_entries")
             rows.use {
@@ -134,6 +144,10 @@ class DatabaseMigrationTest {
                 db.execSQL("ALTER TABLE users ADD COLUMN passwordSalt TEXT")
                 db.execSQL("ALTER TABLE users ADD COLUMN passwordHash TEXT")
                 db.execSQL("UPDATE users SET passwordSalt = '0f', passwordHash = 'existing-hash' WHERE id = 1")
+            }
+            if (version >= 5) {
+                db.execSQL("ALTER TABLE movie_catalogue_remote_keys ADD COLUMN lastRefreshedAt INTEGER")
+                db.execSQL("UPDATE movie_catalogue_remote_keys SET lastRefreshedAt = 123")
             }
             db.version = version
         }

@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.presentation.MoverImageView
+import com.jcotters.presentation.moviePosterKey
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -31,6 +32,7 @@ fun MovieCatalogueListItem(
     Row(modifier = modifier) {
         MoverImageView(
             posterUrl = movie.posterUrl.orEmpty(),
+            sharedImageKey = moviePosterKey(movie.id),
             contentDescription = "DbMovie poster for ${movie.title}",
             modifier = posterModifier
                 .fillMaxHeight()

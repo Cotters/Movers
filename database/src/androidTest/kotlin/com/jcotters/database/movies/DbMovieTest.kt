@@ -1,11 +1,13 @@
 package com.jcotters.database.movies
 
 import android.content.Context
+import androidx.paging.PagingSource
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.jcotters.database.MoversDatabase
+import com.jcotters.database.bookmarks.Bookmark
 import com.jcotters.database.user.User
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -62,4 +64,45 @@ class DbMovieTest {
             assertEquals(ids.getValue(name), found?.id)
         }
     }
+
+    @Test
+    fun catalogueUpdatesPreserveEnrichmentAndRelationships() = runTest {
+        val enriched = DbMovie(7, "Original", "Overview", "2026", posterUrl = "poster.jpg",
+            tagline = "Saved tagline", runtimeMinutes = 125, genres = listOf(DbMovieGenre(18, "Drama")),
+            voteAverage = 7.8, voteCount = 50, status = "Released", originalLanguage = "en", detailsFetchedAt = 123)
+        movieDao.saveMovieDetails(enriched)
+        val userId = database.userDao().insertUser(User(username = "reader")).toInt()
+        database.bookmarkDao().insertBookmark(Bookmark(7, userId))
+        database.movieCatalogueDao().insertCatalogueEntries(listOf(DbMovieCatalogueEntry("popular", 7, 1, 0)))
+        movieDao.upsertCatalogueMovies(listOf(DbMovie(7, "New title", "New overview", "2027", voteAverage = 8.1, voteCount = 100)))
+        val expected = enriched.copy(title = "New title", synopsis = "New overview", releaseDate = "2027", voteAverage = 8.1, voteCount = 100)
+        assertEquals(expected, movieDao.getMovieById(7))
+        assertEquals(listOf(expected), database.bookmarkDao().getBookmarkedMoviesForUser(userId))
+        val page = movieDao.getPopularMoviesPagingSource("popular").load(
+            PagingSource.LoadParams.Refresh(key = null, loadSize = 20, placeholdersEnabled = false),
+        )
+        assertEquals(listOf(expected), (page as PagingSource.LoadResult.Page).data)
+    }
+
+    @Test
+    fun sparseDetailsPreserveKnownBasicsAndCanClearUnavailableExtras() = runTest {
+        movieDao.insertMovie(DbMovie(7, "Old title", "Known overview", "2026", "poster.jpg", "backdrop.jpg",
+            tagline = "Old tagline", runtimeMinutes = 125, voteAverage = 7.8, voteCount = 50,
+            originalLanguage = "en", detailsFetchedAt = 1))
+        movieDao.saveMovieDetails(DbMovie(7, "New title", "", "", genres = emptyList(), detailsFetchedAt = 2))
+        val movie = movieDao.getMovieById(7)!!
+        assertEquals("New title", movie.title)
+        assertEquals("Known overview", movie.synopsis)
+        assertEquals("2026", movie.releaseDate)
+        assertEquals("poster.jpg", movie.posterUrl)
+        assertEquals("backdrop.jpg", movie.backdropUrl)
+        assertEquals("en", movie.originalLanguage)
+        assertEquals(7.8, movie.voteAverage!!, 0.001)
+        assertEquals(50, movie.voteCount)
+        assertEquals(null, movie.tagline)
+        assertEquals(null, movie.runtimeMinutes)
+        assertEquals(emptyList<DbMovieGenre>(), movie.genres)
+        assertEquals(2L, movie.detailsFetchedAt)
+    }
+
 }

@@ -7,7 +7,17 @@ data class Movie(
   val releaseDate: String,
   val posterUrl: String? = null,
   val backdropUrl: String? = null,
+  val tagline: String? = null,
+  val runtimeMinutes: Int? = null,
+  val genres: List<MovieGenre> = emptyList(),
+  val voteAverage: Double? = null,
+  val voteCount: Int? = null,
+  val status: String? = null,
+  val originalLanguage: String? = null,
+  val detailsFetchedAt: Long? = null,
 )
+
+data class MovieGenre(val id: Int, val name: String)
 
 object PreviewMovies {
   val movies: List<Movie> = listOf(

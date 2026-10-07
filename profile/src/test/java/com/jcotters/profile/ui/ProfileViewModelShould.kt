@@ -1,8 +1,8 @@
 package com.jcotters.profile.ui
 
+import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.profile.domain.FetchUserProfileUseCase
-import com.jcotters.profile.domain.LogoutUseCase
 import com.jcotters.profile.domain.ObserveUserBookmarksUseCase
 import io.mockk.coEvery
 import io.mockk.every
@@ -40,11 +40,12 @@ class ProfileViewModelShould {
         coEvery { fetchProfile.invoke() } returns Result.success(mockk())
         val observeBookmarks = mockk<ObserveUserBookmarksUseCase>()
         every { observeBookmarks() } returns savedMovies
-        val model = ProfileViewModel(fetchProfile, observeBookmarks, mockk<LogoutUseCase>())
+        val model = ProfileViewModel(fetchProfile, observeBookmarks, mockk<IUserRepository>())
         runCurrent()
         assertEquals(listOf(movie), model.uiState.value.bookmarkedMovies)
         savedMovies.value = emptyList()
         runCurrent()
         assertEquals(emptyList<Movie>(), model.uiState.value.bookmarkedMovies)
     }
+
 }

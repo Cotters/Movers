@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.PreviewMovies
 import com.jcotters.presentation.MoverImageView
+import com.jcotters.presentation.moviePosterKey
 import com.jcotters.profile.domain.Profile
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +38,7 @@ fun ProfileScreen(
     viewState: ProfileViewState,
     onViewEvent: (ProfileViewEvent) -> Unit,
     posterModifier: @Composable (Movie) -> Modifier,
-    onMovieTapped: (movieId: Int) -> Unit,
+    onMovieTapped: (Int) -> Unit,
 ) {
     Scaffold { innerPadding ->
         if (viewState.isLoading) {
@@ -99,6 +100,7 @@ fun ProfileView(
             items(viewState.bookmarkedMovies) { movie ->
                 MoverImageView(
                     posterUrl = movie.posterUrl.orEmpty(),
+                    sharedImageKey = moviePosterKey(movie.id),
                     contentDescription = "Movie poster for ${movie.title}",
                     modifier = posterModifier(movie)
                         .fillMaxHeight()

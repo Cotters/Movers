@@ -7,8 +7,8 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import com.jcotters.database.MoversDatabase
 import com.jcotters.database.movies.DbMovie
-import com.jcotters.database.movies.MovieCatalogue
 import com.jcotters.database.movies.DbMovieCatalogueRemoteKey
+import com.jcotters.database.movies.MovieCatalogue
 import com.jcotters.database.movies.MovieCatalogueDao
 import com.jcotters.database.movies.MovieCatalogueRemoteKeysDao
 import com.jcotters.database.movies.MovieDao
@@ -19,15 +19,15 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import java.io.IOException
-import java.time.Clock
-import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
+import java.time.Clock
+import java.time.Duration
 
 @OptIn(ExperimentalPagingApi::class)
 class PopularMoviesRemoteMediatorShould {
@@ -76,7 +76,7 @@ class PopularMoviesRemoteMediatorShould {
         coEvery { api.getPopularMovies(1) } throws IOException("Offline")
         assertTrue(mediator.load(LoadType.REFRESH, pagingState) is RemoteMediator.MediatorResult.Error)
         coVerify(exactly = 0) { catalogue.removeAllForCatalogue(any()) }
-        coVerify(exactly = 0) { movies.upsertAll(any()) }
+        coVerify(exactly = 0) { movies.upsertCatalogueMovies(any()) }
         coVerify(exactly = 0) { keys.insertKey(any()) }
     }
 

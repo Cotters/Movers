@@ -1,65 +1,77 @@
 package com.jcotters.internal.detail.data
 
 import com.jcotters.contract.detail.domain.models.Movie
+import com.jcotters.contract.detail.domain.models.MovieGenre
 import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.movies.DbMovieCatalogueEntry
+import com.jcotters.database.movies.DbMovieGenre
 import com.jcotters.internal.catalogue.data.models.CatalogueMovieDto
 import com.jcotters.internal.detail.data.models.MovieDto
 import javax.inject.Inject
 
 internal class MovieMapper @Inject constructor() {
-  fun toDomainModel(movieDto: MovieDto): Movie? {
-    return Movie(
-      id = movieDto.id ?: return null,
-      title = movieDto.title ?: return null,
-      releaseDate = movieDto.releaseDate ?: "Unknown release date",
-      synopsis = movieDto.overview ?: return null,
-      posterUrl = movieDto.posterPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
-      backdropUrl = movieDto.backdropPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
+    fun toDatabaseModel(dto: MovieDto, fetchedAt: Long): DbMovie? {
+        return DbMovie(
+            id = dto.id ?: return null,
+            title = dto.title?.takeIf { it.isNotBlank() } ?: return null,
+            synopsis = dto.overview.orEmpty(),
+            releaseDate = dto.releaseDate.orEmpty(),
+            posterUrl = imageUrl(dto.posterPath),
+            backdropUrl = imageUrl(dto.backdropPath),
+            tagline = dto.tagline?.takeIf { it.isNotBlank() },
+            runtimeMinutes = dto.runtime?.takeIf { it > 0 },
+            genres = dto.genres.orEmpty().mapNotNull { genre ->
+                val id = genre?.id ?: return@mapNotNull null
+                val name = genre.name?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                DbMovieGenre(id, name)
+            }.distinctBy { it.id },
+            voteAverage = validRating(dto.voteAverage),
+            voteCount = dto.voteCount?.takeIf { it >= 0 },
+            status = dto.status?.takeIf { it.isNotBlank() },
+            originalLanguage = dto.originalLanguage?.takeIf { it.isNotBlank() },
+            detailsFetchedAt = fetchedAt,
+        )
+    }
+
+    fun toDomainModel(catalogueResults: List<CatalogueMovieDto?>): List<Movie> =
+        toDatabaseModel(catalogueResults).map(::toDomainModel)
+
+    fun toDatabaseModel(movies: List<CatalogueMovieDto?>): List<DbMovie> = movies.mapNotNull { dto ->
+        DbMovie(
+            id = dto?.id ?: return@mapNotNull null,
+            title = dto.title ?: return@mapNotNull null,
+            synopsis = dto.overview ?: return@mapNotNull null,
+            releaseDate = dto.releaseDate ?: "Unknown release date",
+            posterUrl = imageUrl(dto.posterPath),
+            backdropUrl = imageUrl(dto.backdropPath),
+            originalLanguage = dto.originalLanguage?.takeIf { it.isNotBlank() },
+            voteAverage = validRating(dto.voteAverage),
+            voteCount = dto.voteCount?.takeIf { it >= 0 },
+        )
+    }
+
+    fun toDomainModel(dbMovie: DbMovie): Movie = Movie(
+        id = dbMovie.id,
+        title = dbMovie.title,
+        synopsis = dbMovie.synopsis,
+        releaseDate = dbMovie.releaseDate,
+        posterUrl = dbMovie.posterUrl,
+        backdropUrl = dbMovie.backdropUrl,
+        tagline = dbMovie.tagline,
+        runtimeMinutes = dbMovie.runtimeMinutes,
+        genres = dbMovie.genres.orEmpty().map { MovieGenre(it.id, it.name) },
+        voteAverage = dbMovie.voteAverage,
+        voteCount = dbMovie.voteCount,
+        status = dbMovie.status,
+        originalLanguage = dbMovie.originalLanguage,
+        detailsFetchedAt = dbMovie.detailsFetchedAt,
     )
-  }
 
-  fun toDomainModel(catalogueResults: List<CatalogueMovieDto?>): List<Movie> {
-    return catalogueResults.mapNotNull { dto ->
-      return@mapNotNull Movie(
-        id = dto?.id ?: return@mapNotNull null,
-        title = dto.title ?: return@mapNotNull null,
-        synopsis = dto.overview ?: return@mapNotNull null,
-        releaseDate = dto.releaseDate ?: "Unknown release date",
-        posterUrl = dto.posterPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
-      )
-    }
-  }
+    fun toCatalogueEntry(catalogue: String, movies: List<DbMovie>, page: Int): List<DbMovieCatalogueEntry> =
+        movies.mapIndexed { index, movie -> DbMovieCatalogueEntry(catalogue, movie.id, page, index) }
 
-  fun toDatabaseModel(
-    movies: List<CatalogueMovieDto?>,
-  ): List<DbMovie> {
-    return movies.mapNotNull { dto ->
-      DbMovie(
-        id = dto?.id ?: return@mapNotNull null,
-        title = dto.title ?: return@mapNotNull null,
-        synopsis = dto.overview ?: return@mapNotNull null,
-        releaseDate = dto.releaseDate ?: "Unknown release date",
-        posterUrl = dto.posterPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
-        backdropUrl = dto.backdropPath?.let { "https://image.tmdb.org/t/p/w500/$it" },
-      )
-    }
-  }
+    private fun imageUrl(path: String?): String? = path?.takeIf { it.isNotBlank() }
+        ?.let { "https://image.tmdb.org/t/p/w500/${it.trimStart('/')}" }
 
-  fun toDomainModel(dbMovie: DbMovie): Movie {
-    return Movie(
-      id = dbMovie.id,
-      title = dbMovie.title,
-      synopsis = dbMovie.synopsis,
-      releaseDate = dbMovie.releaseDate,
-      posterUrl = dbMovie.posterUrl,
-      backdropUrl = dbMovie.backdropUrl
-    )
-  }
-
-    fun toCatalogueEntry(catalogue: String, movies: List<DbMovie>, page: Int): List<DbMovieCatalogueEntry> {
-        return movies.mapIndexed { index, movie ->
-            DbMovieCatalogueEntry(catalogue, movie.id, page, index)
-        }
-    }
+    private fun validRating(rating: Double?): Double? = rating?.takeIf { it.isFinite() && it in 0.0..10.0 }
 }

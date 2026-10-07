@@ -19,17 +19,17 @@ import com.jcotters.internal.catalogue.data.models.CatalogueMovieDto
 import com.jcotters.internal.catalogue.data.models.CataloguePageResponse
 import com.jcotters.internal.detail.data.MovieMapper
 import com.jcotters.internal.detail.data.models.MovieDto
-import java.io.IOException
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
-import java.time.ZoneOffset
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.IOException
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.ZoneOffset
 
 @OptIn(ExperimentalPagingApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -50,6 +50,9 @@ class PopularMoviesRemoteMediatorTest {
         assertTrue(mediator(startTime).load(LoadType.REFRESH, state) is RemoteMediator.MediatorResult.Success)
         val userId = database.userDao().insertUser(User(username = "reader")).toInt()
         database.bookmarkDao().insertBookmark(Bookmark(1, userId))
+        database.movieDao().saveMovieDetails(database.movieDao().getMovieById(1)!!.copy(
+            tagline = "Keep this tagline", runtimeMinutes = 125, detailsFetchedAt = startTime,
+        ))
         val later = startTime + Duration.ofHours(1).toMillis()
         assertTrue(mediator(later).load(LoadType.APPEND, state) is RemoteMediator.MediatorResult.Success)
         assertEquals(startTime, database.movieCatalogueRemoteKeysDao().getRemoteKey(MovieCatalogue.Popular.key)?.lastRefreshedAt)
@@ -62,6 +65,9 @@ class PopularMoviesRemoteMediatorTest {
         val bookmarkedMovie = database.bookmarkDao().getBookmarkedMoviesForUser(userId).single()
         assertEquals(1, bookmarkedMovie.id)
         assertEquals("Updated movie", bookmarkedMovie.title)
+        assertEquals("Keep this tagline", bookmarkedMovie.tagline)
+        assertEquals(125, bookmarkedMovie.runtimeMinutes)
+        assertEquals(startTime, bookmarkedMovie.detailsFetchedAt)
     }
 
     @Test

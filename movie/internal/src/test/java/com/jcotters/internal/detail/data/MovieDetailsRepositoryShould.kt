@@ -1,153 +1,164 @@
 package com.jcotters.internal.detail.data
 
-import com.jcotters.contract.detail.domain.IMovieDetailsRepository
 import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.internal.MovieApi
-import com.jcotters.internal.detail.data.models.Genre
 import com.jcotters.internal.detail.data.models.MovieDto
-import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.runBlocking
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
+import java.time.Clock
+import java.time.Duration
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MovieDetailsRepositoryShould {
-
+    private val api = mockk<MovieApi>()
+    private val dao = mockk<MovieDao>(relaxed = true)
     private val mapper = MovieMapper()
-
-    @RelaxedMockK
-    private lateinit var movieApi: MovieApi
-
-    @RelaxedMockK
-    private lateinit var movieDao: MovieDao
-
-    private lateinit var underTest: IMovieDetailsRepository
+    private var now = Duration.ofDays(2).toMillis()
+    private val clock = mockk<Clock> { every { millis() } answers { now } }
+    private var cached: DbMovie? = null
+    private val savedMovie = MutableStateFlow<DbMovie?>(null)
+    private val repository = MovieDetailsRepository(api, dao, mapper, clock)
 
     @Before
     fun setUp() {
-        MockKAnnotations.init(this)
-        underTest = MovieDetailsRepository(
-            api = movieApi,
-            movieDao = movieDao,
-            movieMapper = mapper,
-        )
-    }
-
-    @Test
-    fun `return movie from database`() {
-        coEvery { movieDao.getMovieById(MOVIE_ID) } returns DB_MOVIE
-
-        val movie = runBlocking { underTest.getMovieWithId(MOVIE_ID) }
-        val mappedDbMovie = mapper.toDomainModel(DB_MOVIE)
-
-        coVerify(exactly = 0) { movieApi.getMovieById(any()) }
-        assertThat(movie.getOrNull()!!, equalTo(mappedDbMovie))
-    }
-
-    @Test
-    fun `return failure with its cause when a network request fails`() {
-        val failure = RuntimeException("Network unavailable")
-        coEvery { movieDao.getMovieById(any()) } returns null
-        coEvery { movieApi.getMovieById(MOVIE_ID) } throws failure
-
-        val movie = runBlocking { underTest.getMovieWithId(MOVIE_ID) }
-
-        coVerify(exactly = 1) { movieApi.getMovieById(MOVIE_ID) }
-        val error = movie.exceptionOrNull()
-        assertThat(error!!.message, equalTo("Could not find requested movie."))
-        assertSame(failure, error.cause)
-    }
-
-    @Test
-    fun `propagate cancellation during a database read without fetching remotely`() {
-        val cancellation = CancellationException("Screen closed")
-        coEvery { movieDao.getMovieById(MOVIE_ID) } throws cancellation
-
-        val thrown = assertThrows(CancellationException::class.java) {
-            runBlocking { underTest.getMovieWithId(MOVIE_ID) }
+        coEvery { dao.getMovieById(7) } answers { cached }
+        every { dao.observeMovieById(7) } returns savedMovie
+        coEvery { dao.saveMovieDetails(any()) } coAnswers {
+            cached = firstArg()
+            savedMovie.value = cached
         }
-
-        assertSame(cancellation, thrown)
-        coVerify(exactly = 0) { movieApi.getMovieById(any()) }
+        coEvery { api.getMovieById(7) } returns MovieDto(id = 7, title = "Movie", runtime = 125)
     }
 
     @Test
-    fun `propagate cancellation during a network request`() {
-        val cancellation = CancellationException("Screen closed")
-        coEvery { movieDao.getMovieById(MOVIE_ID) } returns null
-        coEvery { movieApi.getMovieById(MOVIE_ID) } throws cancellation
+    fun `fetch and persist details for a catalogue-only movie`() = runTest {
+        cached = basicMovie
+        assertTrue(repository.refreshMovieWithId(7).isSuccess)
+        assertEquals(125, cached?.runtimeMinutes)
+        assertEquals(now, cached?.detailsFetchedAt)
+        coVerify(exactly = 1) { api.getMovieById(7) }
+        assertEquals(mapper.toDomainModel(cached!!), repository.observeMovieWithId(7).first())
+    }
 
-        val thrown = assertThrows(CancellationException::class.java) {
-            runBlocking { underTest.getMovieWithId(MOVIE_ID) }
+    @Test
+    fun `fetch and persist a movie absent from the database`() = runTest {
+        assertTrue(repository.refreshMovieWithId(7).isSuccess)
+        assertEquals(7, cached?.id)
+        coVerify(exactly = 1) { dao.saveMovieDetails(any()) }
+    }
+
+    @Test
+    fun `reuse details up to but not including 24 hours`() = runTest {
+        cached = basicMovie.copy(detailsFetchedAt = now - Duration.ofHours(24).toMillis() + 1)
+        assertTrue(repository.refreshMovieWithId(7).isSuccess)
+        coVerify(exactly = 0) { api.getMovieById(any()) }
+        now += 1
+        assertTrue(repository.refreshMovieWithId(7).isSuccess)
+        coVerify(exactly = 1) { api.getMovieById(7) }
+    }
+
+    @Test
+    fun `refresh timestamps from the future`() = runTest {
+        cached = basicMovie.copy(detailsFetchedAt = now + 1)
+        assertTrue(repository.refreshMovieWithId(7).isSuccess)
+        coVerify(exactly = 1) { api.getMovieById(7) }
+    }
+
+    @Test
+    fun `missing optional fields do not repeatedly fetch a successful response`() = runTest {
+        coEvery { api.getMovieById(7) } returns MovieDto(id = 7, title = "Movie")
+        repeat(2) { assertTrue(repository.refreshMovieWithId(7).isSuccess) }
+        assertEquals(now, cached?.detailsFetchedAt)
+        assertNull(cached?.runtimeMinutes)
+        coVerify(exactly = 1) { api.getMovieById(7) }
+    }
+
+    @Test
+    fun `retain stale data and timestamp on network failure and allow retry`() = runTest {
+        val original = basicMovie.copy(detailsFetchedAt = 1, tagline = "Saved tagline")
+        cached = original
+        val error = IOException("Offline")
+        coEvery { api.getMovieById(7) } throws error
+        val result = repository.refreshMovieWithId(7)
+        assertSame(error, result.exceptionOrNull()?.cause)
+        assertEquals(original, cached)
+        coVerify(exactly = 0) { dao.saveMovieDetails(any()) }
+        coEvery { api.getMovieById(7) } returns MovieDto(id = 7, title = "Movie")
+        assertTrue(repository.refreshMovieWithId(7).isSuccess)
+        assertEquals(now, cached?.detailsFetchedAt)
+    }
+
+    @Test
+    fun `reject mismatched IDs and missing or blank titles without writing`() = runTest {
+        for (dto in listOf(MovieDto(), MovieDto(id = 8, title = "Wrong"),
+            MovieDto(id = 7), MovieDto(id = 7, title = " "))) {
+            coEvery { api.getMovieById(7) } returns dto
+            assertTrue(repository.refreshMovieWithId(7).isFailure)
         }
-
-        assertSame(cancellation, thrown)
+        coVerify(exactly = 0) { dao.saveMovieDetails(any()) }
     }
 
     @Test
-    fun `report a missing movie when the response omits required fields`() {
-        coEvery { movieDao.getMovieById(MOVIE_ID) } returns null
-        coEvery { movieApi.getMovieById(MOVIE_ID) } returns MovieDto()
-
-        val result = runBlocking { underTest.getMovieWithId(MOVIE_ID) }
-
-        assertTrue(result.isFailure)
-        assertThat(result.exceptionOrNull()?.message, equalTo("Could not find requested movie."))
-        assertTrue(result.exceptionOrNull()?.cause is NoSuchElementException)
+    fun `report persistence failures without marking details fresh`() = runTest {
+        coEvery { dao.saveMovieDetails(any()) } throws IOException("Disk full")
+        assertTrue(repository.refreshMovieWithId(7).isFailure)
+        assertNull(cached)
     }
 
     @Test
-    fun `do not turn fatal errors into a missing movie result`() {
-        coEvery { movieDao.getMovieById(MOVIE_ID) } throws AssertionError("Broken invariant")
+    fun `propagate cancellation during database and network access`() = runTest {
+        val cancellation = CancellationException("Screen closed")
+        coEvery { dao.getMovieById(7) } throws cancellation
+        assertSame(cancellation, try { repository.refreshMovieWithId(7); null } catch (e: CancellationException) { e })
+        coVerify(exactly = 0) { api.getMovieById(any()) }
+        coEvery { dao.getMovieById(7) } returns null
+        coEvery { api.getMovieById(7) } throws cancellation
+        assertSame(cancellation, try { repository.refreshMovieWithId(7); null } catch (e: CancellationException) { e })
+    }
 
+    @Test
+    fun `do not swallow fatal errors`() = runTest {
+        coEvery { dao.getMovieById(7) } throws AssertionError("Broken invariant")
         assertThrows(AssertionError::class.java) {
-            runBlocking { underTest.getMovieWithId(MOVIE_ID) }
+            kotlinx.coroutines.runBlocking { repository.refreshMovieWithId(7) }
         }
     }
 
     @Test
-    fun `return movie when api returns movie`() {
-        coEvery { movieDao.getMovieById(any()) } returns null
-        coEvery { movieApi.getMovieById(MOVIE_ID) } returns MOCKED_MOVIE_DTO
-
-        val movie = runBlocking { underTest.getMovieWithId(MOVIE_ID) }
-
-        coVerify(exactly = 1) { movieApi.getMovieById(MOVIE_ID) }
-        assertThat(movie, equalTo(Result.success(MOCKED_MOVIE)))
+    fun `concurrent refresh callers reuse the first persisted response`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        coEvery { api.getMovieById(7) } coAnswers {
+            gate.await()
+            MovieDto(id = 7, title = "Movie")
+        }
+        val first = async { repository.refreshMovieWithId(7) }
+        val second = async { repository.refreshMovieWithId(7) }
+        runCurrent()
+        coVerify(exactly = 1) { api.getMovieById(7) }
+        gate.complete(Unit)
+        assertTrue(first.await().isSuccess)
+        assertTrue(second.await().isSuccess)
+        coVerify(exactly = 1) { api.getMovieById(7) }
     }
 
-    companion object {
-        private const val MOVIE_ID: Int = 123
-        private const val MOVIE_TITLE = "Mock: The DbMovie"
-        private const val MOVIE_OVERVIEW = "The hilarious mocking of unit testing."
-        private const val MOVIE_RELEASE_DATE = "2025/12/25"
-        private const val MOVIE_REVENUE = 345245234
-        private val MOVIE_GENRES = listOf(Genre(id = 12, name = "Comedy"))
-        private val MOCKED_MOVIE_DTO = MovieDto(
-            id = MOVIE_ID,
-            title = MOVIE_TITLE,
-            overview = MOVIE_OVERVIEW,
-            releaseDate = MOVIE_RELEASE_DATE,
-            revenue = MOVIE_REVENUE,
-            genres = MOVIE_GENRES,
-        )
-        private val DB_MOVIE = DbMovie(
-            id = MOVIE_ID,
-            title = MOVIE_TITLE,
-            synopsis = MOVIE_OVERVIEW,
-            releaseDate = MOVIE_RELEASE_DATE,
-        )
-
-        private val MOCKED_MOVIE = MovieMapper().toDomainModel(MOCKED_MOVIE_DTO)
-
-    }
+    private val basicMovie = DbMovie(7, "Movie", "Overview", "2026-01-01")
 }

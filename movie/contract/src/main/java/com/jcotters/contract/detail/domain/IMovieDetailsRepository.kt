@@ -1,7 +1,9 @@
 package com.jcotters.contract.detail.domain
 
 import com.jcotters.contract.detail.domain.models.Movie
+import kotlinx.coroutines.flow.Flow
 
 interface IMovieDetailsRepository {
-  suspend fun getMovieWithId(id: Int): Result<Movie>
+  fun observeMovieWithId(id: Int): Flow<Movie?>
+  suspend fun refreshMovieWithId(id: Int): Result<Unit>
 }
