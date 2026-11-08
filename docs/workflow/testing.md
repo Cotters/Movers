@@ -31,10 +31,11 @@ From the repository root:
 The script takes no arguments, works from any current directory, checks basic prerequisites, then executes:
 
 ```sh
+./gradlew --no-daemon --console=plain -p build-logic :convention:check
 ./gradlew --no-daemon --console=plain --continue testDebugUnitTest lintDebug :app:assembleDebug
 ```
 
-Gradle's task selector runs matching unit-test/lint tasks across participating modules. `--continue` collects independent task failures and still returns a failure status. The script preserves Gradle's exit code; prerequisite errors return 2 and unsupported arguments return 64. It does not install tools, contact a backend for tests, deploy an APK, or start a device. Dependency resolution can access artifact repositories.
+The first invocation checks convention-plugin validation and Gradle TestKit fixtures; a failure stops verification. Gradle's task selector then runs matching unit-test/lint tasks across participating app modules. `--continue` collects independent task failures and still returns a failure status. The script preserves the failing Gradle invocation's exit code; prerequisite errors return 2 and unsupported arguments return 64. It does not install tools, contact a backend for tests, deploy an APK, or start a device. Dependency resolution can access artifact repositories.
 
 ## Focused iteration
 
@@ -56,6 +57,7 @@ Choose tests for the guarantee being changed:
 | Room schema/query | Export and review schemas; preserve existing accounts/bookmarks and constraints. Existing DAO/migration tests are instrumented and await user execution on a physical device. |
 | Compose/navigation | Compile, inspect previews where useful, and review state/semantics. User verifies visible behavior, back-stack/lifecycle transitions, large fonts, and accessibility on a physical device. |
 | Workflow/scripts/CI | Check shell syntax and prerequisite/failure handling, validate workflow YAML, and run the same script used by CI. Remote execution remains pending until GitHub runs it. |
+| Convention plugins | Run `./gradlew -p build-logic :convention:check`; validate the full task graph with `./gradlew build --dry-run`. Check debug/release and test-APK compilation for plugin/code-generation changes. TestKit fixtures never start devices. |
 
 Do not add a new test framework, screenshot system, or broad coverage target merely to change documentation. Test user-visible guarantees rather than private implementation calls. `NO-SOURCE`, empty test scaffolding, compilation, and skipped tests are not passing behavior coverage.
 
@@ -63,6 +65,7 @@ Do not add a new test framework, screenshot system, or broad coverage target mer
 
 - Unit XML: `<module>/build/test-results/testDebugUnitTest/TEST-*.xml`.
 - Unit HTML: `<module>/build/reports/tests/testDebugUnitTest/index.html`.
+- Build-logic tests: `build-logic/convention/build/test-results/test/` and `build-logic/convention/build/reports/tests/test/`.
 - Lint: `<module>/build/reports/lint-results-debug.html` and `.xml`/`.sarif` where generated.
 - Debug APK: `app/build/outputs/apk/debug/`; building it does not verify runtime behavior.
 
@@ -96,3 +99,9 @@ Navigation policy and cross-module key serialization are covered by `NavigationS
 ```
 
 Use the [physical-device navigation checklist](navigation.md#physical-device-acceptance) and record the outcome in the handoff. Compiled test APKs and a minified build are not proof of runtime behavior.
+
+## Convention-plugin migration acceptance
+
+For configuration-cache checks, run `./gradlew :app:assembleDebug --configuration-cache --configuration-cache-problems=fail` twice and require reuse on the second run. Cache compatibility is verified for this task; it is not enabled globally or assumed for every verification task.
+
+After pulling this build refactor, sync in Android Studio with JDK 17 and report any sync error. On your physical Android device, install/run the debug build and check Home loading, a movie detail, all three tabs, Profile login/logout, and bookmarks. Confirm the minified release launches and loads the same flows if you already have local release-install setup. Report the device/Android version, observed differences, and sanitized crash logs if any. Existing navigation acceptance remains pending; this smoke check does not replace it. Agents compile device-test APKs but do not install them or execute tests.

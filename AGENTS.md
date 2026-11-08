@@ -2,6 +2,7 @@
 
 - Start with [Human.md](docs/workflow/Human.md) for the agreed workflow. For substantial work or a resumed task, read [the handoff](docs/workflow/handoff.md) and verify its claims against the current source and Git state.
 - Use [development guidance](docs/workflow/development.md) when making architecture or behavior changes, and [testing guidance](docs/workflow/testing.md) when choosing or running checks. Read only the references the task needs.
+- For Gradle/module changes, read [build conventions](build-logic/README.md). Keep Android conventions separate from future Android/iOS shared-code conventions; KMP migration needs its own agreed plan.
 - When asked to work on the next thing, read the first unchecked item in private `Notes/Todo.md` if present, then inspect and agree its feature plan. Keep the queue succinct. If it is absent in a clone, use the tracked handoff; do not publish or force-add private notes.
 - Clarify material product decisions and obtain agreement on a feature plan before implementation. Once agreed, complete the authorized work and host verification without repeatedly asking permission. Shared Watchlist implementation and Supabase provisioning require a separate feature request and agreed plan.
 - Match the nearest relevant implementation: Compose screens, ViewModel state/events, focused use cases, repository contracts, Hilt, Room, and typed navigation. Preserve existing module boundaries; do not introduce a new architecture or upgrade dependencies incidentally.

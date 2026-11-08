@@ -1,32 +1,15 @@
 plugins {
-    id("com.android.test")
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    id("movers.android.test")
+    id("movers.android.compose")
 }
 
 android {
     namespace = "com.jcotters.tests"
-    compileSdk = 37
 
     targetProjectPath = ":app"
-
-    defaultConfig {
-        minSdk = 28
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
-    val composeBom = platform(libs.androidx.compose.bom)
-    implementation(composeBom)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     implementation(libs.androidx.runner)

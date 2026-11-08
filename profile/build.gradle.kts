@@ -1,31 +1,23 @@
 plugins {
-  alias(libs.plugins.android.library)
-  alias(libs.plugins.kotlin.android)
-  alias(libs.plugins.kotlin.compose)
-  alias(libs.plugins.kotlin.ksp)
+    id("movers.android.library")
+    id("movers.android.compose")
+    id("movers.android.hilt")
+    id("movers.android.unit-testing")
 }
 
 android {
-  namespace = "com.jcotters.profile"
-  compileSdk = libs.versions.android.compileSdk.get().toInt()
+    namespace = "com.jcotters.profile"
 
-  defaultConfig {
-    minSdk = 28
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles("consumer-rules.pro")
-  }
-
-  buildTypes {
-    release {
-      isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+    defaultConfig {
+        consumerProguardFiles("consumer-rules.pro")
     }
-  }
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
 }
 
 dependencies {
@@ -38,35 +30,26 @@ dependencies {
     implementation(project(":navigation:contract"))
     implementation(project(":profile:contract"))
 
-  implementation(libs.androidx.core.ktx)
-  implementation(libs.androidx.lifecycle.runtime.ktx)
-  implementation(libs.androidx.activity.compose)
-  implementation(platform(libs.androidx.compose.bom))
-  implementation(libs.androidx.compose.ui)
-  implementation(libs.androidx.compose.ui.graphics)
-  implementation(libs.androidx.compose.ui.tooling.preview)
-  implementation(libs.androidx.compose.material3)
-  implementation(libs.kotlin.serialization.json)
-  implementation(libs.retrofit)
-  implementation(libs.retrofit.serialization)
-  implementation(libs.retrofit.gson)
-  implementation(libs.hilt)
-  ksp(libs.hilt.compiler)
-  implementation(libs.coil.compose)
-  implementation(libs.coil.network.okhttp)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.kotlin.serialization.json)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.serialization)
+    implementation(libs.retrofit.gson)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
-  implementation(project(path = ":auth:contract"))
-  implementation(project(path = ":database"))
-  implementation(project(path = ":presentation"))
-  implementation(project(path = ":movie:contract"))
+    implementation(project(path = ":auth:contract"))
+    implementation(project(path = ":database"))
+    implementation(project(path = ":presentation"))
+    implementation(project(path = ":movie:contract"))
 
-  testImplementation(libs.junit)
-  testImplementation(libs.mockk)
-    testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 
-  androidTestImplementation(libs.androidx.junit)
-  androidTestImplementation(libs.androidx.espresso.core)
-
-  debugImplementation(libs.androidx.compose.ui.tooling)
-  debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

@@ -12,7 +12,7 @@ Reviewed: 8 November 2026. This guide describes the existing app and the workflo
 
 Treat suggestions in Human.md as proposals until agreed. Preserve user feedback, and record the outcome when a proposal is accepted or declined. No separate approval is needed to run ordinary authorized host checks or repair failures introduced by the change.
 
-This is a portfolio/demo project intended for public reuse. For backend work, follow [public-source and portability guidance](open-source.md): repositories depend on a separate vendor-neutral database API, and Supabase-specific adapters implement it. The private ordered queue is `Notes/Todo.md` when present; its first items are Navigation, then Shared Lists. Keep durable requirements in this tracked folder so a clone does not depend on private notes.
+This is a portfolio/demo project intended for public reuse. For backend work, follow [public-source and portability guidance](open-source.md): repositories depend on a separate vendor-neutral database API, and Supabase-specific adapters implement it. The private ordered queue is `Notes/Todo.md` when present; an explicit agreed task takes precedence. Keep durable requirements in this tracked folder so a clone does not depend on private notes.
 
 ## Existing architecture
 
@@ -47,7 +47,7 @@ Representative flows, relative to the repository root:
 - **Persistence is an installed-data contract.** Preserve accounts, bookmarks, and their relationships through explicit migrations and schema exports. Historical version-2 databases had multiple schema variants. Do not introduce destructive recreation to bypass migration work.
 - **Define the success boundary.** Account creation and session creation are separate operations; a failure after a committed write can require recovery rather than repeating the entire operation.
 - **Keep lifecycle ownership clear.** Use lifecycle-aware collection in the UI, structured coroutine scopes, and an appropriate UI owner for Activity-dependent APIs. Rotation, backgrounding, and process death have different consequences.
-- **Match the current dependency versions.** Use the version catalog and wrapper. Built-in Kotlin/new-DSL migration is existing follow-up work, not an incidental feature prerequisite. Do not copy incompatible Room or Navigation APIs into the current stack without an agreed migration; this app now uses Nav 3 version 1.2.1.
+- **Match the current dependency versions.** Use the version catalog and wrapper. Android modules use AGP built-in Kotlin/new DSL and [composable build conventions](../../build-logic/README.md); keep one-off configuration local. Do not copy incompatible Room or Navigation APIs into the current stack without an agreed migration; this app uses Nav 3 version 1.2.1.
 - **Local accounts are local.** Existing authentication checks Room users and persisted local sessions; it does not establish backend identity or remote authorization. Never upload existing password hashes as a shortcut to remote authentication.
 
 These lessons were checked against current code and curated from private study notes. Old descriptions of “remaining” work are not automatically current: detail persistence, freshness, and retry behavior have since changed. Recheck source before opening a task.
@@ -79,4 +79,4 @@ The agreed Nav 3 migration is implemented. Home retains its movie feed; Watchlis
 
 Each tab retains its stack; reselection pops to the tab root without resetting root scroll. Back from another tab's root selects Home's retained stack; Home root exits. Login replaces the Auth entry in place, while logout, expiry, and account replacement clear retained state and return Home. See [the implementation guide and physical-device checks](navigation.md).
 
-Current Gradle scripts remain in use. Adding and adopting convention plugins is a separate private Todo item after Shared Lists.
+Gradle scripts now select shared convention plugins. The agreed future direction is shared Kotlin logic and Compose UI on Android/iOS with thin platform hosts. This build refactor does not migrate modules or select shared DI. Follow the [build guidance and migration constraints](../../build-logic/README.md#androidios-direction); keep Android-only capabilities explicit and agree a separate KMP migration plan.

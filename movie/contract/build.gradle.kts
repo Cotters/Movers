@@ -1,30 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    id("movers.android.library")
+    id("movers.android.unit-testing")
 }
 
 android {
     namespace = "com.jcotters.movie.contract"
-    compileSdk {
-        version = release(libs.versions.android.compileSdk.get().toInt())
-    }
-
-    defaultConfig {
-        minSdk = 28
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            optimization {
-                enable = false
-            }
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
 }
 
 dependencies {
@@ -34,8 +14,6 @@ dependencies {
     implementation(libs.hilt)
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
-
-    testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }

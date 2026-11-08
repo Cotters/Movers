@@ -37,7 +37,8 @@ jobs:
             **/*.gradle.kts
             gradle/libs.versions.toml
             gradle/wrapper/gradle-wrapper.properties
-            gradle.properties
+            **/gradle.properties
+            build-logic/convention/src/**
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
@@ -70,6 +71,9 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
+            build-logic/convention/build/test-results/test/TEST-*.xml
+            build-logic/convention/build/reports/tests/test/**
+            build-logic/convention/build/reports/plugin-development/**
             **/build/test-results/testDebugUnitTest/TEST-*.xml
             **/build/reports/tests/testDebugUnitTest/**
             **/build/reports/lint-results-debug.*
