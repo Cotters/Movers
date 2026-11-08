@@ -62,6 +62,7 @@ import com.jcotters.presentation.MoverImageView
 import com.jcotters.presentation.R
 import com.jcotters.presentation.moviePosterKey
 import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 @Composable
 fun MovieDetailScreen(
@@ -131,7 +132,7 @@ fun MovieDetailScreen(
                         style = MaterialTheme.typography.bodyMedium)
                     DetailValue("status", movie?.status?.let { "Status: $it" }, loadingMissingDetails, placeholderAlpha)
                     DetailValue("original language", movie?.originalLanguage?.let { code ->
-                        "Original language: ${Locale.forLanguageTag(code).getDisplayLanguage(Locale.getDefault()).ifBlank { code }}"
+                        "Original language: ${Locale.forLanguageTag(code).getDisplayLanguage(LocalLocale.current.platformLocale).ifBlank { code }}"
                     }, loadingMissingDetails, placeholderAlpha)
                 }
                 if (viewState.isRefreshingDetails && movie?.detailsFetchedAt != null) {
