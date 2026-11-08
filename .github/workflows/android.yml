@@ -1,0 +1,75 @@
+name: Android host verification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Host tests, lint, and debug build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17 and Gradle cache
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            **/*.gradle.kts
+            gradle/libs.versions.toml
+            gradle/wrapper/gradle-wrapper.properties
+            gradle.properties
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: 'platforms;android-37.0 build-tools;36.0.0'
+
+      - name: Create placeholder TMDB constant
+        run: |
+          credential_file=movie/internal/src/main/java/com/jcotters/internal/ApiConstants.kt
+          if [[ -e "$credential_file" ]]; then
+            printf 'Refusing to overwrite an existing ApiConstants.kt.\n' >&2
+            exit 1
+          fi
+          cat > "$credential_file" <<'KOTLIN'
+          package com.jcotters.internal
+
+          internal object ApiConstants {
+              const val API_KEY = "CI_PLACEHOLDER_DO_NOT_USE"
+          }
+          KOTLIN
+
+      - name: Verify
+        run: ./scripts/verify.sh
+
+      - name: Upload verification reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-host-reports
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            **/build/test-results/testDebugUnitTest/TEST-*.xml
+            **/build/reports/tests/testDebugUnitTest/**
+            **/build/reports/lint-results-debug.*
