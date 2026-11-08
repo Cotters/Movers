@@ -1,12 +1,5 @@
 package com.jcotters.auth.ui
 
-import android.content.Context
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.GetCredentialResponse
-import androidx.credentials.GetPasswordOption
-import androidx.credentials.PasswordCredential
-import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jcotters.auth.domain.IUserRepository
@@ -39,7 +32,12 @@ class AuthViewModel @Inject constructor(
 
     fun onViewEvent(event: AuthViewEvent) {
         when (event) {
-            is AuthViewEvent.OnLoad -> launchCredentialManagerFlow(event.context)
+            is AuthViewEvent.CredentialsReceived -> {
+                onUsernameUpdated(event.username)
+                onPasswordUpdated(event.password)
+                onLoginTapped()
+            }
+            AuthViewEvent.CredentialRetrievalFailed -> setErrorMessage(CREDENTIAL_MANAGER_FAILED_MESSAGE)
             is AuthViewEvent.UsernameUpdated -> onUsernameUpdated(event.username)
             is AuthViewEvent.PasswordUpdated -> onPasswordUpdated(event.password)
             is AuthViewEvent.ConfirmPasswordUpdated -> onConfirmPasswordUpdated(event.password)
@@ -58,38 +56,12 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private fun launchCredentialManagerFlow(context: Context) {
-        val credentialManager = CredentialManager.create(context)  // TODO: Remove context and inject into ViewModel.
-        val getPasswordOption = GetPasswordOption()
+    private var credentialsRequested: Boolean = false
 
-        val credentialRequest = GetCredentialRequest(listOf(getPasswordOption))
-        viewModelScope.launch {
-            try {
-                val result = credentialManager.getCredential(
-                    context = context,
-                    request = credentialRequest
-                )
-                handleSignIn(result)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: GetCredentialException) {
-                clearErrorMessage()
-            } catch (e: Exception) {
-                setErrorMessage(e.message ?: CREDENTIAL_MANAGER_FAILED_MESSAGE)
-            }
-        }
-    }
-
-    private fun handleSignIn(result: GetCredentialResponse) {
-        when (val credential = result.credential) {
-            is PasswordCredential -> {
-                val username: String = credential.id
-                val password: String = credential.password
-                onUsernameUpdated(username)
-                onPasswordUpdated(password)
-                onLoginTapped()
-            }
-        }
+    fun claimCredentialRequest(): Boolean {
+        if (credentialsRequested) return false
+        credentialsRequested = true
+        return true
     }
 
     private fun onUsernameUpdated(username: String) {
@@ -118,7 +90,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             loginUseCase.invoke(uiState.value.username, uiState.value.password)
                 .onSuccess {
-                    viewModelUiState.update { current -> current.copy(successfulLogin = true) }
+                    viewModelUiState.update { current -> current.copy(successfulLogin = true, password = "", confirmPassword = "") }
                 }
                 .onFailure { error ->
                     setErrorMessage(error.message ?: SIGN_IN_FAILED_MESSAGE)
@@ -142,7 +114,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             signUpUseCase.invoke(uiState.value.username, uiState.value.password)
                 .onSuccess {
-                    viewModelUiState.update { current -> current.copy(successfulLogin = true) }
+                    viewModelUiState.update { current -> current.copy(successfulLogin = true, password = "", confirmPassword = "") }
                 }
                 .onFailure { error ->
                     setErrorMessage(error.message ?: SIGN_UP_FAILED_MESSAGE)

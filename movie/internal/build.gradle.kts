@@ -35,7 +35,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     implementation(libs.hilt)
-    implementation(libs.hilt.navigation)
     ksp(libs.hilt.compiler)
     implementation(libs.kotlin.serialization.json)
     implementation(libs.retrofit)

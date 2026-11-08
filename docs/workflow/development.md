@@ -18,23 +18,25 @@ This is a portfolio/demo project intended for public reuse. For backend work, fo
 
 | Area | Current responsibility |
 | --- | --- |
-| `:app` | Application composition, Hilt entry points, theme, typed navigation graphs, session-driven navigation, and the app-wide offline notice. |
-| `:features:catalogue`, `:features:details` | Compose feature screens and ViewModels; Details also owns bookmark-related use cases. |
-| `:auth`, `:profile` | Existing feature modules containing UI, domain contracts/use cases, data implementations, and DI wiring. |
+| `:app` | Application composition, Hilt entry points, theme, Nav 3 tab state/shell, session reconciliation, and the app-wide offline notice. |
+| `:features:catalogue`, `:features:details` | Compose feature screens, ViewModels, and Nav 3 entry providers; Details also owns bookmark-related use cases. Each feature has a lightweight navigation contract submodule. |
+| `:auth`, `:profile` | UI, use cases, data implementations, and DI wiring. Navigation keys live in contract submodules; Auth also exports its session/user interfaces and models through its contract, preserving their packages. |
+| `:features:watchlists` | Guest Auth Required / authenticated coming-soon UI and a session-observing ViewModel; no list backend yet. |
+| `:navigation:contract` | Feature entry-registration contract and minimal navigator interface. |
 | `:movie:contract` | Movie domain models and repository interfaces consumed by features. |
 | `:movie:internal` | Movie API, repository implementations, mapping, paging mediator, refresh/cache policy, and DI providers. |
 | `:database` | Room entities, DAOs, exported schemas, explicit migrations, and database providers. Current database version: 6. |
 | `:presentation`, `:data:network` | Shared presentation resources/components and device-network observation respectively. |
 | `:tests` | Android test module targeting the app; its presence does not establish executed test coverage. |
 
-The existing modules are not uniformly split into contract/internal pairs. Follow the relevant neighboring code and choose boundaries for a concrete need; do not duplicate the movie split for every feature or migrate the app to a new state framework.
+Existing implementation modules retain their names; navigation contract submodules export keys without exposing screen implementations. The movie subsystem retains its contract/internal split. Follow the relevant boundary rather than renaming all modules or adding pass-through layers. See [navigation ownership and acceptance checks](navigation.md).
 
 Representative flows, relative to the repository root:
 
 - **Bookmark write:** [BookmarkMovieUseCase](../../features/details/src/main/java/com/jcotters/details/domain/BookmarkMovieUseCase.kt) resolves the current user through `IUserRepository`; `IBookmarksRepository` delegates persistence to [BookmarksRepository](../../movie/internal/src/main/java/com/jcotters/internal/detail/data/BookmarksRepository.kt) and the Room DAO. Keep data access out of composables.
 - **Bookmark observation:** [ObserveUserBookmarksUseCase](../../profile/src/main/java/com/jcotters/profile/domain/ObserveUserBookmarksUseCase.kt) uses `flatMapLatest` on the session to switch subscriptions and clear prior-user content. New account-scoped observations must not retain another user's data.
 - **Screen state:** [MovieDetailViewModel](../../features/details/src/main/java/com/jcotters/details/ui/MovieDetailViewModel.kt) handles view events, exposes state, observes saved movies, and coordinates refresh/bookmark work. Screens render state and send events; [MovieDetailScreen](../../features/details/src/main/java/com/jcotters/details/ui/MovieDetailScreen.kt) includes previews for loading, partial content, and failure.
-- **Navigation:** [NavigationRoutes](../../app/src/main/java/com/jcotters/movers/ui/NavigationRoutes.kt) contains serializable routes. [MoversApp](../../app/src/main/java/com/jcotters/movers/ui/MoversApp.kt) owns session-driven navigation; avoid adding competing navigation on authentication success.
+- **Navigation:** [NavigationState](../../app/src/main/java/com/jcotters/movers/ui/NavigationState.kt) owns retained tab stacks and session reconciliation. [MoversApp](../../app/src/main/java/com/jcotters/movers/ui/MoversApp.kt) composes feature entry providers and the shell. Feature contract modules own serializable NavKeys; session changes replace Auth/Profile entries without competing screen-level navigation.
 - **Persistence/cache:** [MovieDetailsRepository](../../movie/internal/src/main/java/com/jcotters/internal/detail/data/MovieDetailsRepository.kt) separates Room observation from refresh, preserves cached data on refresh failure, and injects a clock. Catalogue paging uses a mediator and its own freshness policy. Do not silently replace these policies when adding a feature.
 
 ## Lessons to preserve
@@ -45,7 +47,7 @@ Representative flows, relative to the repository root:
 - **Persistence is an installed-data contract.** Preserve accounts, bookmarks, and their relationships through explicit migrations and schema exports. Historical version-2 databases had multiple schema variants. Do not introduce destructive recreation to bypass migration work.
 - **Define the success boundary.** Account creation and session creation are separate operations; a failure after a committed write can require recovery rather than repeating the entire operation.
 - **Keep lifecycle ownership clear.** Use lifecycle-aware collection in the UI, structured coroutine scopes, and an appropriate UI owner for Activity-dependent APIs. Rotation, backgrounding, and process death have different consequences.
-- **Match the current dependency versions.** Use the version catalog and wrapper. Built-in Kotlin/new-DSL migration is existing follow-up work, not an incidental feature prerequisite. Do not copy Room 3 or Navigation 3 APIs into the current stack without an agreed migration.
+- **Match the current dependency versions.** Use the version catalog and wrapper. Built-in Kotlin/new-DSL migration is existing follow-up work, not an incidental feature prerequisite. Do not copy incompatible Room or Navigation APIs into the current stack without an agreed migration; this app now uses Nav 3 version 1.2.1.
 - **Local accounts are local.** Existing authentication checks Room users and persisted local sessions; it does not establish backend identity or remote authorization. Never upload existing password hashes as a shortcut to remote authentication.
 
 These lessons were checked against current code and curated from private study notes. Old descriptions of “remaining” work are not automatically current: detail persistence, freshness, and retry behavior have since changed. Recheck source before opening a task.
@@ -71,9 +73,10 @@ Confirmed intent: the user and a friend can add to and review shared watchlists 
 
 Before feature work, agree on account integration, handling existing local users/bookmarks, membership/invites, permitted actions, offline behavior, synchronization/conflicts, and acceptance scenarios. Consult current Supabase documentation and the relevant skills. Remote access requires backend-enforced authorization; exposed tables need appropriate RLS policies, and a service-role/secret key must never enter the Android app. The [Kotlin client is community-maintained](https://supabase.com/docs/reference/kotlin/introduction); evaluate it against the existing networking stack during feature planning. No SDK, schema, API, or sync strategy is chosen by this workflow setup.
 
-## First feature pass: Navigation (requested, not implemented)
+## Navigation pass: implemented, device verification pending
 
-- Migrate the current Nav 2 implementation to **Navigation 3** with serializable `NavKey`s, proper feature modularization, and explicitly scoped ViewModels. This migration is explicitly requested; keep unrelated toolchain upgrades separate.
-- Provide **Home** (existing infinite movie feed), **Watchlists** (the future home for user-created lists), and **Profile**. First pass is navigation; list creation/sharing is later work. Preserve Profile behavior and existing bookmarks.
-- Keep the bottom bar visible throughout main navigation, including movie details. Auth presents modally and hides the bar. Exact modal presentation and guest/return navigation need agreement in the feature plan.
-- Use Google's [Navigation 3 skill](https://github.com/android/skills/tree/main/navigation/navigation-3), [modularization guidance](https://developer.android.com/guide/navigation/navigation-3/modularize), and [entry-state/ViewModel scoping guidance](https://developer.android.com/guide/navigation/navigation-3/save-state). Validate the multi-stack, modal Auth, and shared-poster transition design before replacing the current graph.
+The agreed Nav 3 migration is implemented. Home retains its movie feed; Watchlists shows Auth Required for guests and a coming-soon placeholder for authenticated users; Profile hosts Auth forms for guests and the existing profile/bookmarks for authenticated users. The bottom bar remains visible, including Profile authentication and movie details. This replaces the earlier modal-Auth proposal.
+
+Each tab retains its stack; reselection pops to the tab root without resetting root scroll. Back from another tab's root selects Home's retained stack; Home root exits. Login replaces the Auth entry in place, while logout, expiry, and account replacement clear retained state and return Home. See [the implementation guide and physical-device checks](navigation.md).
+
+Current Gradle scripts remain in use. Adding and adopting convention plugins is a separate private Todo item after Shared Lists.

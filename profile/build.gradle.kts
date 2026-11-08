@@ -29,6 +29,15 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(project(":features:details:contract"))
+
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.hilt.viewmodel.compose)
+    implementation(project(":navigation:contract"))
+    implementation(project(":profile:contract"))
+
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity.compose)
@@ -46,7 +55,7 @@ dependencies {
   implementation(libs.coil.compose)
   implementation(libs.coil.network.okhttp)
 
-  implementation(project(path = ":auth"))
+  implementation(project(path = ":auth:contract"))
   implementation(project(path = ":database"))
   implementation(project(path = ":presentation"))
   implementation(project(path = ":movie:contract"))

@@ -23,7 +23,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -56,11 +55,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MovieCatalogueScreen(
-    isAuthenticated: Boolean,
     movies: LazyPagingItems<Movie>,
     posterModifier: @Composable (Movie) -> Modifier,
     onMovieTapped: (Int) -> Unit,
-    onAccountTapped: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -71,23 +68,8 @@ fun MovieCatalogueScreen(
         derivedStateOf { listState.firstVisibleItemIndex > 15 }
     }
 
-    val accountIcon = if (isAuthenticated) R.drawable.person_filled else R.drawable.person_outline
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Movers") },
-                actions = {
-                    IconButton(onClick = onAccountTapped) {
-                        Icon(
-                            painter = painterResource(accountIcon),
-                            contentDescription = "Account top bar button",
-                            modifier = Modifier.size(30.dp),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                        )
-                    }
-                }
-            )
-        },
+        topBar = { TopAppBar(title = { Text("Movers") }) },
         floatingActionButton = {
             AnimatedVisibility(
                 visible = showScrollToTopFab,
@@ -109,7 +91,7 @@ fun MovieCatalogueScreen(
                 }
             }
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = movies.loadState.refresh is LoadState.Loading,
@@ -118,7 +100,7 @@ fun MovieCatalogueScreen(
             modifier = Modifier.padding(innerPadding)
         ) {
             PopularMoviesList(
-                modifier = modifier,
+                modifier = Modifier,
                 listState = listState,
                 movies = movies,
                 onMovieTapped = onMovieTapped,
@@ -252,10 +234,8 @@ private fun MovieCatalogueScreenPreview() {
     val lazyPagingItems = flowOf(pagingData)
         .collectAsLazyPagingItems()
     MovieCatalogueScreen(
-        isAuthenticated = false,
         movies = lazyPagingItems,
         posterModifier = { _ -> Modifier },
         onMovieTapped = { _ -> },
-        onAccountTapped = {},
     )
 }

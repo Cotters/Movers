@@ -79,3 +79,20 @@ The workflow does not change repository branch protection or run deployments. A 
 Agents never start, run, or interact with an emulator or simulator, and do not execute connected/instrumented tests. Ask the user to run applicable checks on their own physical device. Include the build/revision, exact steps, expected result, and required observations; request Android version/device model and sanitized logs or screenshots when relevant.
 
 Existing pending areas include Room migration/DAO integration, Compose flows, session expiry/background/foreground behavior, and real connectivity handovers. For migrations the user should run the existing `DatabaseMigrationTest` on their physical device with the test runner; for UI changes provide specific changed journeys. No device check is required just to read these workflow documents. Keep runtime verification pending until results arrive.
+
+## Nav 3 verification
+
+Navigation policy and cross-module key serialization are covered by `NavigationStateShould`; Auth tests cover UI-supplied credentials, one credential request per entry, and clearing passwords on success. Watchlists tests cover session initialization and login/logout states. Run focused checks with:
+
+```sh
+./gradlew :app:testDebugUnitTest :auth:testDebugUnitTest :features:watchlists:testDebugUnitTest
+```
+
+`MoversNavigationShellTest` covers independent detail ViewModel stores, Auth-to-Profile replacement, expiry cleanup, and saved navigation restoration. It is instrumented: agents compile it but leave execution to the user on a physical device. Build it and affected existing tests without running them:
+
+```sh
+./gradlew :app:assembleDebugAndroidTest :auth:assembleDebugAndroidTest :features:catalogue:assembleDebugAndroidTest :features:details:assembleDebugAndroidTest
+./gradlew :app:assembleRelease
+```
+
+Use the [physical-device navigation checklist](navigation.md#physical-device-acceptance) and record the outcome in the handoff. Compiled test APKs and a minified build are not proof of runtime behavior.

@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.dagger.hilt)
-    kotlin("plugin.serialization") version "2.2.20"
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -38,6 +38,18 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.hilt.viewmodel.compose)
+    implementation(project(":navigation:contract"))
+    implementation(project(":auth"))
+    implementation(project(":features:watchlists"))
+    implementation(project(":features:catalogue:contract"))
+    implementation(project(":features:details:contract"))
+    implementation(project(":features:watchlists:contract"))
+    implementation(project(":profile:contract"))
+    implementation(project(":auth:contract"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -48,9 +60,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.navigation)
     implementation(libs.hilt)
-    implementation(libs.hilt.navigation)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.paging.compose)
 
@@ -60,7 +70,6 @@ dependencies {
     implementation(project(path = ":movie:internal"))
     implementation(project(path = ":features:catalogue"))
     implementation(project(path = ":features:details"))
-    implementation(project(path = ":auth"))
     implementation(project(path = ":profile"))
 
     testImplementation(libs.junit)

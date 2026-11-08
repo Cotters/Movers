@@ -9,6 +9,7 @@ After completing the verification prerequisites, run `./scripts/verify.sh` for h
 
 ## Technologies
 - Jetpack Compose for UI
+- Navigation 3 with feature-owned NavKeys and retained bottom-navigation stacks
 - Hilt for Dependency Injection
 - Coil for Images
 - OkHttp & Retrofit for Networking

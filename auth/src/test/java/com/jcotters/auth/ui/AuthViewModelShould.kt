@@ -1,21 +1,12 @@
 package com.jcotters.auth.ui
 
-import android.content.Context
-import androidx.credentials.Credential
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialResponse
-import androidx.credentials.PasswordCredential
-import androidx.credentials.exceptions.GetCredentialException
 import com.jcotters.auth.domain.IUserRepository
 import com.jcotters.auth.domain.LoginUseCase
 import com.jcotters.auth.domain.SignUpUseCase
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -62,12 +53,6 @@ class AuthViewModelShould {
 
     @MockK
     private lateinit var userRepository: IUserRepository
-
-    @MockK
-    private lateinit var context: Context
-
-    @MockK
-    private lateinit var credentialManager: CredentialManager
 
     private lateinit var underTest: AuthViewModel
 
@@ -273,104 +258,42 @@ class AuthViewModelShould {
     }
 
     @Test
-    fun `handle sign in with PasswordCredential on OnLoad event`() {
-        mockkObject(CredentialManager.Companion)
-        every { CredentialManager.create(context) } returns credentialManager
-
-        val passwordCredential = mockk<PasswordCredential>()
-        every { passwordCredential.id } returns TEST_USERNAME
-        every { passwordCredential.password } returns TEST_PASSWORD
-
-        val response = mockk<GetCredentialResponse>()
-        every { response.credential } returns passwordCredential
-
-        coEvery { credentialManager.getCredential(context = context, request = any()) } returns response
+    fun `sign in with credentials supplied by the active UI and clear passwords on success`() {
         coEvery { loginUseCase.invoke(TEST_USERNAME, TEST_PASSWORD) } returns Result.success(Unit)
 
-        underTest.onViewEvent(AuthViewEvent.OnLoad(context))
+        underTest.onViewEvent(AuthViewEvent.CredentialsReceived(TEST_USERNAME, TEST_PASSWORD))
 
-        val state = underTest.uiState.value
-        assertThat(state.username, equalTo(TEST_USERNAME))
-        assertThat(state.password, equalTo(TEST_PASSWORD))
-        assertTrue(state.successfulLogin)
+        assertTrue(underTest.uiState.value.successfulLogin)
+        assertEquals("", underTest.uiState.value.password)
+        assertEquals("", underTest.uiState.value.confirmPassword)
         coVerify(exactly = 1) { loginUseCase.invoke(TEST_USERNAME, TEST_PASSWORD) }
     }
 
     @Test
-    fun `handle sign in with non-password credential on OnLoad event`() {
-        mockkObject(CredentialManager.Companion)
-        every { CredentialManager.create(context) } returns credentialManager
-
-        val otherCredential = mockk<Credential>()
-        val response = mockk<GetCredentialResponse>()
-        every { response.credential } returns otherCredential
-
-        coEvery { credentialManager.getCredential(context = context, request = any()) } returns response
-
-        underTest.onViewEvent(AuthViewEvent.OnLoad(context))
-
-        val state = underTest.uiState.value
-        assertThat(state.username, equalTo(""))
-        assertThat(state.password, equalTo(""))
-        assertFalse(state.successfulLogin)
-        coVerify(exactly = 0) { loginUseCase.invoke(any(), any()) }
+    fun `request saved credentials only once for this auth entry`() {
+        assertTrue(underTest.claimCredentialRequest())
+        assertFalse(underTest.claimCredentialRequest())
     }
 
     @Test
-    fun `clear error message when GetCredentialException occurs on OnLoad event`() {
-        mockkObject(CredentialManager.Companion)
-        every { CredentialManager.create(context) } returns credentialManager
+    fun `new auth entry can request credentials independently`() {
+        underTest.claimCredentialRequest()
+        val nextEntry = AuthViewModel(loginUseCase, signUpUseCase, userRepository)
 
-        val exception = mockk<GetCredentialException>()
-        coEvery { credentialManager.getCredential(context = context, request = any()) } throws exception
-
-        underTest.onViewEvent(AuthViewEvent.OnLoad(context))
-
-        val state = underTest.uiState.value
-        assertThat(state.errorMessage, equalTo(""))
+        assertTrue(nextEntry.claimCredentialRequest())
     }
 
     @Test
-    fun `leave auth state unchanged when credential retrieval is cancelled`() {
-        mockkObject(CredentialManager.Companion)
-        every { CredentialManager.create(context) } returns credentialManager
-        coEvery { credentialManager.getCredential(context = context, request = any()) } throws
-            CancellationException("Screen closed")
+    fun `credential retrieval failure leaves manual sign in available`() {
+        underTest.onViewEvent(AuthViewEvent.UsernameUpdated(TEST_USERNAME))
         underTest.onViewEvent(AuthViewEvent.PasswordUpdated(TEST_PASSWORD))
-        underTest.onViewEvent(AuthViewEvent.SignUpTapped)
-        val before = underTest.uiState.value
 
-        underTest.onViewEvent(AuthViewEvent.OnLoad(context))
+        underTest.onViewEvent(AuthViewEvent.CredentialRetrievalFailed)
 
-        assertEquals(before, underTest.uiState.value)
+        assertFalse(underTest.uiState.value.successfulLogin)
+        assertTrue(underTest.uiState.value.loginButtonEnabled)
+        assertEquals(AuthViewModel.CREDENTIAL_MANAGER_FAILED_MESSAGE, underTest.uiState.value.errorMessage)
         coVerify(exactly = 0) { loginUseCase.invoke(any(), any()) }
-    }
-
-    @Test
-    fun `set error message with custom message when Exception occurs on OnLoad event`() {
-        mockkObject(CredentialManager.Companion)
-        every { CredentialManager.create(context) } returns credentialManager
-
-        val errorMessage = "Credential manager error"
-        coEvery { credentialManager.getCredential(context = context, request = any()) } throws RuntimeException(errorMessage)
-
-        underTest.onViewEvent(AuthViewEvent.OnLoad(context))
-
-        val state = underTest.uiState.value
-        assertThat(state.errorMessage, equalTo(errorMessage))
-    }
-
-    @Test
-    fun `set error message with default fallback when Exception with null message occurs on OnLoad event`() {
-        mockkObject(CredentialManager.Companion)
-        every { CredentialManager.create(context) } returns credentialManager
-
-        coEvery { credentialManager.getCredential(context = context, request = any()) } throws RuntimeException(null as String?)
-
-        underTest.onViewEvent(AuthViewEvent.OnLoad(context))
-
-        val state = underTest.uiState.value
-        assertThat(state.errorMessage, equalTo(AuthViewModel.CREDENTIAL_MANAGER_FAILED_MESSAGE))
     }
 
     private companion object {

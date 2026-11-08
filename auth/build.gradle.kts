@@ -32,6 +32,13 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.hilt.viewmodel.compose)
+    implementation(project(":navigation:contract"))
+    implementation(project(":auth:contract"))
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -31,6 +31,15 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(project(":features:details:contract"))
+
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.hilt.viewmodel.compose)
+    implementation(project(":navigation:contract"))
+    implementation(project(":features:catalogue:contract"))
+
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
@@ -39,9 +48,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.navigation)
     implementation(libs.hilt)
-    implementation(libs.hilt.navigation)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.paging.compose)
 

@@ -16,6 +16,7 @@
         android:theme="@style/Theme.Movers">
         <activity
             android:name=".ui.MainActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true"
             android:theme="@style/Theme.Movers">
             <intent-filter>

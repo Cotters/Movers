@@ -1,0 +1,5 @@
+<resources>
+    <string name="watchlists_title">Watchlists</string>
+    <string name="watchlists_auth_required">Auth Required</string>
+    <string name="watchlists_coming_soon">Watchlists are coming soon.</string>
+</resources>

@@ -4,9 +4,9 @@ Updated: 8 November 2026. Refresh this document after meaningful progress; keep 
 
 ## Objective and status
 
-Workflow setup is implemented. Current work is to record the ordered queue, research public-source/backend portability, and agree the first Navigation pass. Navigation code and Shared Lists implementation have not started; no backend has been provisioned. The first GitHub-hosted CI run remains pending in the evidence available to this chat.
+The agreed bottom-navigation/Nav 3 implementation is complete and host-verified. **Physical-device acceptance remains pending.** Home, Watchlists, and Profile are implemented as retained tabs; Auth now lives inside Profile rather than a modal. Read [navigation ownership and acceptance](navigation.md) for the current design and exact device checks.
 
-The user has requested Navigation first, then Shared Lists. Agree the Navigation implementation plan before changing app code. Private `Notes/Todo.md` is the concise ordered queue; its requirements are also recorded here for fresh clones.
+Shared Lists backend functionality has not started. The private `Notes/Todo.md` queue records Navigation device acceptance, then Shared Lists, then adding/adopting convention plugins. Supabase remains a candidate with no provisioned integration.
 
 ## Agreed decisions
 
@@ -17,8 +17,9 @@ The user has requested Navigation first, then Shared Lists. Agree the Navigation
 - Include local checks and CI. Repair setup-induced failures only; unrelated code/tooling issues require a separate agreed task.
 - Never use emulators/simulators. Physical-device verification is user-owned and remains pending until the user supplies evidence.
 - Shared means the user and a friend add to and review watchlists on separate devices. Supabase Free is the preferred backend candidate; no backend or integration has been created.
-- Navigation uses **Nav 3**, serializable **NavKeys**, feature modularization, and deliberate ViewModel scoping. Tabs are **Home** (current feed), **Watchlists**, **Profile**. The bottom bar stays visible on main screens/details; Auth is modal and hides it. First pass handles navigation, with list functionality deferred.
-- Profile and bookmarks remain unchanged. Revisit their relationship to watchlists later; the private todo records this reminder.
+- Navigation uses **Nav 3**, serializable **NavKeys**, feature modularization, and deliberate ViewModel scoping. Tabs are **Home** (current feed), **Watchlists**, **Profile**. The bottom bar stays visible on main screens/details and inside Profile authentication. Guests see login/signup in Profile and Auth Required in Watchlists. Successful login shows Profile in place; logout, expiry, and account replacement reset retained navigation and return Home. List functionality remains deferred.
+- Authenticated Profile and bookmarks retain their existing behavior. Revisit their relationship to watchlists later; the private todo records this reminder.
+- Tab switching preserves history; reselection pops to the selected tab root without resetting root scroll. Back at another tab root selects Home's retained stack; Home root exits. Keep current Gradle scripts; convention plugins are a separate Todo item.
 - Treat this resume/portfolio project as public source. Repositories expose app operations and depend on a **separate vendor-neutral database API**; Supabase-specific adapters implement it behind Hilt bindings. See [portability guidance](open-source.md). No provider-specific SDK types should escape these boundaries.
 
 ## Verification evidence
@@ -38,15 +39,27 @@ Source baseline: `846baa7`, branch `SharedWatchlists`; working tree was clean be
 
 ## Open work and next action
 
-1. **Navigation:** finalize modal Auth presentation, guest access/return behavior, back-stack policy, feature API/implementation boundaries, and entry-scoped ViewModels; present the concrete plan for agreement. Preserve feed state, poster transitions, session isolation, Profile, and bookmarks. Google's Navigation 3 and edge-to-edge skills have been read for this planning work; no migration code has been written.
-2. **Shared Lists:** later agree account integration/local-data migration, membership/invitations, allowed actions, offline/sync behavior, and acceptance checks on two physical devices. Include backend API/adapters, reproducible deployment, and credentials-free evaluation in that plan. A demo adapter is proposed, not yet selected or built.
-3. Public backend schemas/migrations/adapters and synthetic fixtures make setup reproducible; live data and privileged credentials remain private. Another Supabase instance is a configuration/setup change; another provider requires a compatible adapter/auth integration. No license has been selected.
-4. GitHub CI remains unverified remotely. No push, publishing, backend provisioning, or repository-settings change was performed.
+1. **Navigation device acceptance:** user runs the checks in [navigation.md](navigation.md#physical-device-acceptance) and the compiled `MoversNavigationShellTest` on a physical device. Record actual observations before checking off the private Navigation Todo. No emulator/simulator use or automatic instrumented execution.
+2. **Shared Lists:** separately agree account integration/local-data migration, membership/invites, allowed actions, offline/sync behavior, and two-device acceptance. Repositories must depend on a separate vendor-neutral database API, with Supabase-specific adapters behind it. No database API or backend integration was added by the navigation pass.
+3. **Convention plugins:** introduce/adopt in a separate agreed task; current module scripts/version catalog remain authoritative.
+4. GitHub CI remains unverified remotely in this chat. No push, publishing, backend provisioning, repository-settings change, or license selection was performed.
 
 ### Documentation follow-up, 8 November 2026
 
 Reviewed source at `11683fc` and current official Android/Supabase guidance. Added the private todo, the tracked public-source/portability guide, and current requirements above. This is documentation/planning only; prior host-test evidence does not verify the future Nav 3 migration.
 
-`git diff --check` passed and all **23 local Markdown links** resolved. `Human.md` is **197 words**; private `Notes/Todo.md` is **61 words**, with exactly two unchecked work items, and remains ignored. No app code, dependencies, database, or CI behavior changed, so no build/device checks were repeated. Pending user choices: full-screen Auth modal versus sheet; guest Profile opens Auth versus a guest page; root Back returns Home versus visited-tab history. Nav 3 modularization and ViewModel-scoping design will be included in the implementation plan after these choices.
+`git diff --check` passed and all **23 local Markdown links** resolved. `Human.md` is **197 words**; private `Notes/Todo.md` is **61 words**, with exactly two unchecked work items, and remains ignored. No app code, dependencies, database, or CI behavior changed, so no build/device checks were repeated. Those planning questions were subsequently resolved: Auth forms live inside Profile with the bar visible; Back exits through Home, and tab reselection pops to root. The earlier modal-Auth proposal is superseded.
 
 Historical study notes also identify auth submission/session-recovery, release logging/backup policy, and Android-runtime checks as follow-ups. Reinspect source before treating any item as an active defect. No historical test count is evidence for untested later changes.
+
+## Nav 3 implementation evidence, 8 November 2026
+
+Implementation started from clean source `aec6302`; results below cover the uncommitted navigation changes. New contract modules own feature keys; feature modules supply Hilt entry providers; the app owns tab state and session reconciliation. `IUserRepository`, `UserSession`, and `MoverUser` moved to Auth's contract with unchanged packages.
+
+- `./scripts/verify.sh` passed: **130 host tests across 23 suites**, no failures/errors/skips, Android lint and debug APK successful. Some tasks reused up-to-date results. App lint still reports **32 warnings**; existing AGP/Kotlin/DSL warnings remain.
+- `:app:testDebugUnitTest` passed after strengthening key round-trip coverage to use Nav 3's actual polymorphic `NavKeySerializer` across feature contracts.
+- `./gradlew :app:assembleRelease :app:assembleDebugAndroidTest :auth:assembleDebugAndroidTest :features:catalogue:assembleDebugAndroidTest :features:details:assembleDebugAndroidTest --console=plain` passed. Release minification and test APK compilation succeeded; the final artifact refresh also passed after source cleanup (82 seconds, with up-to-date task reuse). **Instrumented tests were not run**.
+- The final debug runtime dependency report resolved successfully and contains no Nav 2 or `hilt-navigation` artifacts. Dependencies use Nav 3 1.2.1, Lifecycle 2.11.0, and AndroidX Hilt ViewModel Compose 1.4.0.
+- Reviewed the installed Lifecycle 2.11.0 decorator/provider sources for inactive-stack retention and generation disposal. Host policy tests cannot prove UI/store lifetimes; compiled device tests cover that remaining runtime verification.
+- Credential Manager invocation now belongs to resumed Auth UI, once per entry. Auth ViewModels receive plain results, do not hold Activity contexts, and clear passwords on successful authentication. NavKeys contain no credentials.
+- Final `./scripts/verify.sh` rerun passed after source cleanup: 130 tests across 23 suites, zero failures/errors/skips; lint and debug APK passed (27 seconds, with up-to-date task reuse). All 28 local Markdown links resolved, new XML resources parsed, and `git diff --check` passed. Human.md remains 197 words; Notes/Todo.md remains ignored. Device/UI checks, process restoration on a real device, and remote CI execution remain pending.

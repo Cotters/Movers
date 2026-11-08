@@ -34,11 +34,17 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.hilt.viewmodel.compose)
+    implementation(project(":navigation:contract"))
+    implementation(project(":features:details:contract"))
+
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation)
     implementation(libs.material)
     implementation(libs.androidx.activity.compose)
     implementation(libs.kotlin.serialization.json)
@@ -50,7 +56,7 @@ dependencies {
 
     implementation(project(path = ":presentation"))
     implementation(project(path = ":movie:contract"))
-    implementation(project(path = ":auth"))
+    implementation(project(path = ":auth:contract"))
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

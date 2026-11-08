@@ -11,10 +11,10 @@ import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.jcotters.contract.detail.domain.models.Movie
-import java.io.IOException
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Rule
 import org.junit.Test
+import java.io.IOException
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 class MovieCatalogueScreenTest {
@@ -49,11 +49,9 @@ class MovieCatalogueScreenTest {
         compose.setContent {
             MaterialTheme {
                 MovieCatalogueScreen(
-                    isAuthenticated = false,
                     movies = flow.collectAsLazyPagingItems(),
                     posterModifier = { Modifier },
                     onMovieTapped = {},
-                    onAccountTapped = {},
                 )
             }
         }
