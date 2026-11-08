@@ -4,9 +4,9 @@ Updated: 8 November 2026. Refresh this document after meaningful progress; keep 
 
 ## Objective and status
 
-The agreed workflow setup is implemented: tracked human/agent guidance, an executable local host-verification script, README links, and a GitHub Actions workflow. Local validation is complete; the first GitHub-hosted run remains pending.
+Workflow setup is implemented. Current work is to record the ordered queue, research public-source/backend portability, and agree the first Navigation pass. Navigation code and Shared Lists implementation have not started; no backend has been provisioned. The first GitHub-hosted CI run remains pending in the evidence available to this chat.
 
-Shared Watchlist feature work has **not started**. After workflow setup, wait for the user's feature request, clarify requirements, and agree on a feature plan before implementation or backend provisioning.
+The user has requested Navigation first, then Shared Lists. Agree the Navigation implementation plan before changing app code. Private `Notes/Todo.md` is the concise ordered queue; its requirements are also recorded here for fresh clones.
 
 ## Agreed decisions
 
@@ -17,6 +17,9 @@ Shared Watchlist feature work has **not started**. After workflow setup, wait fo
 - Include local checks and CI. Repair setup-induced failures only; unrelated code/tooling issues require a separate agreed task.
 - Never use emulators/simulators. Physical-device verification is user-owned and remains pending until the user supplies evidence.
 - Shared means the user and a friend add to and review watchlists on separate devices. Supabase Free is the preferred backend candidate; no backend or integration has been created.
+- Navigation uses **Nav 3**, serializable **NavKeys**, feature modularization, and deliberate ViewModel scoping. Tabs are **Home** (current feed), **Watchlists**, **Profile**. The bottom bar stays visible on main screens/details; Auth is modal and hides it. First pass handles navigation, with list functionality deferred.
+- Profile and bookmarks remain unchanged. Revisit their relationship to watchlists later; the private todo records this reminder.
+- Treat this resume/portfolio project as public source. Repositories expose app operations and depend on a **separate vendor-neutral database API**; Supabase-specific adapters implement it behind Hilt bindings. See [portability guidance](open-source.md). No provider-specific SDK types should escape these boundaries.
 
 ## Verification evidence
 
@@ -35,8 +38,15 @@ Source baseline: `846baa7`, branch `SharedWatchlists`; working tree was clean be
 
 ## Open work and next action
 
-1. The user can review `Human.md` and add workflow issues or proposals there. Workflow setup is ready for review; do not start feature work merely because setup is complete.
-2. GitHub CI remains pending until the workflow is pushed and executed. No push, publishing, backend provisioning, or repository-settings change was performed.
-3. On a later Shared Watchlist request, clarify account integration/local-data migration, membership/invitations, allowed actions, offline and sync behavior, and acceptance checks on two physical devices. Consult current Supabase documentation before selecting SDK/schema details.
+1. **Navigation:** finalize modal Auth presentation, guest access/return behavior, back-stack policy, feature API/implementation boundaries, and entry-scoped ViewModels; present the concrete plan for agreement. Preserve feed state, poster transitions, session isolation, Profile, and bookmarks. Google's Navigation 3 and edge-to-edge skills have been read for this planning work; no migration code has been written.
+2. **Shared Lists:** later agree account integration/local-data migration, membership/invitations, allowed actions, offline/sync behavior, and acceptance checks on two physical devices. Include backend API/adapters, reproducible deployment, and credentials-free evaluation in that plan. A demo adapter is proposed, not yet selected or built.
+3. Public backend schemas/migrations/adapters and synthetic fixtures make setup reproducible; live data and privileged credentials remain private. Another Supabase instance is a configuration/setup change; another provider requires a compatible adapter/auth integration. No license has been selected.
+4. GitHub CI remains unverified remotely. No push, publishing, backend provisioning, or repository-settings change was performed.
+
+### Documentation follow-up, 8 November 2026
+
+Reviewed source at `11683fc` and current official Android/Supabase guidance. Added the private todo, the tracked public-source/portability guide, and current requirements above. This is documentation/planning only; prior host-test evidence does not verify the future Nav 3 migration.
+
+`git diff --check` passed and all **23 local Markdown links** resolved. `Human.md` is **197 words**; private `Notes/Todo.md` is **61 words**, with exactly two unchecked work items, and remains ignored. No app code, dependencies, database, or CI behavior changed, so no build/device checks were repeated. Pending user choices: full-screen Auth modal versus sheet; guest Profile opens Auth versus a guest page; root Back returns Home versus visited-tab history. Nav 3 modularization and ViewModel-scoping design will be included in the implementation plan after these choices.
 
 Historical study notes also identify auth submission/session-recovery, release logging/backup policy, and Android-runtime checks as follow-ups. Reinspect source before treating any item as an active defect. No historical test count is evidence for untested later changes.

@@ -12,6 +12,8 @@ Reviewed: 8 November 2026. This guide describes the existing app and the workflo
 
 Treat suggestions in Human.md as proposals until agreed. Preserve user feedback, and record the outcome when a proposal is accepted or declined. No separate approval is needed to run ordinary authorized host checks or repair failures introduced by the change.
 
+This is a portfolio/demo project intended for public reuse. For backend work, follow [public-source and portability guidance](open-source.md): repositories depend on a separate vendor-neutral database API, and Supabase-specific adapters implement it. The private ordered queue is `Notes/Todo.md` when present; its first items are Navigation, then Shared Lists. Keep durable requirements in this tracked folder so a clone does not depend on private notes.
+
 ## Existing architecture
 
 | Area | Current responsibility |
@@ -68,3 +70,10 @@ For technical decisions, consult [Android architecture recommendations](https://
 Confirmed intent: the user and a friend can add to and review shared watchlists on separate devices. Supabase Free is the preferred candidate, not an implemented dependency or a provisioned service. At review time its [pricing](https://supabase.com/pricing) lists a 500 MB database and pausing after one week of inactivity; recheck terms before implementation.
 
 Before feature work, agree on account integration, handling existing local users/bookmarks, membership/invites, permitted actions, offline behavior, synchronization/conflicts, and acceptance scenarios. Consult current Supabase documentation and the relevant skills. Remote access requires backend-enforced authorization; exposed tables need appropriate RLS policies, and a service-role/secret key must never enter the Android app. The [Kotlin client is community-maintained](https://supabase.com/docs/reference/kotlin/introduction); evaluate it against the existing networking stack during feature planning. No SDK, schema, API, or sync strategy is chosen by this workflow setup.
+
+## First feature pass: Navigation (requested, not implemented)
+
+- Migrate the current Nav 2 implementation to **Navigation 3** with serializable `NavKey`s, proper feature modularization, and explicitly scoped ViewModels. This migration is explicitly requested; keep unrelated toolchain upgrades separate.
+- Provide **Home** (existing infinite movie feed), **Watchlists** (the future home for user-created lists), and **Profile**. First pass is navigation; list creation/sharing is later work. Preserve Profile behavior and existing bookmarks.
+- Keep the bottom bar visible throughout main navigation, including movie details. Auth presents modally and hides the bar. Exact modal presentation and guest/return navigation need agreement in the feature plan.
+- Use Google's [Navigation 3 skill](https://github.com/android/skills/tree/main/navigation/navigation-3), [modularization guidance](https://developer.android.com/guide/navigation/navigation-3/modularize), and [entry-state/ViewModel scoping guidance](https://developer.android.com/guide/navigation/navigation-3/save-state). Validate the multi-stack, modal Auth, and shared-poster transition design before replacing the current graph.

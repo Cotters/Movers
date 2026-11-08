@@ -1,6 +1,6 @@
 # How we work
 
-This project uses AI to help implement changes while people decide the intended behavior and review the result.
+People decide behavior and review changes; AI helps implement them. For this portfolio project, keep backends replaceable and follow [public-source guidance](open-source.md).
 
 1. **Understand first.** Read the relevant code, clarify requirements, and agree on a feature plan before implementation.
 2. **Follow the app.** Reuse its architecture and conventions. Check current official Android documentation and use relevant skills.
