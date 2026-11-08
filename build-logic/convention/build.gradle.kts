@@ -12,8 +12,9 @@ dependencies {
     implementation(libs.android.gradlePlugin)
     implementation(libs.kotlin.compose.gradlePlugin)
     implementation(libs.kotlin.serialization.gradlePlugin)
+    implementation(libs.kotlin.gradlePlugin)
+    implementation(libs.compose.multiplatform.gradlePlugin)
     implementation(libs.ksp.gradlePlugin)
-    implementation(libs.hilt.gradlePlugin)
     testImplementation(gradleTestKit())
     testImplementation(libs.junit)
 }
@@ -35,10 +36,6 @@ gradlePlugin {
         register("androidCompose") {
             id = "movers.android.compose"
             implementationClass = "com.jcotters.buildlogic.AndroidComposeConventionPlugin"
-        }
-        register("androidHilt") {
-            id = "movers.android.hilt"
-            implementationClass = "com.jcotters.buildlogic.AndroidHiltConventionPlugin"
         }
         register("kotlinSerialization") {
             id = "movers.kotlin.serialization"

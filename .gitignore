@@ -11,10 +11,13 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
-/build
+**/build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
 **/ApiConstants.kt
 Notes/
+iosApp/Local.xcconfig
+iosApp/DerivedData/
+**/xcuserdata/

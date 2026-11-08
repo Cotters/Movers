@@ -4,7 +4,7 @@ Reviewed: 8 November 2026. Movers is a resume/portfolio demo intended for public
 
 ## Two explicit boundaries
 
-Use the existing repository, contract/internal, and Hilt patterns:
+Use the existing repository, contract/internal, and Koin patterns:
 
 ```text
 Screen / ViewModel / use case
@@ -20,7 +20,7 @@ Supabase adapter or another backend adapter
 
 The user explicitly requires the database API beneath repositories as a second seam. Keep it focused on the data needed by the feature. Model list observation and writes as typed operations with defined results and failure semantics; agree on exact signatures during Shared Lists planning. Avoid exposing SDK query builders, table names, vendor DTOs, authentication sessions, or Supabase exception types through either public boundary.
 
-Supabase-specific clients and classes belong in the adapter implementation. Hilt selects the implementation at the composition boundary. A replacement provides the same database contract and changes the binding/configuration; screens and use cases stay unchanged. Define observation, cancellation, ordering, write outcomes, and authorization expectations so fake and real adapters mean the same thing. App-owned identity/session contracts must also support replacing the auth provider; a database-only interface cannot make provider-specific auth portable.
+Supabase-specific clients and classes belong in the adapter implementation. Koin selects the implementation at the composition boundary. A replacement provides the same database contract and changes the binding/configuration; screens and use cases stay unchanged. Define observation, cancellation, ordering, write outcomes, and authorization expectations so fake and real adapters mean the same thing. App-owned identity/session contracts must also support replacing the auth provider; a database-only interface cannot make provider-specific auth portable.
 
 This applies [Android's repository/data-source separation](https://developer.android.com/topic/architecture/data-layer) to the user's portability requirement. Extend useful existing seams; do not create a universal database framework or rewrite unrelated modules just to add layers.
 
@@ -40,7 +40,7 @@ Version reviewed migrations, non-sensitive configuration, and setup steps togeth
 ## What “plug and play” means
 
 - **Another Supabase instance:** apply the versioned backend setup and replace local URL/publishable-key settings. It must not depend on the maintainer's deployment or accounts.
-- **Another backend/database:** implement the neutral database API, supply compatible authentication/session behavior where needed, and replace Hilt bindings/configuration. This needs an adapter and is not a credentials-only switch.
+- **Another backend/database:** implement the neutral database API, supply compatible authentication/session behavior where needed, and replace Koin bindings/configuration. This needs an adapter and is not a credentials-only switch.
 - **Portfolio evaluation without an account:** plan an explicit demo adapter with synthetic fixtures and visible demo status, using the same contracts. This remains a proposed capability for Shared Lists planning; do not silently substitute fake data when a real backend fails.
 
 Before calling the integration portable, run the same behavior/contract checks against its fake and real adapters and verify access policies for members, non-members, guests, and removed members. Routine host checks must not require access to the maintainer's backend. Do not add backend deployment to PR CI implicitly. Review tracked changes and relevant history for accidental credentials before publication; adding an ignore rule alone does not remove previously committed values.

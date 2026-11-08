@@ -18,7 +18,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.test.junit4)
-    implementation(project(path = ":auth"))
+    implementation(project(path = ":shared"))
 
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

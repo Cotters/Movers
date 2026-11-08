@@ -1,19 +1,11 @@
 plugins {
-    id("movers.android.library")
-    id("movers.android.unit-testing")
+    id("movers.multiplatform.library")
 }
 
-android {
-    namespace = "com.jcotters.movie.contract"
-}
-
-dependencies {
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.material)
-    implementation(libs.hilt)
-    implementation(libs.androidx.paging.runtime)
-    implementation(libs.androidx.paging.compose)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.junit)
+kotlin {
+    android { namespace = "com.jcotters.movie.contract" }
+    sourceSets.commonMain.dependencies {
+        api(libs.androidx.paging.common)
+        api(libs.kotlinx.coroutines.core)
+    }
 }

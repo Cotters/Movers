@@ -47,7 +47,7 @@ jobs:
 
       - name: Create placeholder TMDB constant
         run: |
-          credential_file=movie/internal/src/main/java/com/jcotters/internal/ApiConstants.kt
+          credential_file=movie/internal/src/androidMain/kotlin/com/jcotters/internal/ApiConstants.kt
           if [[ -e "$credential_file" ]]; then
             printf 'Refusing to overwrite an existing ApiConstants.kt.\n' >&2
             exit 1
@@ -76,4 +76,6 @@ jobs:
             build-logic/convention/build/reports/plugin-development/**
             **/build/test-results/testDebugUnitTest/TEST-*.xml
             **/build/reports/tests/testDebugUnitTest/**
+            **/build/test-results/testAndroidHostTest/TEST-*.xml
+            **/build/reports/tests/testAndroidHostTest/**
             **/build/reports/lint-results-debug.*

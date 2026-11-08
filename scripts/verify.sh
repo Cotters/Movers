@@ -36,11 +36,11 @@ elif [[ ! -f local.properties ]] || ! grep -Eq '^[[:space:]]*sdk\.dir[[:space:]]
     fail 'Set ANDROID_HOME/ANDROID_SDK_ROOT or sdk.dir in local.properties.'
 fi
 
-[[ -f movie/internal/src/main/java/com/jcotters/internal/ApiConstants.kt ]] ||
+[[ -f movie/internal/src/androidMain/kotlin/com/jcotters/internal/ApiConstants.kt ]] ||
     fail 'Create the ignored ApiConstants.kt using the example in the testing guide; preserve existing credentials.'
 
 printf 'Checking convention plugins.\n'
 ./gradlew --no-daemon --console=plain -p build-logic :convention:check
 
-printf 'Running host unit tests, Android lint, and a debug build.\n'
-exec ./gradlew --no-daemon --console=plain --continue testDebugUnitTest lintDebug :app:assembleDebug
+printf 'Running host unit and UI tests, Android lint, and a debug build.\n'
+exec ./gradlew --no-daemon --console=plain --continue testDebugUnitTest testAndroidHostTest lintDebug :app:assembleDebug

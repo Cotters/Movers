@@ -1,0 +1,45 @@
+name: Movers
+options:
+  bundleIdPrefix: com.jcotters
+  deploymentTarget:
+    iOS: '15.0'
+configs:
+  Debug: debug
+  Release: release
+configFiles:
+  Debug: Configuration.xcconfig
+  Release: Configuration.xcconfig
+targets:
+  Movers:
+    type: application
+    platform: iOS
+    sources:
+      - path: MoversApp.swift
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Movers
+        UILaunchScreen: {}
+        TMDB_API_TOKEN: $(TMDB_API_TOKEN)
+        CADisableMinimumFrameDurationOnPhone: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jcotters.movers
+        CURRENT_PROJECT_VERSION: 2
+        MARKETING_VERSION: '2.0'
+        SWIFT_VERSION: '5.0'
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        FRAMEWORK_SEARCH_PATHS: '$(inherited) "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"'
+        OTHER_LDFLAGS: $(inherited) -framework MoversShared
+    preBuildScripts:
+      - name: Build shared Kotlin framework
+        basedOnDependencyAnalysis: false
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+schemes:
+  Movers:
+    build:
+      targets:
+        Movers: all

@@ -1,43 +1,25 @@
 # Navigation ownership and acceptance
 
-Implemented against the agreed 8 November 2026 plan. Runtime/UI verification remains pending on the user's physical device.
+The shared Compose app owns retained Home, Watchlists, and Profile tab stacks. Feature contract modules own serializable NavKeys; features provide their entries. Koin creates ViewModels using each Nav 3 entry's ViewModelStore. The composition module registers all key serializers explicitly for Android and iOS.
 
-## Boundaries
+Home is the infinite movie feed. Watchlists is a coming-soon placeholder. Profile shows the device name (temporarily Josh) and persisted bookmarks. There is no Auth destination, password entry, logout, or expiring session. Name entry and the first-launch feature introduction are deferred to Onboarding.
 
-- Feature `contract` modules own serializable NavKeys. Existing feature modules implement their screens and contribute entry providers through Hilt. `:features:watchlists` currently contains only session-aware placeholder UI.
-- `:navigation:contract` exports `Navigator` and `EntryProviderInstaller`. Installers receive navigation callbacks and a stack identifier; they do not own app navigation state or retain screen ViewModels.
-- The app owns `NavigationState`, `AppNavigator`, logical tab selection, and the Material bottom bar. The logical Profile tab hosts either `AuthKey` or `ProfileKey`, so Auth remains an independent entry scope without becoming a fourth tab.
-- `:auth:contract` also exports `IUserRepository`, `UserSession`, and `MoverUser`; their Kotlin packages are unchanged. Profile and Details depend on that contract rather than the Auth implementation.
-
-The app uses Nav 3 **1.2.1**, Lifecycle **2.11.0**, and AndroidX Hilt ViewModel Compose **1.4.0**, with the existing Gradle scripts/version catalog. Convention plugins remain a separate Todo item.
-
-## State and lifetimes
-
-Each tab has a saveable back stack, saveable UI-state holder, and ViewModel-store decorator. Decorators remain composed for inactive tabs. Screen ViewModels are created inside their entries; the AppViewModel alone uses the activity scope. Popping an entry releases its store, while changing tabs retains it.
-
-Tab reselection pops that tab to its root without resetting root scroll position. Back first pops the current tab; at a non-Home root it selects Home's retained stack. Home root delegates Back to the activity/system exit behavior.
-
-Login replaces Auth with Profile without resetting Home or selecting a different active tab. Passwords are cleared on successful login/signup and never enter NavKeys or saved navigation state. Credential Manager runs from the active Auth UI at RESUMED lifecycle state, once per entry, and supplies plain results to its ViewModel.
-
-Restored state records its session owner. Private content is hidden until owner/root validation succeeds. Logout, expiry, or account replacement resets stacks to Home and changes the navigation generation, releasing every previous entry store. Login preserves the existing generation; keeping the decorators mounted during reconciliation preserves Home's state.
-
-Details keys contain a movie ID and stable per-entry instance ID. Opening the same movie from Home and Profile creates independent stores. Poster transition keys include the originating stack; the existing image-cache keys remain unchanged.
-
-The app shell owns bottom-bar/keyboard padding and consumes it before screen content. Existing screen scaffolds handle their remaining insets. The shared offline notice sits inside the content area above the bar/keyboard.
+- Switching tabs preserves their histories and root scroll state.
+- Reselecting the active tab pops it to its root.
+- Back pops details; Back at a non-Home root selects Home's retained history. Android Back at Home root exits through the platform.
+- Detail entries for the same movie in different stacks own different ViewModel stores. Repeated taps on the current movie do not duplicate its entry.
+- Saved navigation uses explicit polymorphic key serialization, with no Android reflection requirement. The Android host ignores pre-migration saved activity state once, then preserves the new state normally.
+- The bottom bar stays visible on the main screens and details. Startup loading/storage failure is handled before the navigation shell; no onboarding screen is implemented.
 
 ## Physical-device acceptance
 
-Run the debug build on your physical device and report device model, Android version, failed steps, and screenshots or sanitized logs for any failure:
+Run these on your own Android device and iPhone, using configured movie API access:
 
-1. **Guest flow:** launch Home, open a movie, and confirm all three tabs remain visible. Watchlists shows “Auth Required.” Profile shows login/signup with the bar visible; both forms remain usable with the keyboard and large fonts.
-2. **State and Back:** scroll Home, switch tabs, and return; the prior screen/scroll position returns. Reselect Home or Profile from movie details; it returns to that tab's root. Back from another tab's root selects Home's retained stack; Back at Home root exits. Check gesture Back and three-button navigation if available.
-3. **Authentication:** sign in or sign up through Profile. Normal Profile appears in place, Watchlists changes to its coming-soon message, and Home retains its prior state. Logout returns Home; reopening Profile shows Auth without previous passwords or another account's content.
-4. **Bookmarks and transitions:** bookmark/unbookmark and confirm existing Profile behavior. Open the same movie from Home and Profile, switch tabs, and verify correct content, Back destinations, poster transitions, and visible bottom navigation.
-5. **Restoration:** rotate on details and verify the selected tab/movie. Background the app, kill its background process on the physical device with `am kill`, then reopen through Recents; verify tab/detail restoration. Repeat after session expiry when possible; protected content must not flash before returning Home.
-6. **Connectivity and insets:** disconnect/reconnect while using each tab, including Profile with its keyboard open. Confirm the offline notice, controls, bottom bar, and system navigation do not overlap and recover correctly.
+1. Scroll Home, open a detail, switch to Profile, open a bookmarked movie, and switch back. Confirm each tab retains its own detail/history and Home scroll position.
+2. Tap the active tab again. Confirm it returns to its root without losing the other tabs' history; repeated taps at the root do not duplicate entries.
+3. Pop details through the on-screen/platform Back behavior and iOS navigation gesture. Confirm the selected tab and Home-return policy remain coherent.
+4. Bookmark/unbookmark a movie. Confirm Profile changes through persisted observation, shows Josh, and offers no account controls. Relaunch and confirm bookmarks/name persist.
+5. Check status/navigation-bar and safe-area insets, landscape, large text, and light/dark mode. The bar must stay visible on details and Profile.
+6. On Android, recreate the activity and test process restoration with a detail open in another tab. Confirm the selected stack restores without stale Auth keys or duplicate ViewModels.
 
-`MoversNavigationShellTest` additionally checks ViewModel lifetime and saved-state behavior using disposable probes. Run it with the Android test runner on your physical device. Its compilation alone does not satisfy these checks.
-
-## References
-
-Implementation follows Google's [modularization guidance](https://developer.android.com/guide/navigation/navigation-3/modularize), [multi-stack recipe](https://developer.android.com/guide/navigation/navigation-3/recipes/multiple-backstacks), [state/ViewModel guide](https://developer.android.com/guide/navigation/navigation-3/save-state), and [shared-element integration](https://developer.android.com/develop/ui/compose/animation/shared-elements/navigation). No emulator or simulator is part of this workflow.
+The compiled `MoversNavigationShellTest` in `:shared` checks retained per-entry stores and saved-state restoration. Agents only compile it. Record physical-device observations, device/OS versions, and sanitized screenshots/logs before marking acceptance complete. No runtime result has been inferred from compilation or host policy tests.

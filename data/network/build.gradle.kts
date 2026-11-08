@@ -1,17 +1,11 @@
-plugins {
-    id("movers.android.library")
-    id("movers.android.hilt")
-    id("movers.android.unit-testing")
-}
-
-android {
-    namespace = "com.cotters.data.network"
-
-    testOptions {
-        unitTests.isReturnDefaultValues = true
+plugins { id("movers.multiplatform.library") }
+kotlin {
+    android {
+        namespace = "com.cotters.data.network"
+        compilations.withType<com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation>().configureEach {
+            isReturnDefaultValues = true
+        }
     }
-}
-
-dependencies {
-    implementation(libs.kotlinx.coroutines.core)
+    sourceSets.commonMain.dependencies { api(libs.kotlinx.coroutines.core) }
+    sourceSets.named("androidHostTest") { kotlin.srcDir("src/test/java") }
 }

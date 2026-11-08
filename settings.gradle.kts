@@ -23,7 +23,6 @@ dependencyResolutionManagement {
 rootProject.name = "Movers"
 include(":app")
 include(":movie")
-include(":auth")
 include(":database")
 include(":profile")
 include(":tests")
@@ -39,6 +38,7 @@ include(":features:catalogue:contract")
 include(":features:details:contract")
 include(":features:watchlists:contract")
 include(":profile:contract")
-include(":auth:contract")
 include(":navigation:contract")
 include(":features:watchlists")
+
+include(":shared")

@@ -5,6 +5,7 @@ import androidx.paging.LoadType
 import androidx.paging.PagingConfig
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
+import com.jcotters.contract.time.AppClock
 import com.jcotters.database.MoversDatabase
 import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.movies.DbMovieCatalogueRemoteKey
@@ -26,7 +27,6 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
-import java.time.Clock
 import java.time.Duration
 
 @OptIn(ExperimentalPagingApi::class)
@@ -41,7 +41,7 @@ class PopularMoviesRemoteMediatorShould {
         every { movieCatalogueRemoteKeysDao() } returns keys
     }
     private var now = Duration.ofDays(1).toMillis()
-    private val clock = mockk<Clock> { every { millis() } answers { now } }
+    private val clock = mockk<AppClock> { every { millis() } answers { now } }
     private val mediator = PopularMoviesRemoteMediator(api, database, MovieMapper(), clock)
     private val pagingState = PagingState<Int, DbMovie>(emptyList(), null, PagingConfig(10), 0)
 

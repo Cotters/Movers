@@ -1,38 +1,23 @@
 plugins {
-    id("movers.android.library")
-    id("movers.android.hilt")
-    id("movers.android.unit-testing")
+    id("movers.multiplatform.library")
+    id("movers.multiplatform.ksp")
 }
 
-android {
-    namespace = "com.jcotters.database"
-
-    defaultConfig {
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
+kotlin {
+    android { namespace = "com.jcotters.database" }
+    sourceSets.named("androidHostTest") { kotlin.srcDir("src/test/java") }
+    sourceSets.commonMain.dependencies {
+        api(libs.kotlinx.coroutines.core)
+        api(libs.androidx.room)
+        implementation(libs.androidx.room.paging)
+        implementation(libs.androidx.sqlite.bundled)
+        implementation(libs.kotlin.serialization.json)
+        api(libs.androidx.paging.common)
     }
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-}
-
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.kotlin.serialization.json)
-    implementation(libs.androidx.room)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.paging)
-    implementation(libs.androidx.paging.common)
-    androidTestImplementation(libs.androidx.junit.ktx)
-    androidTestImplementation(libs.androidx.runner)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.sqlite.bundled)
+    add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
 }

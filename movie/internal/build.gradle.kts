@@ -1,31 +1,24 @@
 plugins {
-    id("movers.android.library")
-    id("movers.android.hilt")
-    id("movers.android.unit-testing")
+    id("movers.multiplatform.library")
+    id("movers.multiplatform.device-testing")
+    id("movers.kotlin.serialization")
 }
 
-android {
-    namespace = "com.jcotters.movie.internal"
-}
-
-dependencies {
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.material)
-    implementation(libs.kotlin.serialization.json)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.serialization)
-    implementation(libs.retrofit.gson)
-    implementation(libs.logging.interceptor)
-    implementation(libs.androidx.room)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.paging.runtime)
-    implementation(libs.androidx.paging.compose)
-
-    implementation(project(path = ":movie:contract"))
-    implementation(project(path = ":database"))
-
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
+kotlin {
+    android { namespace = "com.jcotters.movie.internal" }
+    sourceSets.named("androidHostTest") { kotlin.srcDir("src/test/java") }
+    sourceSets.named("androidDeviceTest") { kotlin.srcDir("src/androidTest/java") }
+    sourceSets.commonMain.dependencies {
+        implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.koin.core)
+        implementation(libs.ktor.client.core)
+        implementation(libs.ktor.client.content.negotiation)
+        implementation(libs.ktor.serialization.json)
+        implementation(libs.androidx.room)
+        implementation(libs.androidx.room.paging)
+        implementation(project(":database"))
+        implementation(project(":movie:contract"))
+        implementation(libs.kotlin.serialization.json)
+    }
+    sourceSets.commonTest.dependencies { implementation(libs.ktor.client.mock) }
 }

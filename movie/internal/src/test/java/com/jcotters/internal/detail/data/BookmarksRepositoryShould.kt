@@ -2,23 +2,22 @@ package com.jcotters.internal.detail.data
 
 import com.jcotters.contract.detail.domain.IBookmarksRepository
 import com.jcotters.contract.detail.domain.models.Movie
-import io.mockk.every
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.runCurrent
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertThrows
 import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.movies.DbMovie
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -42,7 +41,7 @@ class BookmarksRepositoryShould {
     fun `return failure when failed to add bookmark to database`() {
         coEvery { bookmarkDao.insertBookmark(any()) } throws IllegalStateException("Test error")
 
-        val result = runBlocking { underTest.addBookmark(MOVIE_ID, USER_ID) }
+        val result = runBlocking { underTest.addBookmark(MOVIE_ID) }
 
         assertTrue(result.isFailure)
         assertThat(result.exceptionOrNull()!!.message, equalTo("Unable to bookmark this movie."))
@@ -50,16 +49,16 @@ class BookmarksRepositoryShould {
 
     @Test
     fun `add bookmark when successfully added to database`() {
-        val result = runBlocking { underTest.addBookmark(MOVIE_ID, USER_ID) }
+        val result = runBlocking { underTest.addBookmark(MOVIE_ID) }
 
         assertTrue(result.isSuccess)
     }
 
     @Test
     fun `return failure when failed to remove bookmark from database`() {
-        coEvery { bookmarkDao.removeBookmark(any(), any()) } throws IllegalStateException("Test error")
+        coEvery { bookmarkDao.removeBookmark(any()) } throws IllegalStateException("Test error")
 
-        val result = runBlocking { underTest.removeBookmark(MOVIE_ID, USER_ID) }
+        val result = runBlocking { underTest.removeBookmark(MOVIE_ID) }
 
         assertTrue(result.isFailure)
         assertThat(result.exceptionOrNull()!!.message, equalTo("Unable to remove bookmark."))
@@ -67,7 +66,7 @@ class BookmarksRepositoryShould {
 
     @Test
     fun `remove bookmark when successfully removed from database`() {
-        val result = runBlocking { underTest.removeBookmark(MOVIE_ID, USER_ID) }
+        val result = runBlocking { underTest.removeBookmark(MOVIE_ID) }
 
         assertTrue(result.isSuccess)
     }
@@ -75,9 +74,9 @@ class BookmarksRepositoryShould {
     @Test
     fun `observe changes to saved movies without recreating the repository`() = runTest {
         val rows = MutableStateFlow(DB_MOVIES)
-        every { bookmarkDao.observeBookmarkedMovies(USER_ID) } returns rows
+        every { bookmarkDao.observeBookmarkedMovies() } returns rows
         val observed = mutableListOf<List<Movie>>()
-        backgroundScope.launch { underTest.observeUserBookmarks(USER_ID).collect { observed += it } }
+        backgroundScope.launch { underTest.observeBookmarks().collect { observed += it } }
         runCurrent()
         rows.value = emptyList()
         runCurrent()
@@ -88,9 +87,9 @@ class BookmarksRepositoryShould {
     @Test
     fun `observe bookmark status changes`() = runTest {
         val saved = MutableStateFlow(false)
-        every { bookmarkDao.observeMovieBookmark(USER_ID, MOVIE_ID) } returns saved
+        every { bookmarkDao.observeMovieBookmark(MOVIE_ID) } returns saved
         val observed = mutableListOf<Boolean>()
-        backgroundScope.launch { underTest.observeMovieBookmark(USER_ID, MOVIE_ID).collect { observed += it } }
+        backgroundScope.launch { underTest.observeMovieBookmark(MOVIE_ID).collect { observed += it } }
         runCurrent()
         saved.value = true
         runCurrent()
@@ -101,7 +100,7 @@ class BookmarksRepositoryShould {
     fun `preserve cancellation when writing a bookmark`() {
         coEvery { bookmarkDao.insertBookmark(any()) } throws CancellationException()
         assertThrows(CancellationException::class.java) {
-            runBlocking { underTest.addBookmark(MOVIE_ID, USER_ID) }
+            runBlocking { underTest.addBookmark(MOVIE_ID) }
         }
     }
 

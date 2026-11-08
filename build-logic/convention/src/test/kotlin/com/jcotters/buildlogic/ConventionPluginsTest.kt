@@ -6,6 +6,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.zip.ZipFile
 
 class ConventionPluginsTest {
     @get:Rule
@@ -40,13 +41,12 @@ class ConventionPluginsTest {
     }
 
     @Test
-    fun `application and library opt into Compose Hilt serialization and host tests`() {
+    fun `application and library opt into Compose serialization and host tests`() {
         val project = fixture("app", "feature")
         project.module("app", """
             plugins {
                 id 'movers.android.application'
                 id 'movers.android.compose'
-                id 'movers.android.hilt'
                 id 'movers.kotlin.serialization'
                 id 'movers.android.unit-testing'
             }
@@ -63,7 +63,6 @@ class ConventionPluginsTest {
         project.module("feature", """
             plugins {
                 id 'movers.android.compose'
-                id 'movers.android.hilt'
                 id 'movers.android.unit-testing'
                 id 'movers.android.library'
                 id 'movers.kotlin.serialization'
@@ -112,7 +111,6 @@ class ConventionPluginsTest {
             plugins {
                 id 'movers.android.application'
                 id 'movers.android.compose'
-                id 'movers.android.hilt'
                 id 'movers.kotlin.serialization'
                 id 'movers.android.unit-testing'
             }
@@ -141,6 +139,40 @@ class ConventionPluginsTest {
         return directory
     }
 
+    @Test
+    fun `shared Compose library packages Android resources and targets physical iOS without Android DI`() {
+        val project = fixture("shared")
+        project.module("shared", """
+            plugins {
+                id 'movers.multiplatform.compose'
+                id 'movers.kotlin.serialization'
+            }
+            kotlin { android { namespace = 'fixture.shared' } }
+            compose.resources { packageOfResClass = 'fixture.resources' }
+            assert kotlin.targets.names.containsAll(['android', 'iosArm64'])
+            assert !pluginManager.hasPlugin('com.android.library')
+            assert !pluginManager.hasPlugin('com.google.dagger.hilt.android')
+            assert !pluginManager.hasPlugin('com.google.devtools.ksp')
+            assert configurations.commonMainImplementation.dependencies.any { it.name == 'material3' }
+            assert !configurations.commonMainImplementation.dependencies.any { it.name.contains('koin') }
+        """)
+        val drawable = File(project, "shared/src/commonMain/composeResources/drawable/bookmark.xml")
+        drawable.parentFile.mkdirs()
+        drawable.writeText("""
+            <vector xmlns:android="http://schemas.android.com/apk/res/android"
+                android:width="24dp" android:height="24dp"
+                android:viewportWidth="24" android:viewportHeight="24">
+                <path android:fillColor="#FF000000" android:pathData="M0,0h24v24h-24z" />
+            </vector>
+        """.trimIndent())
+        project.run(":shared:bundleAndroidMainAar")
+        val aar = File(project, "shared/build/outputs/aar").listFiles()!!.single { it.extension == "aar" }
+        ZipFile(aar).use { archive ->
+            assertTrue("Compose drawable missing from ${aar.name}",
+                archive.getEntry("assets/composeResources/fixture.resources/drawable/bookmark.xml") != null)
+        }
+    }
+
     private fun File.module(name: String, script: String) {
         File(this, name).mkdirs()
         File(this, "$name/build.gradle").writeText(script.trimIndent())
@@ -154,15 +186,12 @@ class ConventionPluginsTest {
 
     private val optionalAssertions = """
         assert android.buildFeatures.compose
-        assert pluginManager.hasPlugin('com.google.devtools.ksp')
-        assert pluginManager.hasPlugin('com.google.dagger.hilt.android')
+        assert !pluginManager.hasPlugin('com.google.dagger.hilt.android')
         assert pluginManager.hasPlugin('org.jetbrains.kotlin.plugin.serialization')
         assert configurations.implementation.dependencies.any { it.name == 'compose-bom' }
         assert configurations.implementation.dependencies.any { it.name == 'ui-tooling-preview' }
         assert configurations.debugImplementation.dependencies.any { it.name == 'ui-tooling' }
         assert configurations.androidTestImplementation.dependencies.any { it.name == 'compose-bom' }
-        assert configurations.implementation.dependencies.any { it.name == 'hilt-android' }
-        assert configurations.ksp.dependencies.any { it.name == 'hilt-android-compiler' }
         assert configurations.testImplementation.dependencies*.name.containsAll(['junit', 'mockk', 'kotlinx-coroutines-test'])
     """.trimIndent()
 }

@@ -1,11 +1,13 @@
 plugins {
-    id("movers.android.library")
+    id("movers.multiplatform.library")
+    id("movers.kotlin.serialization")
 }
 
-android {
-    namespace = "com.jcotters.navigation.contract"
-}
-
-dependencies {
-    api(libs.androidx.navigation3.runtime)
+kotlin {
+    android { namespace = "com.jcotters.navigation.contract" }
+    sourceSets.commonMain.dependencies {
+        api(libs.androidx.navigation3.runtime)
+        api(libs.multiplatform.navigation3.ui)
+        implementation(libs.kotlin.serialization.json)
+    }
 }

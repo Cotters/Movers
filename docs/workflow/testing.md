@@ -6,7 +6,7 @@
 - Android SDK Platform 37.0 (`platforms;android-37.0`) and Build Tools 36.0.0. Current configuration compiles against API 37, targets API 36 in the app, and supports API 28 onward. Source of truth: `gradle/libs.versions.toml`, module Gradle files, and `gradle/wrapper/gradle-wrapper.properties`.
 - An SDK location in `ANDROID_HOME`, `ANDROID_SDK_ROOT`, or ignored `local.properties` (`sdk.dir=...`). Environment variables should point to the same SDK if both are set.
 - Dependencies in the Gradle cache or network access to the configured repositories. Current wrapper: Gradle 9.5.0; AGP: 9.3.3. [AGP compatibility reference](https://developer.android.com/build/releases/agp-9-3-0-release-notes).
-- An ignored `movie/internal/src/main/java/com/jcotters/internal/ApiConstants.kt` for the existing movie module. Never commit or print real credentials.
+- An ignored `movie/internal/src/androidMain/kotlin/com/jcotters/internal/ApiConstants.kt` for the existing movie module. Never commit or print real credentials.
 
 For host verification without a TMDB account, create that file locally with:
 
@@ -32,19 +32,19 @@ The script takes no arguments, works from any current directory, checks basic pr
 
 ```sh
 ./gradlew --no-daemon --console=plain -p build-logic :convention:check
-./gradlew --no-daemon --console=plain --continue testDebugUnitTest lintDebug :app:assembleDebug
+./gradlew --no-daemon --console=plain --continue testDebugUnitTest testAndroidHostTest lintDebug :app:assembleDebug
 ```
 
-The first invocation checks convention-plugin validation and Gradle TestKit fixtures; a failure stops verification. Gradle's task selector then runs matching unit-test/lint tasks across participating app modules. `--continue` collects independent task failures and still returns a failure status. The script preserves the failing Gradle invocation's exit code; prerequisite errors return 2 and unsupported arguments return 64. It does not install tools, contact a backend for tests, deploy an APK, or start a device. Dependency resolution can access artifact repositories.
+The first invocation checks convention-plugin validation and Gradle TestKit fixtures; a failure stops verification. Gradle's task selector then runs matching unit-test/lint tasks across participating app modules. Shared modules use `testAndroidHostTest`; retained JVM tests and `commonTest` cases run on that host target. `--continue` collects independent task failures and still returns a failure status. The script preserves the failing Gradle invocation's exit code; prerequisite errors return 2 and unsupported arguments return 64. It does not install tools, contact a backend for tests, deploy an APK, or start a device. Dependency resolution can access artifact repositories.
 
 ## Focused iteration
 
 Use the existing JUnit 4, MockK, and `kotlinx-coroutines-test` stack. Examples:
 
 ```sh
-./gradlew :features:details:testDebugUnitTest
-./gradlew :auth:testDebugUnitTest --tests '*UserSessionShould'
-./gradlew :database:testDebugUnitTest :database:lintDebug
+./gradlew :features:details:testAndroidHostTest
+./gradlew :profile:testAndroidHostTest --tests '*LocalDeviceProfileRepositoryTest'
+./gradlew :database:testAndroidHostTest
 ./gradlew :app:assembleDebug
 ```
 
@@ -54,17 +54,34 @@ Choose tests for the guarantee being changed:
 | --- | --- |
 | ViewModel/use-case decisions | Observable state/results, repeated submissions, delayed completion, failure/retry, cancellation, and account changes as relevant. Use controlled coroutine scheduling and clocks. |
 | Repository/cache behavior | Preserve saved data on failed refresh, idempotent writes, concurrent callers, freshness boundaries, mapping, and cancellation. Mocked DAO tests cannot prove actual Room behavior. |
-| Room schema/query | Export and review schemas; preserve existing accounts/bookmarks and constraints. Existing DAO/migration tests are instrumented and await user execution on a physical device. |
-| Compose/navigation | Compile, inspect previews where useful, and review state/semantics. User verifies visible behavior, back-stack/lifecycle transitions, large fonts, and accessibility on a physical device. |
+| Room schema/query | Export and review schemas; preserve device identity, bookmarks, and constraints outside the explicitly authorized legacy reset. DAO/cache integration and the reset are instrumented checks and await user execution on a physical device. |
+| Compose/navigation | Add/update and pass a relevant host Compose UI regression before completion. Check real screens/resources and user actions, not only substitute navigation entries. Physical acceptance still covers OS behavior, accessibility, and rendering differences. |
 | Workflow/scripts/CI | Check shell syntax and prerequisite/failure handling, validate workflow YAML, and run the same script used by CI. Remote execution remains pending until GitHub runs it. |
 | Convention plugins | Run `./gradlew -p build-logic :convention:check`; validate the full task graph with `./gradlew build --dry-run`. Check debug/release and test-APK compilation for plugin/code-generation changes. TestKit fixtures never start devices. |
+
+For Compose resource or packaging changes, inspect the built APK's `assets/composeResources/` entries for each resource-owning module. Compilation and generated accessors do not prove the resource files are packaged. The shared Compose convention's TestKit fixture checks a drawable inside the built AAR.
+
+## Host UI regression gate
+
+The app uses JUnit 4, MockK, Koin, and Compose. `movers.multiplatform.ui-testing` adds Robolectric only to opted-in Android host tests, with Android resources and Compose test APIs. No emulator, simulator, ADB, installation, or device interaction is involved. Run the UI regression directly or through the complete host script:
+
+```sh
+./gradlew :shared:testAndroidHostTest --tests '*CatalogueNavigationUiTest'
+./scripts/verify.sh
+```
+
+`CatalogueNavigationUiTest` opens the real shared app, enters movie details and uses Back repeatedly, bookmarks via Profile, and restores saved navigation. It runs at phone and Fold-sized configurations. HTTP responses are fixed fixtures; movie data does not require credentials or a live service. It uses the production Koin definitions, ViewModels, repositories, and Room schema, with an in-memory database and Robolectric's Android SQLite driver instead of production bundled SQLite. Those driver/native-platform differences still require separate integration acceptance.
+
+The test uses Robolectric 4.17, API 35, and native graphics. Keep UI tests deterministic and use semantics/state-based waits. A relevant UI test must pass before marking shared UI/navigation work complete. `testAndroidHostTest` already runs in `verify.sh` and Android CI; failures propagate to a failing verification result. Host simulation does not prove iOS behavior or replace physical-device acceptance.
+
+References: [Robolectric setup](https://robolectric.org/getting-started/) and [Android KMP host-test resources](https://developer.android.com/kotlin/multiplatform/plugin#configure-tests).
 
 Do not add a new test framework, screenshot system, or broad coverage target merely to change documentation. Test user-visible guarantees rather than private implementation calls. `NO-SOURCE`, empty test scaffolding, compilation, and skipped tests are not passing behavior coverage.
 
 ## Reports and evidence
 
-- Unit XML: `<module>/build/test-results/testDebugUnitTest/TEST-*.xml`.
-- Unit HTML: `<module>/build/reports/tests/testDebugUnitTest/index.html`.
+- Shared unit XML: `<module>/build/test-results/testAndroidHostTest/TEST-*.xml`; Android-only hosts use `testDebugUnitTest` when they contain tests.
+- Shared unit HTML: `<module>/build/reports/tests/testAndroidHostTest/index.html`. Do not count stale pre-migration report directories as current evidence.
 - Build-logic tests: `build-logic/convention/build/test-results/test/` and `build-logic/convention/build/reports/tests/test/`.
 - Lint: `<module>/build/reports/lint-results-debug.html` and `.xml`/`.sarif` where generated.
 - Debug APK: `app/build/outputs/apk/debug/`; building it does not verify runtime behavior.
@@ -81,27 +98,21 @@ The workflow does not change repository branch protection or run deployments. A 
 
 Agents never start, run, or interact with an emulator or simulator, and do not execute connected/instrumented tests. Ask the user to run applicable checks on their own physical device. Include the build/revision, exact steps, expected result, and required observations; request Android version/device model and sanitized logs or screenshots when relevant.
 
-Existing pending areas include Room migration/DAO integration, Compose flows, session expiry/background/foreground behavior, and real connectivity handovers. For migrations the user should run the existing `DatabaseMigrationTest` on their physical device with the test runner; for UI changes provide specific changed journeys. No device check is required just to read these workflow documents. Keep runtime verification pending until results arrive.
+Existing pending areas include Room reset/DAO integration, Compose flows, relaunch/background/foreground behavior, and real connectivity handovers. For storage changes the user should run `DeviceDatabaseResetTest`, the DAO tests, and `PopularMoviesRemoteMediatorTest` on a physical Android device; for UI changes provide specific changed journeys. No device check is required just to read these workflow documents. Keep runtime verification pending until results arrive.
 
-## Nav 3 verification
+## Shared Android/iOS verification
 
-Navigation policy and cross-module key serialization are covered by `NavigationStateShould`; Auth tests cover UI-supplied credentials, one credential request per entry, and clearing passwords on success. Watchlists tests cover session initialization and login/logout states. Run focused checks with:
+Run `./scripts/verify-ios.sh` on macOS with full Xcode selected and JDK 17 available. It builds the actual iOS app unsigned, using only the physical-device SDK and a generic iOS destination. It never installs or launches an app. Open the tracked Xcode project and configure your signing team locally for physical-iPhone testing. See [setup and acceptance](multiplatform.md).
 
-```sh
-./gradlew :app:testDebugUnitTest :auth:testDebugUnitTest :features:watchlists:testDebugUnitTest
-```
-
-`MoversNavigationShellTest` covers independent detail ViewModel stores, Auth-to-Profile replacement, expiry cleanup, and saved navigation restoration. It is instrumented: agents compile it but leave execution to the user on a physical device. Build it and affected existing tests without running them:
+The current Android integration tests compile without running them:
 
 ```sh
-./gradlew :app:assembleDebugAndroidTest :auth:assembleDebugAndroidTest :features:catalogue:assembleDebugAndroidTest :features:details:assembleDebugAndroidTest
+./gradlew :shared:assembleAndroidDeviceTest :movie:internal:assembleAndroidDeviceTest
 ./gradlew :app:assembleRelease
 ```
 
-Use the [physical-device navigation checklist](navigation.md#physical-device-acceptance) and record the outcome in the handoff. Compiled test APKs and a minified build are not proof of runtime behavior.
+The shared test APK contains navigation/store/restoration, movie-screen, DAO, and reset/persistence tests. Movie internal retains its real Room/mediator integration tests. Login/session and legacy preservation scenarios were retired with the removed account feature; the new reset test checks version-6 data is discarded once and new version-7 profile data survives reopening.
 
-## Convention-plugin migration acceptance
+For configuration-cache checks, run `./gradlew :app:assembleDebug --configuration-cache --configuration-cache-problems=fail` twice and require reuse. Cache compatibility is task-specific and remains opt-in globally.
 
-For configuration-cache checks, run `./gradlew :app:assembleDebug --configuration-cache --configuration-cache-problems=fail` twice and require reuse on the second run. Cache compatibility is verified for this task; it is not enabled globally or assumed for every verification task.
-
-After pulling this build refactor, sync in Android Studio with JDK 17 and report any sync error. On your physical Android device, install/run the debug build and check Home loading, a movie detail, all three tabs, Profile login/logout, and bookmarks. Confirm the minified release launches and loads the same flows if you already have local release-install setup. Report the device/Android version, observed differences, and sanitized crash logs if any. Existing navigation acceptance remains pending; this smoke check does not replace it. Agents compile device-test APKs but do not install them or execute tests.
+The [navigation checklist](navigation.md#physical-device-acceptance) and [multiplatform acceptance](multiplatform.md#verification-and-physical-device-acceptance) remain user-owned. Building Android test APKs, a minified release, and an unsigned iOS app does not establish runtime acceptance. Remote GitHub execution and iOS CI remain unverified until actually run.

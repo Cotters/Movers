@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Movers</string>
+    <string name="back_button">Navigate back</string>
+    <string name="offline_message">You’re offline.</string>
+    <string name="navigation_home">Home</string>
+    <string name="navigation_watchlists">Watchlists</string>
+    <string name="navigation_profile">Profile</string>
+</resources>

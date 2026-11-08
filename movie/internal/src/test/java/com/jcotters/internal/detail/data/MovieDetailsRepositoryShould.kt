@@ -1,5 +1,6 @@
 package com.jcotters.internal.detail.data
 
+import com.jcotters.contract.time.AppClock
 import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.internal.MovieApi
@@ -24,7 +25,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.IOException
-import java.time.Clock
 import java.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -33,7 +33,7 @@ class MovieDetailsRepositoryShould {
     private val dao = mockk<MovieDao>(relaxed = true)
     private val mapper = MovieMapper()
     private var now = Duration.ofDays(2).toMillis()
-    private val clock = mockk<Clock> { every { millis() } answers { now } }
+    private val clock = mockk<AppClock> { every { millis() } answers { now } }
     private var cached: DbMovie? = null
     private val savedMovie = MutableStateFlow<DbMovie?>(null)
     private val repository = MovieDetailsRepository(api, dao, mapper, clock)

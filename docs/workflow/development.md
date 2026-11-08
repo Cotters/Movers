@@ -16,39 +16,26 @@ This is a portfolio/demo project intended for public reuse. For backend work, fo
 
 ## Existing architecture
 
-| Area | Current responsibility |
-| --- | --- |
-| `:app` | Application composition, Hilt entry points, theme, Nav 3 tab state/shell, session reconciliation, and the app-wide offline notice. |
-| `:features:catalogue`, `:features:details` | Compose feature screens, ViewModels, and Nav 3 entry providers; Details also owns bookmark-related use cases. Each feature has a lightweight navigation contract submodule. |
-| `:auth`, `:profile` | UI, use cases, data implementations, and DI wiring. Navigation keys live in contract submodules; Auth also exports its session/user interfaces and models through its contract, preserving their packages. |
-| `:features:watchlists` | Guest Auth Required / authenticated coming-soon UI and a session-observing ViewModel; no list backend yet. |
-| `:navigation:contract` | Feature entry-registration contract and minimal navigator interface. |
-| `:movie:contract` | Movie domain models and repository interfaces consumed by features. |
-| `:movie:internal` | Movie API, repository implementations, mapping, paging mediator, refresh/cache policy, and DI providers. |
-| `:database` | Room entities, DAOs, exported schemas, explicit migrations, and database providers. Current database version: 6. |
-| `:presentation`, `:data:network` | Shared presentation resources/components and device-network observation respectively. |
-| `:tests` | Android test module targeting the app; its presence does not establish executed test coverage. |
+Read [multiplatform ownership/setup](multiplatform.md) for the module map. Android's `:app` and the SwiftUI `iosApp` host both use `:shared`; feature screens, ViewModels, navigation, repositories, cache, and Room schema live in common Kotlin source sets. Preserve feature/contract and movie contract/internal boundaries. Koin definitions live with their feature/data owner and are aggregated at app composition. Platform source sets supply database paths, HTTP engines, connectivity, and Android dynamic colors.
 
-Existing implementation modules retain their names; navigation contract submodules export keys without exposing screen implementations. The movie subsystem retains its contract/internal split. Follow the relevant boundary rather than renaming all modules or adding pass-through layers. See [navigation ownership and acceptance checks](navigation.md).
+Representative flows:
 
-Representative flows, relative to the repository root:
-
-- **Bookmark write:** [BookmarkMovieUseCase](../../features/details/src/main/java/com/jcotters/details/domain/BookmarkMovieUseCase.kt) resolves the current user through `IUserRepository`; `IBookmarksRepository` delegates persistence to [BookmarksRepository](../../movie/internal/src/main/java/com/jcotters/internal/detail/data/BookmarksRepository.kt) and the Room DAO. Keep data access out of composables.
-- **Bookmark observation:** [ObserveUserBookmarksUseCase](../../profile/src/main/java/com/jcotters/profile/domain/ObserveUserBookmarksUseCase.kt) uses `flatMapLatest` on the session to switch subscriptions and clear prior-user content. New account-scoped observations must not retain another user's data.
-- **Screen state:** [MovieDetailViewModel](../../features/details/src/main/java/com/jcotters/details/ui/MovieDetailViewModel.kt) handles view events, exposes state, observes saved movies, and coordinates refresh/bookmark work. Screens render state and send events; [MovieDetailScreen](../../features/details/src/main/java/com/jcotters/details/ui/MovieDetailScreen.kt) includes previews for loading, partial content, and failure.
-- **Navigation:** [NavigationState](../../app/src/main/java/com/jcotters/movers/ui/NavigationState.kt) owns retained tab stacks and session reconciliation. [MoversApp](../../app/src/main/java/com/jcotters/movers/ui/MoversApp.kt) composes feature entry providers and the shell. Feature contract modules own serializable NavKeys; session changes replace Auth/Profile entries without competing screen-level navigation.
-- **Persistence/cache:** [MovieDetailsRepository](../../movie/internal/src/main/java/com/jcotters/internal/detail/data/MovieDetailsRepository.kt) separates Room observation from refresh, preserves cached data on refresh failure, and injects a clock. Catalogue paging uses a mediator and its own freshness policy. Do not silently replace these policies when adding a feature.
+- [BookmarkMovieUseCase](../../features/details/src/commonMain/kotlin/com/jcotters/details/domain/BookmarkMovieUseCase.kt) calls the device-local bookmark repository, which persists through Room; there is no login requirement.
+- [ProfileViewModel](../../profile/src/commonMain/kotlin/com/jcotters/profile/ui/ProfileViewModel.kt) observes the device profile and persisted bookmarks. New writes update the UI through observation, not independent saved-state copies.
+- [MovieDetailViewModel](../../features/details/src/commonMain/kotlin/com/jcotters/details/ui/MovieDetailViewModel.kt) coordinates persisted details, refresh, retry, and bookmark events. [MovieDetailScreen](../../features/details/src/commonMain/kotlin/com/jcotters/details/ui/MovieDetailScreen.kt) renders state and sends events.
+- [NavigationState](../../shared/src/commonMain/kotlin/com/jcotters/movers/ui/NavigationState.kt) owns retained tab stacks and explicit cross-platform key serialization. Features supply entries, and Nav 3 owns their ViewModel stores.
+- [MovieDetailsRepository](../../movie/internal/src/commonMain/kotlin/com/jcotters/internal/detail/data/MovieDetailsRepository.kt) retains its 24-hour freshness policy and cancellation/concurrency rules; the catalogue mediator retains its separate six-hour policy.
 
 ## Lessons to preserve
 
 - **Persisted data owns saved state.** Observe Room for bookmarks and saved movies instead of maintaining independent UI copies. Represent loading, empty, partial success, and recoverable failure where the outcome matters.
 - **Cancellation is not a normal failure.** Propagate `CancellationException`; avoid catching fatal errors as recoverable failures. Inject clocks/dispatchers where timing or scheduling needs control.
 - **Concurrency rules need context.** Use atomic `MutableStateFlow.update` for changes derived from previous state. Direct assignment of a complete independent value is not inherently wrong. Guard overlapping writes and stale responses where required by observable behavior.
-- **Persistence is an installed-data contract.** Preserve accounts, bookmarks, and their relationships through explicit migrations and schema exports. Historical version-2 databases had multiple schema variants. Do not introduce destructive recreation to bypass migration work.
-- **Define the success boundary.** Account creation and session creation are separate operations; a failure after a committed write can require recovery rather than repeating the entire operation.
+- **Persistence is an installed-data contract.** Preserve version-7 device identity, bookmarks, and cached relationships through explicit migrations and schema exports. The user authorized resetting retired account databases (versions 1–6) for this migration only. Historical version-2 databases had multiple schema variants. Do not introduce destructive recreation to bypass migration work.
+- **Define the success boundary.** A committed persistence operation and later UI/setup work are separate outcomes. Retrying initialization must not replace a stored installation ID or duplicate saved data.
 - **Keep lifecycle ownership clear.** Use lifecycle-aware collection in the UI, structured coroutine scopes, and an appropriate UI owner for Activity-dependent APIs. Rotation, backgrounding, and process death have different consequences.
 - **Match the current dependency versions.** Use the version catalog and wrapper. Android modules use AGP built-in Kotlin/new DSL and [composable build conventions](../../build-logic/README.md); keep one-off configuration local. Do not copy incompatible Room or Navigation APIs into the current stack without an agreed migration; this app uses Nav 3 version 1.2.1.
-- **Local accounts are local.** Existing authentication checks Room users and persisted local sessions; it does not establish backend identity or remote authorization. Never upload existing password hashes as a shortcut to remote authentication.
+- **Local identity is local.** The current app has a local installation ID and temporary Josh display name, with no account/session system. Neither value establishes remote authorization. Backend identity and Shared Lists require their own agreed plan.
 
 These lessons were checked against current code and curated from private study notes. Old descriptions of “remaining” work are not automatically current: detail persistence, freshness, and retry behavior have since changed. Recheck source before opening a task.
 
@@ -71,12 +58,10 @@ For technical decisions, consult [Android architecture recommendations](https://
 
 Confirmed intent: the user and a friend can add to and review shared watchlists on separate devices. Supabase Free is the preferred candidate, not an implemented dependency or a provisioned service. At review time its [pricing](https://supabase.com/pricing) lists a 500 MB database and pausing after one week of inactivity; recheck terms before implementation.
 
-Before feature work, agree on account integration, handling existing local users/bookmarks, membership/invites, permitted actions, offline behavior, synchronization/conflicts, and acceptance scenarios. Consult current Supabase documentation and the relevant skills. Remote access requires backend-enforced authorization; exposed tables need appropriate RLS policies, and a service-role/secret key must never enter the Android app. The [Kotlin client is community-maintained](https://supabase.com/docs/reference/kotlin/introduction); evaluate it against the existing networking stack during feature planning. No SDK, schema, API, or sync strategy is chosen by this workflow setup.
+Before feature work, agree how device-local identity maps to backend authorization, membership/invites, permitted actions, offline behavior, synchronization/conflicts, and acceptance scenarios. The current app has no username/password accounts and does not provide cross-device identity or sync. Consult current Supabase documentation and the relevant skills. Remote access requires backend-enforced authorization; exposed tables need appropriate RLS policies, and a service-role/secret key must never enter the Android app. The [Kotlin client is community-maintained](https://supabase.com/docs/reference/kotlin/introduction); evaluate it against the existing networking stack during feature planning. No SDK, schema, API, or sync strategy is chosen by this workflow setup.
 
-## Navigation pass: implemented, device verification pending
+## Current navigation and migration
 
-The agreed Nav 3 migration is implemented. Home retains its movie feed; Watchlists shows Auth Required for guests and a coming-soon placeholder for authenticated users; Profile hosts Auth forms for guests and the existing profile/bookmarks for authenticated users. The bottom bar remains visible, including Profile authentication and movie details. This replaces the earlier modal-Auth proposal.
+Home, Watchlists, and Profile share a retained Nav 3 shell on Android/iOS. Profile displays Josh and local bookmarks; Watchlists retains its coming-soon placeholder. Accounts, passwords, logout, and session expiry were explicitly removed. The migration may reset legacy local data once. First-launch name entry and a feature introduction are deferred to the private Onboarding Todo.
 
-Each tab retains its stack; reselection pops to the tab root without resetting root scroll. Back from another tab's root selects Home's retained stack; Home root exits. Login replaces the Auth entry in place, while logout, expiry, and account replacement clear retained state and return Home. See [the implementation guide and physical-device checks](navigation.md).
-
-Gradle scripts now select shared convention plugins. The agreed future direction is shared Kotlin logic and Compose UI on Android/iOS with thin platform hosts. This build refactor does not migrate modules or select shared DI. Follow the [build guidance and migration constraints](../../build-logic/README.md#androidios-direction); keep Android-only capabilities explicit and agree a separate KMP migration plan.
+See [navigation policy/device acceptance](navigation.md) and [multiplatform setup](multiplatform.md). Kotlin 2.4.21 is the user-confirmed baseline; pursue working Android/iOS builds and address demonstrated compatibility problems. Do not re-open a speculative toolchain-upgrade project before feature work.
