@@ -90,7 +90,7 @@ class CatalogueNavigationUiTest {
 
     @Test
     @Config(qualifiers = "w840dp-h820dp")
-    fun openMovieAndReturnOnFoldSize() = exerciseMovieJourney()
+    fun openMovieAndReturnOnFoldSize() = exerciseMovieJourney(useSystemBack = true)
 
     @Test
     @Config(qualifiers = "w360dp-h800dp")
@@ -107,11 +107,11 @@ class CatalogueNavigationUiTest {
         compose.onNodeWithText("Popular Movies").assertIsDisplayed()
     }
 
-    private fun exerciseMovieJourney() {
+    private fun exerciseMovieJourney(useSystemBack: Boolean = false) {
         compose.setContent { SharedApp() }
         repeat(3) {
             openMovie()
-            goBack()
+            goBack(useSystemBack)
             compose.onNodeWithText("Popular Movies").assertIsDisplayed()
         }
         openMovie()
@@ -125,7 +125,7 @@ class CatalogueNavigationUiTest {
         awaitText("Loaded movie details")
         awaitBookmark()
         compose.onNodeWithContentDescription("Bookmark movie button").assertIsEnabled().performClick()
-        goBack()
+        goBack(useSystemBack)
         awaitText("No Saved Movies")
     }
 
@@ -137,8 +137,12 @@ class CatalogueNavigationUiTest {
         compose.onNodeWithContentDescription("Bookmark movie button").assertIsDisplayed().assertIsEnabled()
     }
 
-    private fun goBack() {
-        compose.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
+    private fun goBack(useSystemBack: Boolean = false) {
+        if (useSystemBack) {
+            compose.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
+        } else {
+            compose.onNodeWithContentDescription("Back").performClick()
+        }
         compose.waitForIdle()
     }
 

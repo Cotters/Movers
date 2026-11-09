@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,6 +61,7 @@ import com.jcotters.contract.detail.domain.models.MovieGenre
 import com.jcotters.presentation.MoverImageView
 import com.jcotters.presentation.moviePosterKey
 import com.jcotters.presentation.resources.Res
+import com.jcotters.presentation.resources.arrow_back
 import com.jcotters.presentation.resources.bookmark_filled
 import com.jcotters.presentation.resources.bookmark_outline
 import org.jetbrains.compose.resources.painterResource
@@ -71,6 +73,7 @@ fun MovieDetailScreen(
     modifier: Modifier = Modifier,
     posterModifier: Modifier = Modifier,
     movieId: Int? = viewState.movie?.id,
+    onBack: (() -> Unit)? = null,
 ) {
     val movie = viewState.movie
     val loading = viewState.isLoading || viewState.isRefreshingDetails
@@ -87,7 +90,7 @@ fun MovieDetailScreen(
 
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            MovieHeader(movie, viewState, onViewEvent, posterModifier, movieId)
+            MovieHeader(movie, viewState, onViewEvent, posterModifier, movieId, onBack)
             Column(
                 modifier = Modifier.padding(top = 50.dp).padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -164,6 +167,7 @@ private fun MovieHeader(
     onViewEvent: (MovieDetailViewEvent) -> Unit,
     posterModifier: Modifier,
     movieId: Int?,
+    onBack: (() -> Unit)?,
 ) {
     Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
         MoverImageView(
@@ -174,6 +178,15 @@ private fun MovieHeader(
         Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(
             listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f)),
         )))
+        if (onBack != null) {
+            Box(modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(16.dp)
+                .clip(CircleShape).size(40.dp).background(Color.Black.copy(alpha = 0.5f))) {
+                IconButton(onClick = onBack) {
+                    Icon(painterResource(Res.drawable.arrow_back), contentDescription = "Back",
+                        modifier = Modifier.size(25.dp), tint = Color.White)
+                }
+            }
+        }
         MoverImageView(
             posterUrl = movie?.posterUrl.orEmpty(),
             contentDescription = movie?.let { "Movie poster for ${it.title}" } ?: "Movie poster",

@@ -10,6 +10,7 @@ Home is the infinite movie feed. Watchlists is a coming-soon placeholder. Profil
 - Detail entries for the same movie in different stacks own different ViewModel stores. Repeated taps on the current movie do not duplicate its entry.
 - Saved navigation uses explicit polymorphic key serialization, with no Android reflection requirement. The Android host ignores pre-migration saved activity state once, then preserves the new state normally.
 - The bottom bar stays visible on the main screens and details. Startup loading/storage failure is handled before the navigation shell; no onboarding screen is implemented.
+- The shared detail header has an accessible Back button wired by its feature entry provider to the Navigator. Host UI tests cover this action and Android system Back; the shared native smoke flow uses the visible button on both platforms. iOS edge-gesture acceptance remains pending.
 
 ## Physical-device acceptance
 

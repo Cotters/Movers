@@ -1,0 +1,29 @@
+appId: com.jcotters.movers
+name: Catalogue details and tabs
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Popular Movies"
+    timeout: 30000
+- repeat:
+    times: 3
+    commands:
+      - tapOn:
+          text: "DbMovie poster for.*"
+          index: 0
+      - extendedWaitUntil:
+          visible: "Bookmark movie button"
+          timeout: 15000
+      - tapOn: "Back"
+      - assertVisible: "Popular Movies"
+- tapOn: "Watchlists"
+- assertVisible: "Watchlists are coming soon."
+- tapOn: "Profile"
+- assertVisible: "Josh"
+- assertVisible: "Bookmarks"
+- tapOn: "Home"
+- assertVisible: "Popular Movies"
+- launchApp
+- extendedWaitUntil:
+    visible: "Popular Movies"
+    timeout: 30000

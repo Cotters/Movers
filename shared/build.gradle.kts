@@ -9,9 +9,11 @@ kotlin {
     android {
         namespace = "com.jcotters.shared"
     }
-    iosArm64().binaries.framework {
-        baseName = "MoversShared"
-        isStatic = true
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.binaries.framework {
+            baseName = "MoversShared"
+            isStatic = true
+        }
     }
     sourceSets {
         commonMain.dependencies {

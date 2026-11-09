@@ -140,7 +140,7 @@ class ConventionPluginsTest {
     }
 
     @Test
-    fun `shared Compose library packages Android resources and targets physical iOS without Android DI`() {
+    fun `shared Compose library packages Android resources and targets iOS without Android DI`() {
         val project = fixture("shared")
         project.module("shared", """
             plugins {
@@ -149,7 +149,7 @@ class ConventionPluginsTest {
             }
             kotlin { android { namespace = 'fixture.shared' } }
             compose.resources { packageOfResClass = 'fixture.resources' }
-            assert kotlin.targets.names.containsAll(['android', 'iosArm64'])
+            assert kotlin.targets.names.containsAll(['android', 'iosArm64', 'iosSimulatorArm64'])
             assert !pluginManager.hasPlugin('com.android.library')
             assert !pluginManager.hasPlugin('com.google.dagger.hilt.android')
             assert !pluginManager.hasPlugin('com.google.devtools.ksp')

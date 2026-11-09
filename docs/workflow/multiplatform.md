@@ -15,7 +15,7 @@ Movers shares its screens, navigation, ViewModels, repositories, HTTP policy, ca
 | `:database` | Room entities/DAOs, version 7 schema, bundled SQLite, and platform database paths |
 | `:presentation`, `:data:network` | Shared images/transitions/snackbars and network-status contract; native network observers |
 
-Use `src/commonMain/kotlin` and `composeResources` for reusable code/assets. `androidMain` and `iosMain` contain native integrations. Only the composition module creates the iOS framework; other modules remain libraries. The current iOS target is `iosArm64` for physical devices, minimum iOS 15. No simulator or desktop target is configured.
+Use `src/commonMain/kotlin` and `composeResources` for reusable code/assets. `androidMain` and `iosMain` contain native integrations. Only the composition module creates the iOS framework; other modules remain libraries. iOS targets are `iosArm64` for physical devices and `iosSimulatorArm64` for Apple silicon simulators, minimum iOS 15. No Intel simulator or desktop target is configured. Room's KSP processor is configured for both iOS targets.
 
 Koin definitions stay at composition boundaries; constructors receive typed dependencies. Feature entry providers own their screens. ViewModels use the Nav 3 entry's store, not a global singleton. Navigation uses an explicit polymorphic serializer registry on both platforms; register new keys when adding destinations. Do not reintroduce Android reflection-based serialization in common code.
 
@@ -43,7 +43,7 @@ xcodegen generate --spec iosApp/project.yml --project iosApp
 ./scripts/verify-ios.sh
 ```
 
-The iOS verification script builds unsigned with the physical-device SDK; it does not install or launch anything. Android PR CI runs the host script with a placeholder token. iOS CI, signing, distribution, and runtime acceptance are not implied by a local build.
+The iOS verification script builds unsigned with the physical-device SDK; it does not install or launch anything. `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` compiles the arm64 Simulator framework without launching anything. Automated smoke tests on already-running targets are authorized after each change set; manual interaction or starting/resetting simulators requires a separate request. Android PR CI runs the host script with a placeholder token. iOS CI, signing, distribution, and runtime acceptance are not implied by a local build.
 
 ## Verification and physical-device acceptance
 

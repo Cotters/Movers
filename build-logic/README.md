@@ -9,7 +9,7 @@ The included `build-logic` build provides small, additive plugins. SDK, compiler
 | `movers.android.test` | Standalone Android test defaults | `:tests` |
 | `movers.android.library` | Android-only library defaults | Available for platform-only libraries |
 | `movers.android.unit-testing` | Android JUnit/MockK/coroutine-test setup | `:app` and build-logic fixtures |
-| `movers.multiplatform.library` | Android + physical-iOS targets, SDK/JVM defaults, common/host test infrastructure | Shared libraries and contracts |
+| `movers.multiplatform.library` | Android, iOS device/arm64 Simulator targets, SDK/JVM defaults, common/host test infrastructure | Shared libraries and contracts |
 | `movers.multiplatform.compose` | Shared Compose UI, resources, previews | `:shared`, presentation, catalogue, details, watchlists, profile |
 | `movers.multiplatform.ksp` | Opt-in KSP for shared code | `:database` |
 | `movers.multiplatform.device-testing` | Android resource/device-test setup and integration-test dependencies | `:shared`, `:movie:internal` |

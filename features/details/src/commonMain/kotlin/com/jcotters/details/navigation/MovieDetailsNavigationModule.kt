@@ -25,6 +25,7 @@ object MovieDetailsNavigationModule {
                 viewState = state,
                 onViewEvent = viewModel::onViewEvent,
                 posterModifier = moviePosterTransitionModifier(key.movieId, stackId),
+                onBack = navigator::goBack,
             )
         }
     }

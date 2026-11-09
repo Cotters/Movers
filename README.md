@@ -5,7 +5,9 @@ An Android and iOS movie app using [TheMovieDB](https://www.themoviedb.org/), Ko
 
 Start with [Human.md](docs/workflow/Human.md) for the workflow, its purpose, and a place to suggest improvements. [Development guidance](docs/workflow/development.md), [verification setup and commands](docs/workflow/testing.md), and [the current handoff](docs/workflow/handoff.md) preserve the details between contributors and AI sessions.
 
-After completing the verification prerequisites, run `./scripts/verify.sh` for host tests, lint, and an Android debug build. On macOS, `./scripts/verify-ios.sh` builds the unsigned iOS app with the physical-device SDK. See [multiplatform setup](docs/workflow/multiplatform.md) for configuration and ownership. Runtime verification is performed by the user on physical devices; agents never use emulators or simulators.
+After completing the verification prerequisites, run `./scripts/verify.sh` for host tests, lint, and an Android debug build. On macOS, `./scripts/verify-ios.sh` builds the unsigned iOS app with the physical-device SDK. See [multiplatform setup](docs/workflow/multiplatform.md) for configuration and ownership. Physical-device acceptance remains user-owned.
+
+Run the [shared native smoke flow](docs/workflow/testing.md#shared-native-smoke-flow) on already-running Android and iOS targets after each change set. These automated runs are authorized; manual device interaction and starting/resetting targets require a separate request. Host Compose UI regressions run without devices through `verify.sh`.
 
 ## Technologies
 - Kotlin Multiplatform and Compose Multiplatform for shared logic and UI
