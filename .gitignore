@@ -21,3 +21,4 @@ Notes/
 iosApp/Local.xcconfig
 iosApp/DerivedData/
 **/xcuserdata/
+/archive_log.txt

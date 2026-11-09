@@ -1,6 +1,6 @@
 # Current handoff
 
-Updated 9 November 2026. Verify Git/source before resuming. The agreed [Shared Watchlists design](../features/shared-watchlists.md), UI review and setup helpers are committed; the user reports successful hosted deployment and app-facing checks pass. Physical-device acceptance remains pending. Current source checkpoint: `1ac9b01` (`Use Shared Lists and improve UI`); app-icon assets are working-tree changes. Preserve user staging/edits; no agent commit or push.
+Updated 9 November 2026. Verify Git/source before resuming. The agreed [Shared Watchlists design](../features/shared-watchlists.md), UI review, setup helpers and app icons are committed; the user reports successful hosted deployment and app-facing checks pass. Physical-device acceptance remains pending. Current source checkpoint: `f163b2e` (`add vibe coded app icon`); archive heap/build-check fixes are working-tree changes. Preserve user staging/edits; no agent commit or push.
 
 ## Decisions and implementation
 
@@ -17,10 +17,10 @@ Updated 9 November 2026. Verify Git/source before resuming. The agreed [Shared W
 
 Run existing tests and update intended expectations; **no new test cases** were authorized. Never run/interact with emulators/simulators or execute connected tests. People verify on physical devices. Serialize Gradle/Xcode invocations.
 
-- Latest `./scripts/verify.sh` passes after the app-icon changes: **92 app tests / 24 suites**, zero failures/errors/skips, all reused passing outputs; five convention tests also reused. App phase: 16 s, 40 executed / 522 up-to-date. Lint/debug APK pass: zero errors/fatal, 31 existing warnings; no icon warnings added. Existing migration case covers populated versions 7 and 8 through 9. Existing rename/delete UI case waits for dialog completion/enabled controls instead of only typed text.
+- Latest `./scripts/verify.sh` passes after the archive heap/build-check fixes: **92 app tests / 24 suites**, zero failures/errors/skips, all reused passing outputs; five convention tests also reused. App phase: 21 s, 47 executed / 515 up-to-date. Lint/debug APK pass: zero errors/fatal, 31 existing warnings. Existing migration case covers populated versions 7 and 8 through 9. Existing rename/delete UI case waits for dialog completion/enabled controls instead of only typed text.
 - Final migration applied to a fresh disposable PostgreSQL database. Synthetic checks pass: member/non-member/guest permissions, immutable/server attribution, duplicate/no-op writes, retry after another member removes a film, creator departure, revocation, last-member retirement, expiry, two-page activity pagination and malformed-payload rollback. The temporary server was stopped. This does not establish hosted Auth/Realtime behavior.
 - Latest icon/resource checks: `:shared:assembleAndroidDeviceTest` and `:shared:linkDebugFrameworkIosSimulatorArm64` compile (32 s, 40 executed / 345 up-to-date). Movie-internal test APK compiled in the earlier backend pass. No installation, launch or device-test execution. `./scripts/verify-ios.sh` exits 0 against the physical-device SDK after the action-icon changes; unsigned compile/link only. Earlier config inspection confirmed both app artifacts match local backend values and register the invitation scheme. No credentials were printed.
-- Documentation checker includes feature/backend setup docs and README: 15 files / 85 local targets pass. Maestro YAML syntax and `git diff --check` pass. The previous [local-list handoff](history/2026-11-09-pre-sharing.md) holds older evidence.
+- Documentation checker includes feature/backend setup docs and README: 15 files / 86 local targets pass. Maestro YAML syntax and `git diff --check` pass. The previous [local-list handoff](history/2026-11-09-pre-sharing.md) holds older evidence.
 
 ## Setup helper follow-up
 
@@ -43,6 +43,12 @@ Run existing tests and update intended expectations; **no new test cases** were 
 - A personal Apple team ID in the uncommitted Xcode diff was moved into ignored `iosApp/Local.xcconfig`; automatic signing and other user Xcode edits are preserved. Debug/Release resolved build settings confirm that the local team is still used without printing it. The example and XcodeGen spec document the public defaults. Follow the [local signing guidance](multiplatform.md#configure-and-build) rather than committing personal team IDs.
 - Tracked working files and 1,199 reachable historical blobs were checked for known local credential values and common token/private-key patterns; no matches remained. This is a scoped scan, not proof that arbitrary sensitive content cannot exist. Local backend/token configuration stays ignored; no hosted changes, commits or pushes were made.
 - Host gate above and unsigned physical-iOS build pass after the refactor. The deployment verifier now checks exact RPC signatures/authenticated execute access and rejects exposed definer RPCs. Valid schema and both rejection paths pass against disposable PostgreSQL, now stopped. Helper syntax, local config and missing-token refusal pass; setup file/OS errors are sanitized. Physical acceptance of Activity updates from a second participant and signed-device installation remains user-owned; existing host tests do not directly cover the activity-refresh scheduling.
+
+## Archive heap fix
+
+- The supplied archive log shows `OutOfMemoryError: Java heap space` in Kotlin/Native devirtualization during `:shared:linkReleaseFrameworkIosArm64`. The Gradle JVM cap was 2 GB; `gradle.properties` now allows 4 GB. Release optimizations and dependencies are unchanged. The raw `archive_log.txt` contains Xcode environment exports and is now ignored; keep it and other unreviewed logs private.
+- The failing Release task now executes successfully: 3m 50s, 26 executed / 103 up-to-date. `./scripts/verify-ios.sh --archive` subsequently exits 0, producing an unsigned Release archive at `build/iosArchives/Movers.xcarchive` with the iPhoneOS app, compiled icons and matching application dSYM verified. Framework outputs were reused by the archive. The script's default unsigned Debug build also exits 0; argument rejection and Bash syntax pass. No installation, simulator, export or upload occurred.
+- Debug checks did not cover Release optimization. The existing iOS script now accepts `--archive` for release handoffs; the testing/multiplatform guides document that distinction. No new test cases. Signed Archive/export/App Store acceptance remain user-owned; retry Xcode Product → Archive with the updated heap.
 
 ## Next / limits
 

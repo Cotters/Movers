@@ -147,6 +147,10 @@ Existing pending areas include Room reset/DAO integration, Compose flows, relaun
 
 Run `./scripts/verify-ios.sh` on macOS with full Xcode selected and JDK 17 available. It builds the actual iOS app unsigned, using only the physical-device SDK and a generic iOS destination. It never installs or launches an app. Open the tracked Xcode project and configure your signing team locally for physical-iPhone testing. See [setup and acceptance](multiplatform.md).
 
+Before release/archive handoff, also run `./scripts/verify-ios.sh --archive`. This uses Release configuration and produces the unsigned `build/iosArchives/Movers.xcarchive`, without installation, export or upload. Debug verification does not exercise Kotlin/Native's whole-program Release optimization. The project allows a 4 GB JVM heap for Gradle/Kotlin/Native through `org.gradle.jvmargs`; a Java heap-space failure in `linkReleaseFrameworkIosArm64` concerns the build JVM, not app runtime memory. See [Kotlin's heap guidance](https://kotlinlang.org/docs/native-improving-compilation-time.html#increase-gradle-heap-size). Preserve optimizations and inspect the failing phase before changing compiler flags or dependencies. A successful unsigned archive does not validate provisioning or App Store acceptance.
+
+Keep supplied archive logs local: Xcode can export live configuration and personal signing settings into them. Root `archive_log.txt` is ignored; use ignored `build/verification/` for new build logs.
+
 The current Android integration tests compile without running them:
 
 ```sh

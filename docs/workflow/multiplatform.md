@@ -46,6 +46,8 @@ xcodegen generate --spec iosApp/project.yml --project iosApp
 
 The iOS verification script builds unsigned with the physical-device SDK; it does not install or launch anything. `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` compiles the arm64 Simulator framework without launching anything. Agents never run or interact with emulators/simulators under the latest standing instruction. Native runtime/UI verification remains user-owned on physical devices. Android PR CI runs the host script with a placeholder token. iOS CI, signing, distribution, and runtime acceptance are not implied by a local build.
 
+For archive readiness, run `./scripts/verify-ios.sh --archive` as a separate check. It exercises Release optimization and writes an unsigned archive to `build/iosArchives/Movers.xcarchive`; use Xcode's signed Archive flow for actual device/TestFlight distribution. See [verification](testing.md#shared-androidios-verification) for heap settings and the difference between Debug and archive coverage.
+
 ## Verification and physical-device acceptance
 
 Host checks cover shared policy, transport fixtures, repositories, profile initialization, navigation serialization, and real Compose navigation journeys at phone/Fold sizes. Run existing tests and maintain intended expectations; new cases are deferred during the feature phase. See the [host UI gate](testing.md#host-ui-regression-gate). Android device tests are compiled with:
