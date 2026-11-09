@@ -34,9 +34,9 @@ The user explicitly authorized discarding old local data for this migration. Ver
 
 Use JDK 17 and the SDK prerequisites in [testing](testing.md). Android uses an ignored `movie/internal/src/androidMain/kotlin/com/jcotters/internal/ApiConstants.kt`; preserve existing credentials and use the placeholder example in the testing guide for host checks. No token is compiled into common Kotlin sources.
 
-For iOS, copy `iosApp/Local.xcconfig.example` to ignored `iosApp/Local.xcconfig` and supply your own TMDB read-access token. Without it, the placeholder permits compilation but cannot load live movie data. Do not commit or share the local file or unreviewed build logs. No backend, Apple team, signing credential, or privileged key is tracked.
+For iOS, copy `iosApp/Local.xcconfig.example` to ignored `iosApp/Local.xcconfig` and supply your own TMDB read-access token. Without it, the placeholder permits compilation but cannot load live movie data. Set `DEVELOPMENT_TEAM` in that same ignored file for physical-device/TestFlight signing; keep personal team IDs out of the project and `project.yml`. Do not commit or share the local file or unreviewed build logs. Live backend settings, Apple team IDs, signing credentials and privileged keys stay local.
 
-Open `iosApp/Movers.xcodeproj`, choose the Movers scheme and a physical iPhone, then configure your signing team locally. The build phase invokes Gradle to build/copy the shared framework and Compose resources. The tracked project is ready to open; XcodeGen is only needed after editing `project.yml`:
+Open `iosApp/Movers.xcodeproj`, choose the Movers scheme and a physical iPhone. Automatic signing uses your local team setting. If Xcode writes a team ID into `project.pbxproj`, move it back to the ignored config before committing. The build phase invokes Gradle to build/copy the shared framework and Compose resources. The tracked project is ready to open; XcodeGen is only needed after editing `project.yml`:
 
 ```sh
 xcodegen generate --spec iosApp/project.yml --project iosApp

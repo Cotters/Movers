@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,7 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.presentation.resources.Res
-import com.jcotters.presentation.resources.add_to_list
+import com.jcotters.presentation.resources.add
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -49,7 +50,8 @@ fun MovieListRow(
 
 @Composable
 fun AddToListButton(onClick: () -> Unit, enabled: Boolean = true) {
-    IconButton(onClick = onClick, enabled = enabled) {
-        Icon(painterResource(Res.drawable.add_to_list), contentDescription = "Add to list")
+    IconButton(onClick = onClick, enabled = enabled,
+        colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.primary)) {
+        Icon(painterResource(Res.drawable.add), contentDescription = "Add to list")
     }
 }

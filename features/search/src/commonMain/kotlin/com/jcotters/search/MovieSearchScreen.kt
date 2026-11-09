@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,6 +39,7 @@ import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.navigation.Navigator
 import com.jcotters.presentation.AddToListButton
 import com.jcotters.presentation.MovieListRow
+import com.jcotters.presentation.MovieMembershipButton
 import com.jcotters.presentation.moviePosterTransitionModifier
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.arrow_back
@@ -82,7 +82,7 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                 trailingIcon = { if (query.isNotEmpty()) TextButton(onClick = { viewModel.changeQuery("") }) { Text("Clear") } },
             )
             actions.error?.let {
-                Text(it, Modifier.padding(12.dp))
+                Text(it, Modifier.padding(12.dp), color = MaterialTheme.colorScheme.error)
                 TextButton(onClick = { viewModel.clearError(); viewModel.retryLists() }) { Text("Dismiss") }
             }
             when {
@@ -91,7 +91,7 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                 query.trim() != searchedQuery -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 movies.loadState.refresh is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 movies.loadState.refresh is LoadState.Error && movies.itemCount == 0 -> {
-                    Text((movies.loadState.refresh as LoadState.Error).error.message ?: "Unable to search.", Modifier.padding(16.dp))
+                    Text((movies.loadState.refresh as LoadState.Error).error.message ?: "Unable to search.", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
                     TextButton(onClick = movies::retry) { Text("Retry") }
                 }
                 movies.itemCount == 0 -> Text("No movies found.", Modifier.padding(16.dp))
@@ -105,15 +105,13 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                                 AddToListButton(onClick = { keyboard?.hide(); navigator.navigate(AddToListsKey(movie.id)) })
                             } else {
                                 val isAdded = movie.id in added
-                                TextButton(
+                                MovieMembershipButton(
+                                    movieTitle = movie.title,
+                                    isAdded = isAdded,
                                     onClick = { viewModel.setMembership(movie.id, !isAdded) },
-                                    enabled = !actions.membershipLoading && !actions.membershipReadFailed && movie.id !in actions.saving,
-                                    colors = ButtonDefaults.textButtonColors(
-                                        contentColor = if (isAdded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                                    ),
-                                ) {
-                                    Text(if (movie.id in actions.saving) "Saving…" else if (isAdded) "Remove" else "Add")
-                                }
+                                    enabled = !actions.membershipLoading && !actions.membershipReadFailed,
+                                    saving = movie.id in actions.saving,
+                                )
                             }
                         }
                         HorizontalDivider()
@@ -122,7 +120,7 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                         when (val append = movies.loadState.append) {
                             is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
                             is LoadState.Error -> Column(Modifier.padding(16.dp)) {
-                                Text(append.error.message ?: "Unable to load more movies.")
+                                Text(append.error.message ?: "Unable to load more movies.", color = MaterialTheme.colorScheme.error)
                                 TextButton(onClick = movies::retry) { Text("Retry") }
                             }
                             else -> Unit

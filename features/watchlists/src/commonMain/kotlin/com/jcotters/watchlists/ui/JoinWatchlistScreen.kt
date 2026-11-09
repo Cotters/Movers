@@ -33,21 +33,36 @@ internal fun JoinWatchlistRoute(navigator: Navigator) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val incoming by InvitationInbox.invitation.collectAsStateWithLifecycle()
     LaunchedEffect(incoming, state.busy) {
-        incoming?.let { value -> if (!state.busy) { viewModel.changeInvitation(value); InvitationInbox.consume(value); viewModel.preview() } }
+        incoming?.let { value ->
+            if (!state.busy) {
+                viewModel.openInvitation(value)
+                InvitationInbox.consume(value)
+            }
+        }
     }
-    LaunchedEffect(state.joinedId) { state.joinedId?.let { navigator.goBack(); navigator.navigate(WatchlistDetailKey(it)) } }
+    LaunchedEffect(state.joinedId) {
+        state.joinedId?.let {
+            viewModel.consumeJoined()
+            navigator.goBack()
+            navigator.navigate(WatchlistDetailKey(it))
+        }
+    }
     Scaffold(topBar = { TopAppBar(title = { Text("Join list") },navigationIcon = { TextButton(onClick = navigator::goBack) { Text("Back") } }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Paste the Movers invitation your friend shared.")
-            OutlinedTextField(value = state.invitation,onValueChange = viewModel::changeInvitation,label = { Text("Invitation link") },enabled = !state.busy,singleLine = true,modifier = Modifier.fillMaxWidth())
+            val openedFromLink = incoming != null || state.openedFromLink
+            if (!openedFromLink) {
+                OutlinedTextField(value = state.invitation,onValueChange = viewModel::changeInvitation,label = { Text("Invitation link") },enabled = !state.busy,singleLine = true,modifier = Modifier.fillMaxWidth())
+            }
             if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (openedFromLink && state.error == null) Text("Joining…")
             state.error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
-            Button(onClick = viewModel::preview,enabled = !state.busy && state.invitation.isNotBlank()) { Text("Preview list") }
-            state.preview?.let { preview ->
-                Text(preview.name,style = MaterialTheme.typography.headlineSmall)
-                Text("Created by ${preview.creator.name} · ${preview.memberCount} members · ${preview.movieCount} films")
-                Text("Joining lets you edit the list and invite others. Your name will appear on your film changes.")
-                Button(onClick = viewModel::join,enabled = !state.busy) { Text("Join list") }
+            if (!openedFromLink || state.error != null) {
+                Button(onClick = viewModel::join,enabled = !state.busy && state.invitation.isNotBlank()) {
+                    Text(if (openedFromLink) "Retry" else if (state.busy) "Joining…" else "Join list")
+                }
+            }
+            if (openedFromLink && state.error != null) {
+                TextButton(onClick = viewModel::editInvitation, enabled = !state.busy) { Text("Use another link") }
             }
         }
     }

@@ -133,20 +133,25 @@ class WatchlistsUiTest {
         compose.onNodeWithContentDescription("Add movies").performClick()
         compose.onNodeWithText("Search films").performTextInput("test")
         awaitText("Search Movie")
-        compose.onAllNodesWithText("Add")[0].performClick()
-        awaitText("Remove")
-        compose.onNodeWithText("Remove").performClick()
-        compose.waitUntil(10_000) { compose.onAllNodesWithText("Add").fetchSemanticsNodes().size == 2 }
-        compose.onAllNodesWithText("Add")[0].performClick()
-        awaitText("Remove")
-        compose.onAllNodesWithText("Add")[0].performClick()
-        compose.waitUntil(10_000) { compose.onAllNodesWithText("Remove").fetchSemanticsNodes().size == 2 }
+        compose.onNodeWithContentDescription("Add Search Movie to list").performClick()
+        awaitAction("Remove Search Movie from list")
+        compose.onNodeWithContentDescription("Remove Search Movie from list").performClick()
+        awaitAction("Add Search Movie to list")
+        compose.onNodeWithContentDescription("Add Search Movie to list").performClick()
+        awaitAction("Remove Search Movie from list")
+        compose.onNodeWithContentDescription("Add Another Movie to list").performClick()
+        compose.waitUntil(10_000) { compose.onAllNodes(hasContentDescription("Remove ", substring = true) and isEnabled()).fetchSemanticsNodes().size == 2 }
         compose.onNodeWithText("Search films").assertTextContains("test")
         compose.onNodeWithContentDescription("Back").performClick()
         awaitText("2 movies")
         compose.onNodeWithText("Search Movie").assertIsDisplayed()
-        compose.onAllNodesWithText("Remove")[0].performClick()
+        compose.onAllNodes(hasContentDescription("Remove ", substring = true)).assertCountEquals(0)
+        compose.onNodeWithContentDescription("List options").performClick()
+        compose.onNodeWithText("Edit list").performClick()
+        compose.onAllNodes(hasContentDescription("Remove ", substring = true))[0].performClick()
         awaitText("1 movie")
+        compose.onNodeWithText("Done").performClick()
+        compose.onAllNodes(hasContentDescription("Remove ", substring = true)).assertCountEquals(0)
     }
 
     @Test
@@ -209,6 +214,12 @@ class WatchlistsUiTest {
         } catch (error: ComposeTimeoutException) {
             val tree = runCatching { compose.onRoot(useUnmergedTree = true).printToString() }.getOrDefault("No single root available")
             throw AssertionError("Expected '$text'.\n$tree", error)
+        }
+    }
+
+    private fun awaitAction(description: String) {
+        compose.waitUntil("Action '$description' is ready", 10_000) {
+            compose.onAllNodes(hasContentDescription(description) and isEnabled()).fetchSemanticsNodes().isNotEmpty()
         }
     }
 

@@ -45,26 +45,26 @@ name: Local watchlists and search
 - inputText: "Matrix"
 - hideKeyboard
 - extendedWaitUntil:
-    visible: "Add"
+    visible: "Add .* to list"
     timeout: 30000
 - tapOn:
-    text: "Add"
+    text: "Add .* to list"
     index: 0
 - extendedWaitUntil:
-    visible: "Remove"
+    visible: "Remove .* from list"
     timeout: 10000
 - assertVisible: "Matrix"
 - tapOn:
-    text: "Remove"
+    text: "Remove .* from list"
     index: 0
 - extendedWaitUntil:
-    visible: "Add"
+    visible: "Add .* to list"
     timeout: 10000
 - tapOn:
-    text: "Add"
+    text: "Add .* to list"
     index: 0
 - extendedWaitUntil:
-    visible: "Remove"
+    visible: "Remove .* from list"
     timeout: 10000
 - tapOn: "Back"
 - assertVisible: "2 movies"
@@ -78,12 +78,15 @@ name: Local watchlists and search
 - extendedWaitUntil:
     visible: ${output.renamed}
     timeout: 10000
+- tapOn: "List options"
+- tapOn: "Edit list"
 - tapOn:
-    text: "Remove"
+    text: "Remove .* from list"
     index: 0
 - extendedWaitUntil:
     visible: "1 movie"
     timeout: 10000
+- tapOn: "Done"
 - tapOn: "Back"
 - tapOn: "Home"
 - launchApp

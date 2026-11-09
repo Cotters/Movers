@@ -10,6 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,7 +55,7 @@ internal fun WatchlistsRoute(navigator: Navigator) {
                 TextButton(onClick = viewModel::refreshShared) { Text("Retry shared updates") }
             }
             state.error?.let {
-                Text(it, Modifier.padding(16.dp))
+                Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
                 TextButton(onClick = { viewModel.clearError(); viewModel.retry() }) { Text("Retry") }
             }
             if (!state.loading && state.error == null && state.lists.isEmpty()) {

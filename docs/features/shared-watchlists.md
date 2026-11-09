@@ -4,9 +4,9 @@ Agreed 9 November 2026. Shared Android/iOS UI and policy; Supabase is a replacea
 
 ## Behavior
 
-- Personal lists stay local/offline until explicitly published. Publishing preserves the list ID and imports existing films with server-time/publisher attribution; it does not invent earlier history.
+- Personal lists stay local/offline until the user chooses Share list. That action publishes immediately and opens the final sharing screen, with no introduction or confirmation step. Publishing preserves the list ID and imports existing films with server-time/publisher attribution; it does not invent earlier history.
 - Active members have equal access: rename, add/remove films, invite, inspect members/activity, and leave. Creator is attribution only. No kicking, ownership transfer, or global shared-list deletion. Last departure retires the list and revokes invitations.
-- Shared contents are cached in Room for offline reading. Shared writes require a connection and server confirmation. Existing instant check/uncheck and Add/red Remove interactions keep their source screen open.
+- Shared contents are cached in Room for offline reading. Shared writes require a connection and server confirmation. Instant check/uncheck and plus/red-trash actions keep their source screen open. Film actions have accessible labels and show saving progress. List-detail trash controls are hidden until Edit list is enabled in its dropdown; Done or Done editing exits that mode. Delete, Leave and Revoke actions use the theme's error color and retain confirmation.
 - A confirmed name is required at startup. Existing Josh profiles retain their installation ID/data and confirm or replace that name once. First-launch name entry is now in scope; the feature tour remains deferred.
 - Device identity uses anonymous backend authentication without login UI. No recovery/device linking in v1. Names are editable, not unique, and never authorize access. Profile edits require an online save once a backend identity exists.
 - Avatars use an initial and a randomly assigned, persisted palette color. Names remain accessible. Color selection is a future improvement; no profile pictures.
@@ -14,7 +14,9 @@ Agreed 9 November 2026. Shared Android/iOS UI and policy; Supabase is a replacea
 
 ## Invitations
 
-Use native sharing and `movers://join/<token>` with a paste fallback on Watchlists. Handle cold/warm links and defer through name setup. Incoming tokens remain outside persisted navigation state. A preview exposes only list/creator/count metadata; explicit Join grants access.
+Use native sharing and `movers://join/<token>` with a paste fallback on Watchlists. Handle cold/warm links and defer through name setup. Incoming tokens remain outside persisted navigation state. Opening an invitation joins immediately and opens the list. Pasting an invitation uses one Join action, without a preview step. This supersedes the original explicit-preview flow at the user’s request. Failed joins stay on a concise retry/link-entry screen; the backend still validates the invitation and membership transaction.
+
+The sharing screen shows the list name, link access/expiry, Share link and Revoke links. Keep copy short; device-identity/recovery explanations live in project guidance rather than repeated sharing screens. Revoking all links still requires its existing brief confirmation.
 
 Links are multi-use, random 256-bit values, stored as hashes on the server and valid for seven days. Any member can revoke all outstanding invitations. Existing members retain access. An issuer leaving does not invalidate a link while the list remains active. An already joined person opens the same list. No domain, website or install fallback is required in v1.
 

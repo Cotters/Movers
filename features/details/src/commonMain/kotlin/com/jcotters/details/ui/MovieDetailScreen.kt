@@ -61,8 +61,8 @@ import com.jcotters.contract.detail.domain.models.MovieGenre
 import com.jcotters.presentation.MoverImageView
 import com.jcotters.presentation.moviePosterKey
 import com.jcotters.presentation.resources.Res
+import com.jcotters.presentation.resources.add
 import com.jcotters.presentation.resources.arrow_back
-import com.jcotters.presentation.resources.add_to_list
 import com.jcotters.presentation.resources.bookmark_filled
 import com.jcotters.presentation.resources.bookmark_outline
 import org.jetbrains.compose.resources.painterResource
@@ -183,7 +183,7 @@ private fun MovieHeader(
         )))
         if (onBack != null) {
             Box(modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(16.dp)
-                .clip(CircleShape).size(40.dp).background(Color.Black.copy(alpha = 0.5f))) {
+                .clip(CircleShape).size(48.dp).background(Color.Black.copy(alpha = 0.5f))) {
                 IconButton(onClick = onBack) {
                     Icon(painterResource(Res.drawable.arrow_back), contentDescription = "Back",
                         modifier = Modifier.size(25.dp), tint = Color.White)
@@ -200,14 +200,14 @@ private fun MovieHeader(
         if (movie != null) {
             if (onAddToList != null) {
                 Box(modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(16.dp)
-                    .clip(CircleShape).size(40.dp).background(Color.Black.copy(alpha = 0.5f))) {
+                    .clip(CircleShape).size(48.dp).background(Color.Black.copy(alpha = 0.5f))) {
                     IconButton(onClick = onAddToList) {
-                        Icon(painterResource(Res.drawable.add_to_list), "Add to list", tint = Color.White)
+                        Icon(painterResource(Res.drawable.add), "Add to list", tint = Color.White)
                     }
                 }
             }
             Box(modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).clip(CircleShape)
-                .size(40.dp).background(Color.Black.copy(alpha = 0.5f))) {
+                .size(48.dp).background(Color.Black.copy(alpha = 0.5f))) {
                 val bookmarkIcon = if (viewState.isBookmarked) Res.drawable.bookmark_filled else Res.drawable.bookmark_outline
                 IconButton(
                     onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) },
