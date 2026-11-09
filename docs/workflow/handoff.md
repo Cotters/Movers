@@ -1,6 +1,6 @@
 # Current handoff
 
-Updated 9 November 2026. Verify Git/source before resuming. The agreed [Shared Watchlists design](../features/shared-watchlists.md) is committed; host/build verification is complete; the user reports successful hosted deployment and app-facing checks pass. Physical-device acceptance remains pending. Current source checkpoint: `d72ab18` (`Implement architecture for shared watchlists`), committed by the user after implementation; setup helpers are now working-tree changes. Preserve user staging/edits; no agent commit or push.
+Updated 9 November 2026. Verify Git/source before resuming. The agreed [Shared Watchlists design](../features/shared-watchlists.md), UI review and setup helpers are committed; the user reports successful hosted deployment and app-facing checks pass. Physical-device acceptance remains pending. Current source checkpoint: `1ac9b01` (`Use Shared Lists and improve UI`); app-icon assets are working-tree changes. Preserve user staging/edits; no agent commit or push.
 
 ## Decisions and implementation
 
@@ -17,10 +17,10 @@ Updated 9 November 2026. Verify Git/source before resuming. The agreed [Shared W
 
 Run existing tests and update intended expectations; **no new test cases** were authorized. Never run/interact with emulators/simulators or execute connected tests. People verify on physical devices. Serialize Gradle/Xcode invocations.
 
-- Latest `./scripts/verify.sh` passes after the working-diff review: **92 app tests / 24 suites**, zero failures/errors/skips; five convention tests reused passing outputs. Watchlists/shared suites executed; seven other module suites reused passing outputs. App phase: 40 s, 68 executed / 494 up-to-date. Lint/debug APK pass: zero errors/fatal, 31 warnings. Existing migration case covers populated versions 7 and 8 through 9. Existing rename/delete UI case waits for dialog completion/enabled controls instead of only typed text.
+- Latest `./scripts/verify.sh` passes after the app-icon changes: **92 app tests / 24 suites**, zero failures/errors/skips, all reused passing outputs; five convention tests also reused. App phase: 16 s, 40 executed / 522 up-to-date. Lint/debug APK pass: zero errors/fatal, 31 existing warnings; no icon warnings added. Existing migration case covers populated versions 7 and 8 through 9. Existing rename/delete UI case waits for dialog completion/enabled controls instead of only typed text.
 - Final migration applied to a fresh disposable PostgreSQL database. Synthetic checks pass: member/non-member/guest permissions, immutable/server attribution, duplicate/no-op writes, retry after another member removes a film, creator departure, revocation, last-member retirement, expiry, two-page activity pagination and malformed-payload rollback. The temporary server was stopped. This does not establish hosted Auth/Realtime behavior.
 - Latest icon/resource checks: `:shared:assembleAndroidDeviceTest` and `:shared:linkDebugFrameworkIosSimulatorArm64` compile (32 s, 40 executed / 345 up-to-date). Movie-internal test APK compiled in the earlier backend pass. No installation, launch or device-test execution. `./scripts/verify-ios.sh` exits 0 against the physical-device SDK after the action-icon changes; unsigned compile/link only. Earlier config inspection confirmed both app artifacts match local backend values and register the invitation scheme. No credentials were printed.
-- Documentation checker includes feature/backend setup docs and README: 15 files / 84 local targets pass. Maestro YAML syntax and `git diff --check` pass. The previous [local-list handoff](history/2026-11-09-pre-sharing.md) holds older evidence.
+- Documentation checker includes feature/backend setup docs and README: 15 files / 85 local targets pass. Maestro YAML syntax and `git diff --check` pass. The previous [local-list handoff](history/2026-11-09-pre-sharing.md) holds older evidence.
 
 ## Setup helper follow-up
 
@@ -45,6 +45,8 @@ Run existing tests and update intended expectations; **no new test cases** were 
 - Host gate above and unsigned physical-iOS build pass after the refactor. The deployment verifier now checks exact RPC signatures/authenticated execute access and rejects exposed definer RPCs. Valid schema and both rejection paths pass against disposable PostgreSQL, now stopped. Helper syntax, local config and missing-token refusal pass; setup file/OS errors are sanitized. Physical acceptance of Activity updates from a second participant and signed-device installation remains user-owned; existing host tests do not directly cover the activity-refresh scheduling.
 
 ## Next / limits
+
+The supplied icon now lives at `assets/branding/movers-icon.jpeg`; [icon guidance](../../assets/branding/README.md) records `./scripts/generate-app-icons.sh`. Android uses adaptive icons throughout its supported API 28+ range, fitting the flattened artwork into the background's visible viewport with a transparent foreground; the Material shutter monochrome vector has attribution/license alongside the source. Obsolete legacy launcher bitmaps were removed. iOS has an opaque 1024×1024 AppIcon catalog registered in the target and XcodeGen spec. Host/Android and unsigned physical-iOS builds pass; APK/catalog packaging, iPhone/iPad icon metadata, dimensions/opacity/non-personal metadata and reproducible regeneration pass. No new tests or dependencies. A reintroduced personal signing team was kept in ignored local configuration; other Xcode edits remain. Launcher appearance after installing/rebuilding on physical Android/iPhone remains user-owned; no devices or simulators were used.
 
 Implementation and host review are complete. User physical-device acceptance must cover two identities: publish/join, bidirectional/concurrent changes, uncertain retries, offline/reconnect, activity/avatars, cold/warm invitations, expiry/revocation, leave/rejoin, relaunch and existing personal-list/bookmark/navigation behavior.
 

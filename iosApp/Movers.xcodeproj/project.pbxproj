@@ -8,9 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		59B618B70C9A17F989359ACF /* MoversApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC4194EACF23703EA75FD79 /* MoversApp.swift */; };
+		BC8900BBCD8D42161247835C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D43F3B04B1828D884BD9C4 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		18D43F3B04B1828D884BD9C4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3C58815FABE728854B196125 /* Configuration.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Configuration.xcconfig; sourceTree = "<group>"; };
 		3DC4194EACF23703EA75FD79 /* MoversApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoversApp.swift; sourceTree = "<group>"; };
 		F2EB21A0273F07B73A15154C /* Movers.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Movers.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -37,6 +39,7 @@
 		EC3C3D33F436375E7DE6ADB8 = {
 			isa = PBXGroup;
 			children = (
+				18D43F3B04B1828D884BD9C4 /* Assets.xcassets */,
 				3DC4194EACF23703EA75FD79 /* MoversApp.swift */,
 				620156819525036E0DFD39C6 /* iosApp */,
 				CE270A6F0C0A9D18D3ED346A /* Products */,
@@ -52,6 +55,7 @@
 			buildPhases = (
 				6801583CC46C71A678E624B4 /* Build shared Kotlin framework */,
 				39930F562122469FC258AEF6 /* Sources */,
+				30E49C757AAE9E5528A9BC59 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -87,6 +91,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		30E49C757AAE9E5528A9BC59 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC8900BBCD8D42161247835C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		6801583CC46C71A678E624B4 /* Build shared Kotlin framework */ = {
@@ -159,7 +174,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-
+				DEVELOPMENT_TEAM = 86997N65SQ;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -250,7 +265,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-
+				DEVELOPMENT_TEAM = 86997N65SQ;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
