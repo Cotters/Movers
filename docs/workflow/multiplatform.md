@@ -47,7 +47,7 @@ The iOS verification script builds unsigned with the physical-device SDK; it doe
 
 ## Verification and physical-device acceptance
 
-Host checks cover shared policy, transport fixtures, repositories, profile initialization, navigation serialization, and real Compose navigation journeys at phone/Fold sizes. Relevant host UI tests must pass before shared UI/navigation work is complete; see the [host UI gate](testing.md#host-ui-regression-gate). Android device tests are compiled with:
+Host checks cover shared policy, transport fixtures, repositories, profile initialization, navigation serialization, and real Compose navigation journeys at phone/Fold sizes. Run existing tests and maintain intended expectations; new cases are deferred during the feature phase. See the [host UI gate](testing.md#host-ui-regression-gate). Android device tests are compiled with:
 
 ```sh
 ./gradlew :shared:assembleAndroidDeviceTest :movie:internal:assembleAndroidDeviceTest
@@ -58,3 +58,15 @@ They cover retained navigation/ViewModel stores/restoration, screen loading/erro
 On your own Android device and iPhone, check Home loading and infinite scroll, a movie's details and retry, bookmark/unbookmark and Profile updates, the Josh name, all three tabs and retained histories, and relaunch persistence. Check offline startup, cached content, reconnect/retry, system insets, keyboard-free navigation, and light/dark themes. On Android, check Back/reselection/process restoration and run the compiled integration tests. Confirm the authorized reset on an old Android install using disposable data. Send device/OS versions and sanitized observations/screenshots/logs; keep runtime acceptance pending until evidence arrives.
 
 Official references: [incremental migration](https://kotlinlang.org/docs/multiplatform/migrate-from-android.html), [Android KMP plugin](https://developer.android.com/kotlin/multiplatform/plugin), [Nav 3 serialization](https://kotlinlang.org/docs/multiplatform/compose-navigation-3.html), [Koin Compose](https://insert-koin.io/docs/reference/koin-compose/compose/), and [Room KMP](https://developer.android.com/kotlin/multiplatform/room). The current Room guide contains Room 3 prerelease snippets; Movers intentionally retains Room 2.8.5. Match installed APIs rather than copying package/version changes incidentally.
+
+## Changes to shared code
+
+KMP supplies shared code/logic and target integrations; Compose Multiplatform supplies shared UI. For a feature, keep reusable policy/state/UI in the existing common source sets and inject small native integrations. Do not add platform targets or new abstraction layers solely to satisfy an agent tool's default example.
+
+- Follow the dependency actually consumed by the module. Shared navigation uses the JetBrains artifact through `libs.multiplatform.navigation3.ui`; Android and shared catalog entries can have different versions. Likewise Material 3, Compose UI and lifecycle versions are independent.
+- Review common sources and public contracts for Android/JVM/provider-only types. Preserve entry-scoped ViewModels, explicit NavKey serializers and Koin bindings on both hosts. Verify packaged resources when assets/conventions change; compilation/accessors alone do not establish packaging or portable XML parsing.
+- Run the existing host gate and unsigned physical-iOS build for shared/iOS changes. For target, KSP, resource-packaging or convention changes, also compile affected configured targets, including `:shared:linkDebugFrameworkIosSimulatorArm64` when affected. This builds a framework without starting a simulator. Compile relevant Android test APKs separately.
+- Record each target and result separately. Robolectric is Android host simulation; it does not execute iOS. Linking a framework or preparing simulator resources does not prove native launch/runtime behavior.
+- Keep platform warnings visible. The historical bundled ICU Simulator object warning (built for 18.5; configured minimum 15.0) remains a release/compatibility follow-up; successful newer-OS validation does not establish minimum-OS support.
+
+See [Kotlin's source-set guidance](https://kotlinlang.org/docs/multiplatform/multiplatform-share-on-platforms.html) and [AI-specific Kotlin acceptance guidance](https://kotlinlang.org/docs/ai-for-development.html#kotlin-specific-acceptance-criteria). Apply target checks within the user's no-device and existing-tests-only policies.

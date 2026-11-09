@@ -4,6 +4,28 @@
 
 Run the existing test suite for feature changes and update existing assertions when intended behavior changes. Do not add new test cases, especially UI tests, unless the user explicitly requests them. Defer broader coverage work until the post-feature review recorded in private `Notes/Todo.md`. Keep existing checks passing; investigate failures rather than disabling tests or weakening assertions. The guidance below describes the retained infrastructure and future coverage choices, not a requirement to expand coverage during this phase.
 
+## Verification by change
+
+| Change | Iteration | Final evidence |
+| --- | --- | --- |
+| Documentation/instructions only | Check the changed wording against current source/policy. | `./scripts/verify-docs.sh` and `git diff --check`; no app rebuild. |
+| Documentation checker / CI wiring | Shell syntax, run the checker, inspect workflow YAML and relevant shell blocks. | Same checks locally; remote CI remains pending. App checks are needed only if their behavior/configuration changes. |
+| Android app behavior | Smallest relevant existing host test/task. | `./scripts/verify.sh`; physical-device acceptance remains separate. |
+| Shared/iOS behavior | Affected existing host tests and module compilation. | Host gate plus `./scripts/verify-ios.sh`; report their different coverage. |
+| Schema, resources, conventions or targets | Relevant existing checks and inspect affected schemas/assets/outputs. | Host/iOS gates as affected; compile relevant test APKs and configured native targets. See [shared-code checks](multiplatform.md#changes-to-shared-code). |
+
+Run final gates once the relevant edits settle. Repeat only when a failure, new evidence or a change invalidates the previous result; do not repeat a successful cached build merely to produce fresh output. During a long check, independent reads/docs work can continue, but avoid editing its tested inputs.
+
+**One build owner per checkout:** do not overlap Gradle invocations or Xcode builds that invoke Gradle against the same outputs. Wait for a running command's completion before reusing its log/report path. Use a distinct ignored log path, for example `build/verification/<task>-<run>/host.log`, and retain the command/exit status. A filtered test run overwrites that module's JUnit report: counts from it cannot be combined with an older full-suite claim.
+
+Record the source checkpoint (HEAD and relevant uncommitted changes), command, run scope, exit/result, executed versus cached work and remaining limits in the handoff. A user commit during a run requires a content check, not automatic discard of all evidence. Compile-only, `NO-SOURCE`, skipped and cached results are different observations. Never infer an iOS/runtime pass from an Android host result.
+
+## Documentation check
+
+`./scripts/verify-docs.sh` requires Bash and Python 3, works from any current directory, and checks relative link targets in AGENTS.md, build-logic/README.md and workflow documents/history. It rejects missing targets and absolute/outside-repository local links. It uses no network, credentials, Gradle or device. External URLs and heading anchors still need review; this is not a semantic documentation or citation audit.
+
+The existing Android CI job runs it immediately after checkout. This adds a deterministic documentation check without adding test cases or a new framework; it does not change the Android job's existing trigger/build policy.
+
 ## Prerequisites
 
 - Bash, an executable Gradle wrapper, and **JDK 17**. Set `JAVA_HOME` if the shell's Java differs from Android Studio's Gradle JDK.

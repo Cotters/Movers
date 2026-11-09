@@ -1,67 +1,77 @@
 # Development with AI
 
-Reviewed: 8 November 2026. This guide describes the existing app and the workflow agreed for this repository. Code and build configuration remain the source of truth; update this guide when an agreed change makes it stale.
+Reviewed 9 November 2026. These are current working agreements. The [retrospective and research](retrospective-2026-11-09.md) explain their rationale; the [handoff](handoff.md) holds active state. Read only what the task needs.
 
 ## Work cycle
 
-1. Inspect Git state and the relevant code/tests. For substantial work, read the current handoff. Clarify behavior, success criteria, and consequential unknowns before implementation.
-2. Propose a plan grounded in existing code. Identify affected boundaries, failure cases, verification, and any physical-device checks. Obtain agreement before feature implementation.
-3. Implement focused, reviewable changes. After plan agreement, continue through the authorized implementation and host checks without repeated permission requests. Revisit the plan when product requirements or material scope change.
-4. Review the diff for correctness, maintainability, accidental credentials, and unrelated edits. Run the existing suite and full verification script before handing back feature or tooling changes. During the current feature phase, update existing expectations for intentional behavior changes but defer new test cases, especially UI tests, until the post-feature review unless explicitly requested.
-5. Explain what changed, what was verified, and what remains uncertain. Update the handoff after meaningful progress and the appropriate guide after an agreed workflow/architecture change. Record useful lessons with their reason and code evidence, rather than accumulating generic rules.
+1. Inspect Git status/HEAD, relevant code and existing checks. Locate the nearest working feature, actual consumed dependencies and platform boundaries before proposing changes.
+2. For a new feature, agree outcome, consequential unknowns and scope. A clear follow-up can proceed directly. Keep a short requirement note in the handoff for substantial work: behavior, affected modules, exclusions, checks and unresolved assumptions. Do not create a new planning system for every task.
+3. Implement one coherent slice at a time. Follow existing conventions, use focused checks during iteration and preserve unrelated edits. Product changes and toolchain migrations are separate tasks unless explicitly combined.
+4. Review the resulting diff against requirements. During the feature phase, run existing tests and update intended expectations; add no new cases unless requested. Use [the verification decision table](testing.md#verification-by-change) and run the applicable final gates after changes settle.
+5. Report outcome, evidence and limits; update current memory. A docs-only edit needs document validation, not an Android/iOS rebuild. Do not rerun successful checks to generate a newer timestamp when nothing relevant changed.
 
-Treat suggestions in Human.md as proposals until agreed. Preserve user feedback, and record the outcome when a proposal is accepted or declined. No separate approval is needed to run ordinary authorized host checks or repair failures introduced by the change.
+A useful substantial-task note is small:
 
-This is a portfolio/demo project intended for public reuse. For backend work, follow [public-source and portability guidance](open-source.md): repositories depend on a separate vendor-neutral database API, and Supabase-specific adapters implement it. The private ordered queue is `Notes/Todo.md` when present; an explicit agreed task takes precedence. Keep durable requirements in this tracked folder so a clone does not depend on private notes.
+```text
+Outcome / changed behavior:
+Affected modules and shared/platform ownership:
+Out of scope / user decisions still needed:
+Existing checks and native acceptance limits:
+Current source checkpoint / next action:
+```
 
-## Existing architecture
+People own product choices and physical-device acceptance. Continue authorized reversible implementation and host work without repeated approval questions. Do not bypass sandbox controls or mistake an environment approval for a new product decision.
 
-Read [multiplatform ownership/setup](multiplatform.md) for the module map. Android's `:app` and the SwiftUI `iosApp` host both use `:shared`; feature screens, ViewModels, navigation, repositories, cache, and Room schema live in common Kotlin source sets. Preserve feature/contract and movie contract/internal boundaries. Koin definitions live with their feature/data owner and are aggregated at app composition. Platform source sets supply database paths, HTTP engines, connectivity, and Android dynamic colors.
+## Debugging without repeated guessing
 
-Representative flows:
+Keep a short working record, not another permanent log for every command:
 
-- [BookmarkMovieUseCase](../../features/details/src/commonMain/kotlin/com/jcotters/details/domain/BookmarkMovieUseCase.kt) calls the device-local bookmark repository, which persists through Room; there is no login requirement.
-- [ProfileViewModel](../../profile/src/commonMain/kotlin/com/jcotters/profile/ui/ProfileViewModel.kt) observes the device profile and persisted bookmarks. New writes update the UI through observation, not independent saved-state copies.
-- [MovieDetailViewModel](../../features/details/src/commonMain/kotlin/com/jcotters/details/ui/MovieDetailViewModel.kt) coordinates persisted details, refresh, retry, and bookmark events. [MovieDetailScreen](../../features/details/src/commonMain/kotlin/com/jcotters/details/ui/MovieDetailScreen.kt) renders state and sends events.
-- [NavigationState](../../shared/src/commonMain/kotlin/com/jcotters/movers/ui/NavigationState.kt) owns retained tab stacks and explicit cross-platform key serialization. Features supply entries, and Nav 3 owns their ViewModel stores.
-- [MovieDetailsRepository](../../movie/internal/src/commonMain/kotlin/com/jcotters/internal/detail/data/MovieDetailsRepository.kt) retains its 24-hour freshness policy and cancellation/concurrency rules; the catalogue mediator retains its separate six-hour policy.
+| Observation | Hypothesis | Discriminating check | Result / next action |
+| --- | --- | --- | --- |
+| Exact failure and where it occurs | One explanation, labelled as unconfirmed | Smallest action that would support or reject it | Keep, revise or discard the explanation |
 
-## Lessons to preserve
+1. Wait for the active process to finish or identify its current state. Use a fresh log path per run; avoid concurrent Gradle/Xcode jobs against shared outputs. A filtered test run can overwrite a module's earlier JUnit XML, so do not mix their counts.
+2. Read the complete failure chain and failing assertion. For a UI timeout, identify the expected screen/text and inspect its semantics/loading/error state. Inspect installed library source or exception definitions when needed. A timeout alone does not identify a deadlock, slow network or infinite recomposition.
+3. Distinguish production behavior, fixture/harness behavior and environment/setup failure. An isolated pass followed by a suite failure suggests order/lifecycle/shared-state work to investigate; it does not prove an app defect.
+4. Make one evidence-backed change, run the smallest relevant check, and inspect its result. After **two failed hypotheses**, stop speculative edits, collect missing diagnostics, and update the user with what is known and what the next check will distinguish. This is a project heuristic to prevent loops, not a research-proven threshold or an instruction to abandon the task.
+5. Remove failed experiments and temporary diagnostics. Keep only the confirmed fix and useful failure reporting. Do not change product architecture merely to appease a host fixture, increase timeouts blindly, disable checks or present an unconfirmed cause as fact.
 
-- **Persisted data owns saved state.** Observe Room for bookmarks and saved movies instead of maintaining independent UI copies. Represent loading, empty, partial success, and recoverable failure where the outcome matters.
-- **Cancellation is not a normal failure.** Propagate `CancellationException`; avoid catching fatal errors as recoverable failures. Inject clocks/dispatchers where timing or scheduling needs control.
-- **Concurrency rules need context.** Use atomic `MutableStateFlow.update` for changes derived from previous state. Direct assignment of a complete independent value is not inherently wrong. Guard overlapping writes and stale responses where required by observable behavior.
-- **Persistence is an installed-data contract.** Preserve version-7 and later device identity, bookmarks, and cached relationships through explicit migrations and schema exports. Version 8 adds local lists through the preserving 7→8 migration. The user authorized resetting retired account databases (versions 1–6) for this migration only. Historical version-2 databases had multiple schema variants. Do not introduce destructive recreation to bypass migration work.
-- **Define the success boundary.** A committed persistence operation and later UI/setup work are separate outcomes. Retrying initialization must not replace a stored installation ID or duplicate saved data.
-- **Keep lifecycle ownership clear.** Use lifecycle-aware collection in the UI, structured coroutine scopes, and an appropriate UI owner for Activity-dependent APIs. Rotation, backgrounding, and process death have different consequences.
-- **Match the current dependency versions.** Use the version catalog and wrapper. Android modules use AGP built-in Kotlin/new DSL and [composable build conventions](../../build-logic/README.md); keep one-off configuration local. Do not copy incompatible Room or Navigation APIs into the current stack without an agreed migration; this app uses Nav 3 version 1.2.1.
-- **Local identity is local.** The current app has a local installation ID and temporary Josh display name, with no account/session system. Neither value establishes remote authorization. Backend identity and Shared Lists require their own agreed plan.
+The confirmed Paging/Robolectric cleanup issue is recorded in [testing](testing.md#host-ui-regression-gate). Treat it as a specific lifecycle lesson, not a universal dispatcher workaround.
 
-These lessons were checked against current code and curated from private study notes. Old descriptions of “remaining” work are not automatically current: detail persistence, freshness, and retry behavior have since changed. Recheck source before opening a task.
+## Existing architecture and review
 
-## Research behind the workflow
+Android's `:app` and SwiftUI `iosApp` use `:shared`. Screens, state, navigation, repositories, cache and schema are common Kotlin. Platform source sets supply HTTP engines, paths, connectivity and native colors. Keep feature-owned Koin definitions and Nav 3 entry-owned ViewModels; see [module ownership](multiplatform.md).
 
-Research window: **8 May–8 November 2026**, reviewed 8 November. Official articles inform the approach; community comments illustrate experience and disagreement, not platform guarantees.
+Representative patterns:
 
-| Source | Useful conclusion for Movers |
-| --- | --- |
-| [Android Studio I/O Edition, Google, 19 May 2026](https://android-developers.googleblog.com/2026/05/whats-new-android-developer-tools.html?m=1) | Android CLI, skills, and official documentation can ground an agent in Android-specific tools and knowledge. Use applicable capabilities within the user's testing restrictions. |
-| [Inside Android Skills, Google, 6 August 2026](https://android-developers.googleblog.com/2026/08/android-skills-philosophy.html?m=1) | Prefer focused skills that address a demonstrated gap. Do not load a large collection of generic guidance for every task; evaluate whether a skill improves results. |
-| [Iterating Development Workflows with Codex, OpenAI, 3 August 2026](https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex) | Keep repository instructions, plans, and evidence durable. Its extra file conventions are optional; this app uses a small linked documentation set and a handoff. |
-| [Rethinking skills and prompts, OpenAI, 11 September 2026](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra) | Keep instructions concise, load supporting material when relevant, and make completion boundaries explicit. Apply the context-management lessons without making project policy depend on one model. |
-| [Compose agent-rules discussion and comments, r/androiddev, May 2026](https://www.reddit.com/r/androiddev/comments/1tjfn3t/i_got_tired_of_ai_agents_breaking_my_compose_code/) | The thread proposes rules about state, lifecycles, and lists; comments correct the blanket ban on direct state assignment. Verify the rationale before adopting a rule or architecture migration. |
-| [Android teaching/AI discussion and comments, r/androiddev, August 2026](https://www.reddit.com/r/androiddev/comments/1vr35pn/advice_for_my_android_students_about_using_ai/) | Contributors disagree about AI use but highlight the importance of understanding and reviewing generated work. This workflow keeps product decisions and review with people. |
+- [MovieDetailViewModel](../../features/details/src/commonMain/kotlin/com/jcotters/details/ui/MovieDetailViewModel.kt): persisted details, refresh/retry, state and bookmark events.
+- [ProfileViewModel](../../profile/src/commonMain/kotlin/com/jcotters/profile/ui/ProfileViewModel.kt): observable local profile and bookmarks.
+- [NavigationState](../../shared/src/commonMain/kotlin/com/jcotters/movers/ui/NavigationState.kt): retained stacks and explicit key serialization.
+- [WatchlistDatabase](../../movie/contract/src/commonMain/kotlin/com/jcotters/contract/watchlists/data/WatchlistDatabase.kt): provider-neutral storage contract behind repository policy.
 
-For technical decisions, consult [Android architecture recommendations](https://developer.android.com/topic/architecture/recommendations), [coroutine testing](https://developer.android.com/kotlin/coroutines/test), and [Room migration guidance](https://developer.android.com/training/data-storage/room/migrating-db-versions) as relevant. Confirm examples match installed versions. The installed Android CLI's `android docs` command is preferred when available; official web documentation is the fallback if its access is blocked.
+Review non-obvious invariants: observable persisted membership rather than competing saved copies; cancellation propagation; scoped writes and pending-row guards; relationship-preserving Room migrations; resource packaging and cross-platform vector parsing; source/query/scroll retention. Use atomic StateFlow updates when deriving a new value from the old one; independent assignments are not categorically wrong. Preserve catalogue/detail freshness policies and independent bookmarks.
 
-## Shared Watchlist boundary
+Match actual artifacts and installed APIs. In particular, shared navigation consumes `org.jetbrains.androidx.navigation3:navigation3-ui` through `libs.multiplatform.navigation3.ui`; the separate Android `navigation3` version alias does not establish its version. Read the catalog/module declaration and, when necessary, dependency output before copying a sample or making a compatibility claim. Apply [KMP/CMP checks](multiplatform.md#changes-to-shared-code) without incidental upgrades.
 
-Confirmed intent: the user and a friend can add to and review shared watchlists on separate devices. Supabase Free is the preferred candidate, not an implemented dependency or a provisioned service. At review time its [pricing](https://supabase.com/pricing) lists a 500 MB database and pausing after one week of inactivity; recheck terms before implementation.
+## Durable memory
 
-Before collaboration/backend feature work, agree how device-local identity maps to backend authorization, membership/invites, permitted actions, offline behavior, synchronization/conflicts, and acceptance scenarios. The current app has no username/password accounts and does not provide cross-device identity or sync. Consult current Supabase documentation and the relevant skills. Remote access requires backend-enforced authorization; exposed tables need appropriate RLS policies, and a service-role/secret key must never enter the Android app. The [Kotlin client is community-maintained](https://supabase.com/docs/reference/kotlin/introduction); evaluate it against the existing networking stack during feature planning. The local list feature now has a neutral database API and Room adapter; no remote SDK, schema, authorization, or sync strategy is chosen.
+| Location | Owns | Maintenance |
+| --- | --- | --- |
+| `AGENTS.md`, `Human.md`, linked guides | Current repository rules and human workflow | Keep universal rules short; update the authoritative rule instead of appending contradictory instructions. |
+| `handoff.md` | Active behavior, approved decisions, source checkpoint, latest evidence/limits and next action | Replace stale status. Aim for about one page; archive history before it becomes another transcript. |
+| `history/` | Previous evidence and superseded decisions | Read only for a specific question; never inherit old permissions. Git also preserves prior versions. |
+| Private ignored `Notes/Todo.md` | Succinct user backlog and post-feature work | Preserve privacy; a public clone must still have usable tracked context. |
 
-## Current navigation and migration
+Repository files are the portable memory for new chats and collaborators. Do not assume personal agent memory is available, current, or shared with others; do not copy private machine configuration into the repository. Read current source/Git after compaction, too. If the user commits during a check, compare content before deciding whether evidence is invalidated; a SHA change alone does not mean the code changed.
 
-Home, Watchlists, and Profile share a retained Nav 3 shell on Android/iOS. Profile displays Josh and local bookmarks; Watchlists supports device-local custom lists and contextual film search. Home/detail quick-add uses a multi-list picker. Accounts, passwords, logout, and session expiry were explicitly removed. The migration may reset legacy local data once. First-launch name entry and a feature introduction are deferred to the private Onboarding Todo.
+Preserve Human.md feedback. Label proposals separately from accepted instructions. Record only facts that would change future scope, implementation, verification or decisions. Temporary trial-and-error, unchanged test counts and routine command noise do not belong in every handoff.
 
-See [navigation policy/device acceptance](navigation.md) and [multiplatform setup](multiplatform.md). Kotlin 2.4.21 is the user-confirmed baseline; pursue working Android/iOS builds and address demonstrated compatibility problems. Do not re-open a speculative toolchain-upgrade project before feature work.
+## Tools, skills and research
+
+Use `rg`/targeted reads and existing build scripts first. Prefer official Android/Kotlin/library documentation for APIs. Match installed versions; a current online example may target a newer release. For research, open the source, record its date or living-doc status, separate evidence from opinions, and describe where a recommendation is an inference.
+
+Select skills for a demonstrated gap: Android CLI for SDK/docs/tooling; inset/performance skills for actual inset/performance defects; native build guidance when native tooling is needed. A testing-setup skill does not authorize new frameworks/cases during the feature phase. A native-debugging skill does not authorize device use. User instructions override skill examples.
+
+Official Kotlin skills, IDE MCP and library lookup tools are options when navigation/inspections or current API knowledge repeatedly fail. Evaluate the specific benefit, trust and platform fit first; do not install a large skill collection, add a desktop target solely for previews, or replace the working convention plugins to match a tool's default project. No new skill package is needed merely to duplicate these guides. Use one agent by default; delegate only when explicitly authorized, with isolated task/output ownership.
+
+No workflow or model guarantees error-free code. Useful completion claims say what changed, which checks actually ran or were cached, what they cover, and what remains pending. Shared Lists/backend authorization and onboarding still require their own feature decisions; see [public-source guidance](open-source.md).
