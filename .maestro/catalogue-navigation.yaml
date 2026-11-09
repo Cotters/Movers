@@ -9,7 +9,7 @@ name: Catalogue details and tabs
     times: 3
     commands:
       - tapOn:
-          text: "DbMovie poster for.*"
+          text: "Movie poster for.*"
           index: 0
       - extendedWaitUntil:
           visible: "Bookmark movie button"
@@ -17,7 +17,7 @@ name: Catalogue details and tabs
       - tapOn: "Back"
       - assertVisible: "Popular Movies"
 - tapOn: "Watchlists"
-- assertVisible: "Watchlists are coming soon."
+- assertVisible: "Create list"
 - tapOn: "Profile"
 - assertVisible: "Josh"
 - assertVisible: "Bookmarks"

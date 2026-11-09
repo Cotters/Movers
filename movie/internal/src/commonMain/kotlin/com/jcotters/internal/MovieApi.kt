@@ -16,9 +16,15 @@ import kotlinx.serialization.json.Json
 interface MovieApi {
     suspend fun getMovieById(movieId: Int): MovieDto
     suspend fun getPopularMovies(page: Int, sortBy: String = "popularity.desc"): CataloguePageResponse
+    suspend fun searchMovies(query: String, page: Int): CataloguePageResponse
 }
 
 class KtorMovieApi(private val client: HttpClient) : MovieApi {
+    override suspend fun searchMovies(query: String, page: Int): CataloguePageResponse = client.get("search/movie") {
+        parameter("query", query)
+        parameter("page", page)
+        parameter("include_adult", false)
+    }.body()
     override suspend fun getMovieById(movieId: Int): MovieDto = client.get("movie/$movieId").body()
     override suspend fun getPopularMovies(page: Int, sortBy: String): CataloguePageResponse =
         client.get("discover/movie") { parameter("page", page); parameter("sort_by", sortBy) }.body()

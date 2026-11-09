@@ -105,5 +105,6 @@ assertEquals(1L, entryCount)
         }
 
         override suspend fun getMovieById(movieId: Int): MovieDto = error("Not used in catalogue tests")
+        override suspend fun searchMovies(query: String, page: Int): CataloguePageResponse = error("Not used in catalogue tests")
     }
 }

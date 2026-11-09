@@ -32,6 +32,8 @@ kotlin {
             implementation(project(":features:details:contract"))
             implementation(project(":features:watchlists"))
             implementation(project(":features:watchlists:contract"))
+            implementation(project(":features:search"))
+            implementation(project(":features:search:contract"))
             implementation(project(":profile"))
             implementation(project(":profile:contract"))
             implementation(project(":navigation:contract"))
@@ -44,6 +46,7 @@ kotlin {
         androidMain.dependencies { implementation(libs.ktor.client.okhttp) }
         iosMain.dependencies { implementation(libs.ktor.client.darwin) }
         named("androidHostTest") {
+            resources.srcDir("../database/schemas")
             dependencies {
                 implementation(libs.ktor.client.mock)
                 implementation(libs.androidx.sqlite.framework)

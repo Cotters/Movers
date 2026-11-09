@@ -62,6 +62,7 @@ import com.jcotters.presentation.MoverImageView
 import com.jcotters.presentation.moviePosterKey
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.arrow_back
+import com.jcotters.presentation.resources.add_to_list
 import com.jcotters.presentation.resources.bookmark_filled
 import com.jcotters.presentation.resources.bookmark_outline
 import org.jetbrains.compose.resources.painterResource
@@ -74,6 +75,7 @@ fun MovieDetailScreen(
     posterModifier: Modifier = Modifier,
     movieId: Int? = viewState.movie?.id,
     onBack: (() -> Unit)? = null,
+    onAddToList: (() -> Unit)? = null,
 ) {
     val movie = viewState.movie
     val loading = viewState.isLoading || viewState.isRefreshingDetails
@@ -90,7 +92,7 @@ fun MovieDetailScreen(
 
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            MovieHeader(movie, viewState, onViewEvent, posterModifier, movieId, onBack)
+            MovieHeader(movie, viewState, onViewEvent, posterModifier, movieId, onBack, onAddToList)
             Column(
                 modifier = Modifier.padding(top = 50.dp).padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -168,6 +170,7 @@ private fun MovieHeader(
     posterModifier: Modifier,
     movieId: Int?,
     onBack: (() -> Unit)?,
+    onAddToList: (() -> Unit)?,
 ) {
     Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
         MoverImageView(
@@ -195,6 +198,14 @@ private fun MovieHeader(
                 .offset(y = 50.dp).size(width = 120.dp, height = 180.dp),
         )
         if (movie != null) {
+            if (onAddToList != null) {
+                Box(modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(16.dp)
+                    .clip(CircleShape).size(40.dp).background(Color.Black.copy(alpha = 0.5f))) {
+                    IconButton(onClick = onAddToList) {
+                        Icon(painterResource(Res.drawable.add_to_list), "Add to list", tint = Color.White)
+                    }
+                }
+            }
             Box(modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).clip(CircleShape)
                 .size(40.dp).background(Color.Black.copy(alpha = 0.5f))) {
                 val bookmarkIcon = if (viewState.isBookmarked) Res.drawable.bookmark_filled else Res.drawable.bookmark_outline

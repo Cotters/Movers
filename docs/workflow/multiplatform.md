@@ -11,21 +11,21 @@ Movers shares its screens, navigation, ViewModels, repositories, HTTP policy, ca
 | `:shared` | App composition, Koin graph, theme, retained bottom-navigation state, and platform service bindings |
 | Existing feature modules and contracts | Shared screens/state/use cases and feature-owned NavKeys |
 | `:profile:contract`, `:profile` | Device-profile model/repository contract, local implementation, and Profile UI |
-| `:movie:contract`, `:movie:internal` | Public movie/bookmark operations; Ktor transport, mapping, paging, freshness, and repository implementations |
-| `:database` | Room entities/DAOs, version 7 schema, bundled SQLite, and platform database paths |
+| `:movie:contract`, `:movie:internal` | Public movie/bookmark/search/list operations and neutral list storage API; Ktor transport, mapping, paging, freshness, and repository implementations |
+| `:database` | Room entities/DAOs, version 8 schema with preserving 7→8 migration, bundled SQLite, and platform database paths |
 | `:presentation`, `:data:network` | Shared images/transitions/snackbars and network-status contract; native network observers |
 
 Use `src/commonMain/kotlin` and `composeResources` for reusable code/assets. `androidMain` and `iosMain` contain native integrations. Only the composition module creates the iOS framework; other modules remain libraries. iOS targets are `iosArm64` for physical devices and `iosSimulatorArm64` for Apple silicon simulators, minimum iOS 15. No Intel simulator or desktop target is configured. Room's KSP processor is configured for both iOS targets.
 
 Koin definitions stay at composition boundaries; constructors receive typed dependencies. Feature entry providers own their screens. ViewModels use the Nav 3 entry's store, not a global singleton. Navigation uses an explicit polymorphic serializer registry on both platforms; register new keys when adding destinations. Do not reintroduce Android reflection-based serialization in common code.
 
-Retain the existing Home feed, details/retry/cache behavior, bookmarks, Watchlists placeholder, and Profile. Each tab keeps its history. Reselection pops to that tab's root; Back from another tab root returns Home. Android Back at Home root exits. Error messages use the shared snackbar; Android dynamic colors remain platform-specific.
+Retain the existing Home feed, details/retry/cache behavior, bookmarks, custom Watchlists/search, and Profile. Each tab keeps its history. Reselection pops to that tab's root; Back from another tab root returns Home. Android Back at Home root exits. Error messages use the shared snackbar; Android dynamic colors remain platform-specific.
 
 ## Device profile and reset
 
 Accounts, passwords, saved-credential prompts, logout, and session expiry are removed. Room stores one random installation ID and the temporary name **Josh**. Initialization is idempotent; reopening the app keeps that identity and new bookmarks. Names and installation IDs are not remote authorization credentials.
 
-The user explicitly authorized discarding old local data for this migration. Version 7 resets databases from versions 1–6, including old accounts/bookmarks/cache. Android also removes retired credential/session preference files and rejects old navigation saved state. Future version-7 data requires normal preservation/migration; do not broaden the destructive fallback. Old schema exports remain historical records.
+The user explicitly authorized discarding old local data for this migration. Version 7 resets databases from versions 1–6, including old accounts/bookmarks/cache. Android also removes retired credential/session preference files and rejects old navigation saved state. Version 8 preserves version-7 data through an explicit migration; do not broaden the destructive fallback. Old schema exports remain historical records.
 
 **Onboarding is out of scope.** The private Todo records first-launch name entry and a feature introduction to replace the temporary Josh seed. No name-entry or account UI should be added incidentally. Shared Lists and backend identity/authorization remain separate planned work; retain the [vendor-neutral database boundary](open-source.md).
 
@@ -43,7 +43,7 @@ xcodegen generate --spec iosApp/project.yml --project iosApp
 ./scripts/verify-ios.sh
 ```
 
-The iOS verification script builds unsigned with the physical-device SDK; it does not install or launch anything. `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` compiles the arm64 Simulator framework without launching anything. Automated smoke tests on already-running targets are authorized after each change set; manual interaction or starting/resetting simulators requires a separate request. Android PR CI runs the host script with a placeholder token. iOS CI, signing, distribution, and runtime acceptance are not implied by a local build.
+The iOS verification script builds unsigned with the physical-device SDK; it does not install or launch anything. `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` compiles the arm64 Simulator framework without launching anything. Agents never run or interact with emulators/simulators under the latest standing instruction. Native runtime/UI verification remains user-owned on physical devices. Android PR CI runs the host script with a placeholder token. iOS CI, signing, distribution, and runtime acceptance are not implied by a local build.
 
 ## Verification and physical-device acceptance
 

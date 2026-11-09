@@ -53,6 +53,10 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.jcotters.presentation.AddToListButton
+import com.jcotters.presentation.MovieListRow
+import com.jcotters.presentation.resources.search
+import androidx.compose.material3.IconButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -61,6 +65,8 @@ fun MovieCatalogueScreen(
     posterModifier: @Composable (Movie) -> Modifier,
     onMovieTapped: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onAddToList: ((Int) -> Unit)? = null,
+    onSearch: (() -> Unit)? = null,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pullToRefreshState = rememberPullToRefreshState()
@@ -71,7 +77,11 @@ fun MovieCatalogueScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Movers") }) },
+        topBar = { TopAppBar(title = { Text("Movers") }, actions = {
+            if (onSearch != null) IconButton(onClick = onSearch) {
+                Icon(painterResource(com.jcotters.presentation.resources.Res.drawable.search), "Search movies")
+            }
+        }) },
         floatingActionButton = {
             AnimatedVisibility(
                 visible = showScrollToTopFab,
@@ -107,6 +117,7 @@ fun MovieCatalogueScreen(
                 movies = movies,
                 onMovieTapped = onMovieTapped,
                 posterModifier = posterModifier,
+                onAddToList = onAddToList,
             )
         }
     }
@@ -120,6 +131,7 @@ private fun PopularMoviesList(
     movies: LazyPagingItems<Movie>,
     onMovieTapped: (Int) -> Unit,
     posterModifier: @Composable (Movie) -> Modifier,
+    onAddToList: ((Int) -> Unit)?,
 ) {
     val refreshState = movies.loadState.refresh
     val appendState = movies.loadState.append
@@ -159,14 +171,16 @@ private fun PopularMoviesList(
                 key = movies.itemKey(Movie::id),
             ) { index ->
                 val movie = movies[index] ?: return@items
-                MovieCatalogueListItem(
+                MovieListRow(
                     movie = movie,
                     modifier = Modifier
                         .height(180.dp)
                         .fillParentMaxWidth()
                         .clickable { onMovieTapped(movie.id) },
-                    posterModifier = posterModifier(movie)
-                )
+                    posterModifier = posterModifier(movie),
+                ) {
+                    if (onAddToList != null) AddToListButton(onClick = { onAddToList(movie.id) })
+                }
                 HorizontalDivider()
             }
             item {

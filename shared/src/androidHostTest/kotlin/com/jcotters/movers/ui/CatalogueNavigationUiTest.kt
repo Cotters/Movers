@@ -12,29 +12,12 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.room.Room
-import androidx.sqlite.driver.AndroidSQLiteDriver
-import androidx.test.core.app.ApplicationProvider
-import com.cotters.data.network.NetworkMonitor
-import com.cotters.data.network.NetworkStatus
-import com.jcotters.database.MoversDatabase
-import com.jcotters.internal.configureMovieApi
 import com.jcotters.movers.SharedApp
-import com.jcotters.movers.initializeMovers
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.http.HttpHeaders
-import io.ktor.http.headersOf
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOf
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
@@ -46,46 +29,15 @@ class CatalogueNavigationUiTest {
     @get:Rule
     val compose = createAndroidComposeRule<ComponentActivity>()
 
-    private lateinit var database: MoversDatabase
-    private lateinit var client: HttpClient
+    private lateinit var fixture: MoversUiFixture
 
     @Before
-    fun setUp() {
-        // Use Android's SQLite shadow on the host; production uses bundled SQLite.
-        database = Room.inMemoryDatabaseBuilder<MoversDatabase>(ApplicationProvider.getApplicationContext())
-            .setDriver(AndroidSQLiteDriver())
-            .setQueryCoroutineContext(Dispatchers.IO)
-            .build()
-        client = HttpClient(MockEngine { request ->
-            val body = when (request.url.encodedPath) {
-                "/3/discover/movie" -> """
-                    {"page":1,"total_pages":1,"results":[
-                        {"id":12,"title":"Test Movie","overview":"Catalogue synopsis","release_date":"2026-01-01"}
-                    ]}
-                """.trimIndent()
-                "/3/movie/12" -> """
-                    {"id":12,"title":"Test Movie","overview":"Loaded movie details","runtime":125,
-                     "release_date":"2026-01-01","original_language":"en","vote_average":8,"vote_count":10}
-                """.trimIndent()
-                else -> error("Unexpected request: ${request.url.encodedPath}")
-            }
-            respond(body, headers = headersOf(HttpHeaders.ContentType, "application/json"))
-        }) { configureMovieApi("test-token") }
-        initializeMovers(module {
-            single { database }
-            single { client }
-            single<NetworkMonitor> { object : NetworkMonitor {
-                override val networkStatus = flowOf(NetworkStatus.Online)
-            } }
-        })
-    }
+    fun setUp() { fixture = MoversUiFixture() }
 
     @After
     fun tearDown() {
         compose.activityRule.scenario.close()
-        stopKoin()
-        if (::client.isInitialized) client.close()
-        if (::database.isInitialized) database.close()
+        fixture.close()
     }
 
     @Test

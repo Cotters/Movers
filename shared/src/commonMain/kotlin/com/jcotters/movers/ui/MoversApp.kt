@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.ui.NavDisplay
 import com.cotters.data.network.NetworkStatus
 import com.jcotters.movers.resources.Res
@@ -29,6 +30,7 @@ import com.jcotters.movers.resources.navigation_home
 import com.jcotters.movers.resources.navigation_profile
 import com.jcotters.movers.resources.navigation_watchlists
 import com.jcotters.navigation.EntryProviderInstaller
+import com.jcotters.presentation.BottomSheetSceneStrategy
 import com.jcotters.presentation.LocalMovieTransitionScope
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -58,6 +60,7 @@ internal fun MoversNavigationShell(
 ) {
     val navigator = remember(state) { AppNavigator(state) }
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
+    val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     Scaffold(
         snackbarHost = { androidx.compose.material3.SnackbarHost(snackbar) },
         modifier = Modifier.fillMaxSize().imePadding(),
@@ -81,6 +84,7 @@ internal fun MoversNavigationShell(
                     CompositionLocalProvider(LocalMovieTransitionScope provides this, com.jcotters.presentation.LocalSnackbarHostState provides snackbar) {
                         val entries = state.decoratedEntries(installers, navigator)
                         NavDisplay(
+                            sceneStrategies = listOf(bottomSheetStrategy),
                             entries = entries,
                             onBack = navigator::goBack,
                             modifier = Modifier.fillMaxSize(),

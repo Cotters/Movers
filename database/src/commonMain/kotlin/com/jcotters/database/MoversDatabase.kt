@@ -15,11 +15,15 @@ import com.jcotters.database.movies.MovieCatalogueRemoteKeysDao
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.database.profile.DeviceProfile
 import com.jcotters.database.profile.DeviceProfileDao
+import com.jcotters.database.watchlists.DbWatchlist
+import com.jcotters.database.watchlists.DbWatchlistMovie
+import com.jcotters.database.watchlists.WatchlistDao
+import com.jcotters.database.watchlists.WatchlistMigration7To8
 import kotlin.coroutines.CoroutineContext
 
 @Database(
-    entities = [DeviceProfile::class, Bookmark::class, DbMovie::class, DbMovieCatalogueEntry::class, DbMovieCatalogueRemoteKey::class],
-    version = 7,
+    entities = [DeviceProfile::class, Bookmark::class, DbMovie::class, DbMovieCatalogueEntry::class, DbMovieCatalogueRemoteKey::class, DbWatchlist::class, DbWatchlistMovie::class],
+    version = 8,
 )
 @ConstructedBy(MoversDatabaseConstructor::class)
 abstract class MoversDatabase : RoomDatabase() {
@@ -28,6 +32,7 @@ abstract class MoversDatabase : RoomDatabase() {
     abstract fun movieDao(): MovieDao
     abstract fun movieCatalogueDao(): MovieCatalogueDao
     abstract fun movieCatalogueRemoteKeysDao(): MovieCatalogueRemoteKeysDao
+    abstract fun watchlistDao(): WatchlistDao
 }
 
 @Suppress("KotlinNoActualForExpect")
@@ -38,6 +43,7 @@ expect object MoversDatabaseConstructor : RoomDatabaseConstructor<MoversDatabase
 fun createDatabase(builder: RoomDatabase.Builder<MoversDatabase>, queryContext: CoroutineContext): MoversDatabase = builder
     .setDriver(BundledSQLiteDriver())
     .setQueryCoroutineContext(queryContext)
+    .addMigrations(WatchlistMigration7To8)
     // One-time, explicitly authorized reset from the retired account-based app.
     .fallbackToDestructiveMigrationFrom(true, 1, 2, 3, 4, 5, 6)
     .build()

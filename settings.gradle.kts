@@ -42,3 +42,5 @@ include(":navigation:contract")
 include(":features:watchlists")
 
 include(":shared")
+include(":features:search")
+include(":features:search:contract")

@@ -1,6 +1,6 @@
 # Public source and replaceable backends
 
-Reviewed: 8 November 2026. Movers is a resume/portfolio demo intended for public reuse. Treat tracked code, documentation, fixtures, build output, and CI logs as public. These are requirements for upcoming backend work; no backend abstraction or Supabase integration has been implemented yet.
+Reviewed: 8 November 2026. Movers is a resume/portfolio demo intended for public reuse. Treat tracked code, documentation, fixtures, build output, and CI logs as public. Local watchlists implement both boundaries below with Room; no Supabase or remote backend integration is implemented.
 
 ## Two explicit boundaries
 
@@ -23,6 +23,8 @@ The user explicitly requires the database API beneath repositories as a second s
 Supabase-specific clients and classes belong in the adapter implementation. Koin selects the implementation at the composition boundary. A replacement provides the same database contract and changes the binding/configuration; screens and use cases stay unchanged. Define observation, cancellation, ordering, write outcomes, and authorization expectations so fake and real adapters mean the same thing. App-owned identity/session contracts must also support replacing the auth provider; a database-only interface cannot make provider-specific auth portable.
 
 This applies [Android's repository/data-source separation](https://developer.android.com/topic/architecture/data-layer) to the user's portability requirement. Extend useful existing seams; do not create a universal database framework or rewrite unrelated modules just to add layers.
+
+The local implementation uses `IWatchlistsRepository` for app operations, `WatchlistDatabase` for provider-neutral storage operations, and internal `RoomWatchlistDatabase` selected by Koin. Public signatures expose Kotlin/app models and flows, without Room, SQL, or provider types. Multi-list writes commit atomically and are idempotent; observation owns membership state. Replacing storage requires implementing this contract and changing the binding. Collaboration still needs its own authorization, synchronization, and backend plan.
 
 ## Reproducible setup and private deployment
 

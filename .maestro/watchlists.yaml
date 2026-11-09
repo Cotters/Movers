@@ -1,0 +1,94 @@
+appId: com.jcotters.movers
+name: Local watchlists and search
+---
+- evalScript: ${output.prefix = 'Smoke ' + Date.now(); output.one = output.prefix + ' One'; output.two = output.prefix + ' Two'; output.renamed = output.prefix + ' Renamed'}
+- launchApp
+- tapOn: "Watchlists"
+- tapOn: "Watchlists"
+- tapOn: "Create list"
+- tapOn: "List name"
+- inputText: ${output.one}
+- hideKeyboard
+- tapOn: "Create"
+- extendedWaitUntil:
+    visible: ${output.one}
+    timeout: 10000
+- tapOn: "Back"
+- tapOn: "Create list"
+- tapOn: "List name"
+- inputText: ${output.two}
+- hideKeyboard
+- tapOn: "Create"
+- extendedWaitUntil:
+    visible: ${output.two}
+    timeout: 10000
+- tapOn: "Back"
+- tapOn: "Home"
+- tapOn: "Home"
+- extendedWaitUntil:
+    visible: "Movie poster for.*"
+    timeout: 30000
+- tapOn:
+    text: "Add to list"
+    index: 0
+- tapOn: ${output.one}
+- tapOn: ${output.two}
+- tapOn: "Add to 2 lists"
+- assertVisible: "Popular Movies"
+- tapOn: "Watchlists"
+- tapOn: ${output.one}
+- assertVisible: "1 movie"
+- tapOn: "Add movies"
+- tapOn: "Search films"
+- inputText: "Matrix"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Add"
+    timeout: 30000
+- tapOn:
+    text: "Add"
+    index: 0
+- extendedWaitUntil:
+    visible: "Added"
+    timeout: 10000
+- assertVisible: "Matrix"
+- tapOn: "Back"
+- assertVisible: "2 movies"
+- tapOn: "List options"
+- tapOn: "Rename list"
+- tapOn: "List name"
+- eraseText
+- inputText: ${output.renamed}
+- hideKeyboard
+- tapOn: "Save"
+- extendedWaitUntil:
+    visible: ${output.renamed}
+    timeout: 10000
+- tapOn:
+    text: "Remove"
+    index: 0
+- extendedWaitUntil:
+    visible: "1 movie"
+    timeout: 10000
+- tapOn: "Back"
+- tapOn: "Home"
+- launchApp
+- tapOn: "Watchlists"
+- assertVisible: ${output.renamed}
+- assertVisible: ${output.two}
+- tapOn: ${output.two}
+- assertVisible: "1 movie"
+- tapOn: "List options"
+- tapOn: "Delete list"
+- tapOn: "Delete"
+- extendedWaitUntil:
+    notVisible: ${output.two}
+    timeout: 10000
+- tapOn: ${output.renamed}
+- tapOn: "List options"
+- tapOn: "Delete list"
+- tapOn: "Delete"
+- extendedWaitUntil:
+    notVisible: ${output.renamed}
+    timeout: 10000
+- tapOn: "Home"

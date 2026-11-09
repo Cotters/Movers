@@ -16,6 +16,19 @@ import kotlin.test.assertTrue
 
 class KtorMovieApiTest {
     @Test
+    fun searchEncodesQueryAndPreservesPagingAndAdultFilter() = runTest {
+        val client = HttpClient(MockEngine { request ->
+            assertEquals("/3/search/movie", request.url.encodedPath)
+            assertEquals("L'été & the city", request.url.parameters["query"])
+            assertEquals("2", request.url.parameters["page"])
+            assertEquals("false", request.url.parameters["include_adult"])
+            assertEquals("Bearer test-token", request.headers[HttpHeaders.Authorization])
+            respond("""{"page":2,"total_pages":2,"results":[]}""", headers = headersOf(HttpHeaders.ContentType, "application/json"))
+        }) { configureMovieApi("test-token") }
+        try { assertEquals(2, KtorMovieApi(client).searchMovies("L'été & the city", 2).page) } finally { client.close() }
+    }
+
+    @Test
     fun detailsUseBearerAuthenticationAndDecodeNullableFields() = runTest {
         val engine = MockEngine { request ->
             assertEquals("https://api.themoviedb.org/3/movie/12", request.url.toString())

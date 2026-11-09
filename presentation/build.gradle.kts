@@ -5,6 +5,7 @@ plugins {
 kotlin {
     android { namespace = "com.jcotters.presentation" }
     sourceSets.commonMain.dependencies {
+        api(project(":movie:contract"))
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.multiplatform.navigation3.ui)
         implementation(libs.multiplatform.lifecycle.compose)

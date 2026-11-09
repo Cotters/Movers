@@ -54,7 +54,7 @@ Choose tests for the guarantee being changed:
 | --- | --- |
 | ViewModel/use-case decisions | Observable state/results, repeated submissions, delayed completion, failure/retry, cancellation, and account changes as relevant. Use controlled coroutine scheduling and clocks. |
 | Repository/cache behavior | Preserve saved data on failed refresh, idempotent writes, concurrent callers, freshness boundaries, mapping, and cancellation. Mocked DAO tests cannot prove actual Room behavior. |
-| Room schema/query | Export and review schemas; preserve device identity, bookmarks, and constraints outside the explicitly authorized legacy reset. DAO/cache integration and the reset are instrumented checks and await user execution on a physical device. |
+| Room schema/query | Export and review schemas; preserve device identity, bookmarks, and constraints outside the explicitly authorized legacy reset. The host migration/list-storage suite validates populated 7→8 migration, relationships, idempotence, and atomic rollback with Android SQLite. Production bundled-SQLite and legacy-reset instrumented checks await user execution on a physical device. |
 | Compose/navigation | Add/update and pass a relevant host Compose UI regression before completion. Check real screens/resources and user actions, not only substitute navigation entries. Physical acceptance still covers OS behavior, accessibility, and rendering differences. |
 | Workflow/scripts/CI | Check shell syntax and prerequisite/failure handling, validate workflow YAML, and run the same script used by CI. Remote execution remains pending until GitHub runs it. |
 | Convention plugins | Run `./gradlew -p build-logic :convention:check`; validate the full task graph with `./gradlew build --dry-run`. Check debug/release and test-APK compilation for plugin/code-generation changes. TestKit fixtures never start devices. |
@@ -70,6 +70,8 @@ The app uses JUnit 4, MockK, Koin, and Compose. `movers.multiplatform.ui-testing
 ./scripts/verify.sh
 ```
 
+`WatchlistsUiTest` covers list management, duplicate-name warnings, multi-list additions/restoration, already-added membership, inline list creation, consecutive contextual search additions, source retention, and search failure/retry/empty states. `WatchlistPersistenceTest` opens a populated exported version-7 schema, migrates/reopens version 8, and checks preserved profile/bookmarks/enrichment; it also checks real adapter idempotence and transaction rollback.
+
 `CatalogueNavigationUiTest` opens the real shared app, enters movie details and uses Back repeatedly, bookmarks via Profile, and restores saved navigation. It runs at phone and Fold-sized configurations. HTTP responses are fixed fixtures; movie data does not require credentials or a live service. It uses the production Koin definitions, ViewModels, repositories, and Room schema, with an in-memory database and Robolectric's Android SQLite driver instead of production bundled SQLite. Those driver/native-platform differences still require separate integration acceptance.
 
 The test uses Robolectric 4.17, API 35, and native graphics. Keep UI tests deterministic and use semantics/state-based waits. A relevant UI test must pass before marking shared UI/navigation work complete. `testAndroidHostTest` already runs in `verify.sh` and Android CI; failures propagate to a failing verification result. Host simulation does not prove iOS behavior or replace physical-device acceptance.
@@ -78,9 +80,9 @@ References: [Robolectric setup](https://robolectric.org/getting-started/) and [A
 
 ## Shared native smoke flow
 
-[The Maestro flow](../../.maestro/catalogue-navigation.yaml) uses the same app ID and visible actions on Android and iOS. It opens a catalogue movie, returns using the detail header's Back button three times, visits Watchlists/Profile, and relaunches. It does not clear app data or modify bookmarks. Unlike the host fixture test, this smoke flow needs a configured TMDB token/network or a populated catalogue cache.
+[The catalogue flow](../../.maestro/catalogue-navigation.yaml) and [watchlist flow](../../.maestro/watchlists.yaml) use the same app ID and visible actions on Android and iOS. The catalogue flow opens details/Back repeatedly, visits tabs, and relaunches. The watchlist flow creates uniquely named lists, adds a catalogue movie to both, searches/adds from a list, renames/removes, checks relaunch persistence, then deletes only its own test lists. Neither flow clears app data or modifies bookmarks. If interrupted, remove only lists with that run's Smoke timestamp prefix. Unlike the host fixture test, this smoke flow needs a configured TMDB token/network or a populated catalogue cache.
 
-Install [Maestro CLI 2.12.1](https://github.com/mobile-dev-inc/maestro/releases/tag/cli-2.12.1) with Java 17, or point `MAESTRO_BIN` at its executable. Build/install the current app first. Run both platform checks after each change set on specified already-running targets; this automation is authorized by the standing workflow:
+Install [Maestro CLI 2.12.1](https://github.com/mobile-dev-inc/maestro/releases/tag/cli-2.12.1) with Java 17, or point `MAESTRO_BIN` at its executable. These are retained user-run tools. **The latest standing instruction forbids agents from running or interacting with emulators/simulators**, superseding earlier smoke-test exceptions. Agents run host verification and compile apps; people perform native acceptance on physical devices. The retained iOS Maestro wrapper targets a simulator, so leave it unexecuted under that instruction. For a separately authorized/user-run native check, build/install the current app first:
 
 ```sh
 ./scripts/verify-ui.sh ios <simulator-id>
@@ -89,7 +91,7 @@ Install [Maestro CLI 2.12.1](https://github.com/mobile-dev-inc/maestro/releases/
 
 The wrapper rejects an absent/offline target and does not build, install the app, or start devices. Maestro installs its test driver as needed. Keep manual interaction idle during the run. JUnit output is `build/ui-smoke/<platform>/report.xml`; local command traces/screenshots are under `artifacts/`. All outputs are ignored. Failure propagates to a nonzero exit code; analytics are disabled. The wrapper does not invoke cloud services or upload test artifacts.
 
-This native flow is separate from `verify.sh` and the existing device-free CI job; both local native results are required alongside the host gate. A shared flow definition does not establish a pass on both platforms: record each actual platform run separately. If a target is unavailable, leave its check pending and request a running target rather than starting one automatically. Extend relevant host/native tests when adding features, including Watchlists. Native CI jobs remain future setup work. The flow does not replace physical-device acceptance or verify the iOS edge gesture. See [Maestro's cross-platform model](https://docs.maestro.dev/get-started/how-maestro-works).
+This native flow is separate from `verify.sh` and the existing device-free CI job; native results remain pending until supplied by the user. A shared flow definition does not establish a pass on both platforms: record each actual platform run separately. Do not start or interact with targets to obtain a result; request physical-device observations. Extend relevant host/native tests when adding features, including Watchlists. Native CI jobs remain future setup work. The flow does not replace physical-device acceptance or verify the iOS edge gesture. See [Maestro's cross-platform model](https://docs.maestro.dev/get-started/how-maestro-works).
 
 Do not add a new test framework, screenshot system, or broad coverage target merely to change documentation. Test user-visible guarantees rather than private implementation calls. `NO-SOURCE`, empty test scaffolding, compilation, and skipped tests are not passing behavior coverage.
 
@@ -111,7 +113,7 @@ The workflow does not change repository branch protection or run deployments. A 
 
 ## Physical-device handoff
 
-Automated Maestro smoke runs on already-running Android/iOS targets are authorized after each change set. Manual emulator/simulator interaction, starting/resetting targets, and other connected/instrumented suites still need a separate user request. Physical-device acceptance remains user-owned. Include the build/revision, exact steps, expected result, and required observations; request device/OS versions and sanitized logs or screenshots when relevant.
+Never start, run, or interact with emulators/simulators, and do not execute connected/instrumented suites. Physical-device acceptance remains user-owned; earlier automated-device exceptions are historical. Include the build/revision, exact steps, expected result, and required observations; request device/OS versions and sanitized logs or screenshots when relevant.
 
 Existing pending areas include Room reset/DAO integration, Compose flows, relaunch/background/foreground behavior, and real connectivity handovers. For storage changes the user should run `DeviceDatabaseResetTest`, the DAO tests, and `PopularMoviesRemoteMediatorTest` on a physical Android device; for UI changes provide specific changed journeys. No device check is required just to read these workflow documents. Keep runtime verification pending until results arrive.
 
@@ -126,7 +128,7 @@ The current Android integration tests compile without running them:
 ./gradlew :app:assembleRelease
 ```
 
-The shared test APK contains navigation/store/restoration, movie-screen, DAO, and reset/persistence tests. Movie internal retains its real Room/mediator integration tests. Login/session and legacy preservation scenarios were retired with the removed account feature; the new reset test checks version-6 data is discarded once and new version-7 profile data survives reopening.
+The shared test APK contains navigation/store/restoration, movie-screen, DAO, and reset/persistence tests. Movie internal retains its real Room/mediator integration tests. Login/session and legacy preservation scenarios were retired with the removed account feature; the reset test checks version-6 data is discarded once and current device-profile data survives reopening. The separate host test checks preservation from version 7 into version 8.
 
 For configuration-cache checks, run `./gradlew :app:assembleDebug --configuration-cache --configuration-cache-problems=fail` twice and require reuse. Cache compatibility is task-specific and remains opt-in globally.
 

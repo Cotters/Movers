@@ -7,4 +7,5 @@ import kotlinx.serialization.Serializable
 data class MovieDetailsKey(
     val movieId: Int,
     val instanceId: String = kotlin.uuid.Uuid.random().toString(),
+    val targetListId: String? = null,
 ) : NavKey

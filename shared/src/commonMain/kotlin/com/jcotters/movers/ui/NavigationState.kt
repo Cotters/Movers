@@ -19,6 +19,9 @@ import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.navigation.Navigator
 import com.jcotters.profile.navigation.ProfileKey
+import com.jcotters.search.navigation.MovieSearchKey
+import com.jcotters.watchlists.navigation.AddToListsKey
+import com.jcotters.watchlists.navigation.WatchlistDetailKey
 import com.jcotters.watchlists.navigation.WatchlistsKey
 import kotlinx.serialization.modules.polymorphic
 
@@ -102,6 +105,8 @@ internal class AppNavigator(private val state: NavigationState) : Navigator {
     override fun navigate(key: NavKey) {
         val current = state.currentStack.lastOrNull()
         if (current is MovieDetailsKey && key is MovieDetailsKey && current.movieId == key.movieId) return
+        if (current is AddToListsKey && key is AddToListsKey && current.movieId == key.movieId) return
+        if (current is MovieSearchKey && key is MovieSearchKey && current.listId == key.listId) return
         if (current == key) return
         state.currentStack.add(key)
     }
@@ -116,6 +121,9 @@ internal val navigationSavedState = androidx.savedstate.serialization.SavedState
             subclass(WatchlistsKey::class, WatchlistsKey.serializer())
             subclass(ProfileKey::class, ProfileKey.serializer())
             subclass(MovieDetailsKey::class, MovieDetailsKey.serializer())
+            subclass(WatchlistDetailKey::class, WatchlistDetailKey.serializer())
+            subclass(AddToListsKey::class, AddToListsKey.serializer())
+            subclass(MovieSearchKey::class, MovieSearchKey.serializer())
         }
     }
 }

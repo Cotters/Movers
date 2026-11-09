@@ -6,6 +6,9 @@ import androidx.navigation3.runtime.NavKey
 import com.jcotters.catalogue.navigation.CatalogueKey
 import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.profile.navigation.ProfileKey
+import com.jcotters.search.navigation.MovieSearchKey
+import com.jcotters.watchlists.navigation.AddToListsKey
+import com.jcotters.watchlists.navigation.WatchlistDetailKey
 import com.jcotters.watchlists.navigation.WatchlistsKey
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
@@ -47,7 +50,8 @@ class NavigationStateShould {
     @Test fun `every key round trips without platform reflection`() {
         val json = Json { serializersModule = navigationSavedState.serializersModule }
         val serializer = PolymorphicSerializer(NavKey::class)
-        listOf(CatalogueKey, ProfileKey, WatchlistsKey, MovieDetailsKey(14, "entry")).forEach { key ->
+        listOf(CatalogueKey, ProfileKey, WatchlistsKey, MovieDetailsKey(14, "entry", "list"),
+            WatchlistDetailKey("list"), AddToListsKey(14, "list", "picker"), MovieSearchKey("list", "search")).forEach { key ->
             assertEquals(key, json.decodeFromString(serializer, json.encodeToString(serializer, key)))
         }
     }

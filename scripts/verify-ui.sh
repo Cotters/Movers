@@ -35,4 +35,4 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 export MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED=true
 exec "$maestro_bin" --platform "$platform" --device "$device_id" test \
     --format JUNIT --output "$output_dir/report.xml" \
-    --test-output-dir "$output_dir/artifacts" "$repo_dir/.maestro/catalogue-navigation.yaml"
+    --test-output-dir "$output_dir/artifacts" "$repo_dir/.maestro"

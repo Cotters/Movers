@@ -14,6 +14,7 @@ kotlin {
         implementation(project(":navigation:contract"))
         implementation(project(":movie:contract"))
         implementation(project(":features:details:contract"))
+        implementation(project(":features:watchlists:contract"))
     }
 }
 

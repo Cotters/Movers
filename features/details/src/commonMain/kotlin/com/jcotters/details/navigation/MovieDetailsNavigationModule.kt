@@ -10,6 +10,7 @@ import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.presentation.ErrorMessageHandler
 import com.jcotters.presentation.moviePosterTransitionModifier
 import org.koin.compose.viewmodel.koinViewModel
+import com.jcotters.watchlists.navigation.AddToListsKey
 
 object MovieDetailsNavigationModule {
     fun provideEntries(): EntryProviderInstaller = { navigator, stackId ->
@@ -26,6 +27,7 @@ object MovieDetailsNavigationModule {
                 onViewEvent = viewModel::onViewEvent,
                 posterModifier = moviePosterTransitionModifier(key.movieId, stackId),
                 onBack = navigator::goBack,
+                onAddToList = { navigator.navigate(AddToListsKey(key.movieId, key.targetListId)) },
             )
         }
     }

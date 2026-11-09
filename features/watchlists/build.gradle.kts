@@ -5,6 +5,13 @@ plugins {
 kotlin {
     android { namespace = "com.jcotters.features.watchlists" }
     sourceSets.commonMain.dependencies {
+        implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.multiplatform.lifecycle.compose)
+        implementation(libs.koin.compose.viewmodel)
+        implementation(project(":movie:contract"))
+        implementation(project(":presentation"))
+        implementation(project(":features:details:contract"))
+        implementation(project(":features:search:contract"))
         implementation(libs.multiplatform.navigation3.ui)
         implementation(project(":navigation:contract"))
         implementation(project(":features:watchlists:contract"))
