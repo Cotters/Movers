@@ -17,6 +17,9 @@ object ProfileNavigationModule {
             ProfileScreen(
                 viewState = state,
                 onRetry = viewModel::retry,
+                onSaveName = viewModel::saveName,
+                savingName = viewModel.savingName.collectAsStateWithLifecycle().value,
+                nameError = viewModel.nameError.collectAsStateWithLifecycle().value,
                 posterModifier = { movie -> moviePosterTransitionModifier(movie.id, stackId) },
                 onMovieTapped = { navigator.navigate(MovieDetailsKey(it)) },
             )

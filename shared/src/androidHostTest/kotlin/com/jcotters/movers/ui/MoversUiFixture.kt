@@ -44,6 +44,9 @@ internal class MoversUiFixture(
     }) { configureMovieApi("test-token") }
 
     init {
+        kotlinx.coroutines.runBlocking {
+            if (database.profileDao().get() == null) database.profileDao().insert(com.jcotters.database.profile.DeviceProfile(installationId = "fixture",displayName = "Josh",nameConfirmed = true))
+        }
         initializeMovers(module {
             single { database }
             single { client }

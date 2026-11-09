@@ -22,7 +22,11 @@ val movieDependencies = module {
     single<AppClock> { AppClock.System }
     single<MovieApi> { KtorMovieApi(get()) }
     single { MovieMapper() }
-    single<WatchlistDatabase> { RoomWatchlistDatabase(get(), get()) }
+    single { RoomWatchlistDatabase(get(), get()) }
+    single { com.jcotters.internal.watchlists.SharedWatchlistsRepository(get(), getOrNull<com.jcotters.contract.watchlists.data.SharedWatchlistRemote>() ?: com.jcotters.internal.watchlists.UnavailableSharing,
+        getOrNull<com.jcotters.profile.domain.ParticipantIdentity>() ?: com.jcotters.internal.watchlists.UnavailableSharing, get(), get()) }
+    single<com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository> { get<com.jcotters.internal.watchlists.SharedWatchlistsRepository>() }
+    single<WatchlistDatabase> { com.jcotters.internal.watchlists.CollaborativeWatchlistDatabase(get(), get(), get()) }
     single<IWatchlistsRepository> { WatchlistsRepository(get(), get()) }
     single<IMovieSearchRepository> { MovieSearchRepository(get(), get<MoversDatabase>().movieDao(), get()) }
     single { PopularMoviesRemoteMediator(get(), get(), get(), get()) }

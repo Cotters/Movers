@@ -3,8 +3,8 @@ package com.jcotters.contract.watchlists.data
 import com.jcotters.contract.detail.domain.models.Movie
 import kotlinx.coroutines.flow.Flow
 
-data class WatchlistRecord(val id: String, val name: String, val createdAt: Long, val movieCount: Int)
-data class WatchlistContentRecord(val list: WatchlistRecord, val movies: List<Movie>)
+data class WatchlistRecord(val id: String, val name: String, val createdAt: Long, val movieCount: Int, val shared: SharedListInfo? = null)
+data class WatchlistContentRecord(val list: WatchlistRecord, val movies: List<Movie>, val contributions: Map<Int, FilmContribution> = emptyMap())
 
 /** Storage operations are provider-neutral; a multi-list addition must commit atomically. */
 interface WatchlistDatabase {

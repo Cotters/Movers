@@ -23,6 +23,19 @@ internal class ProfileViewModel(
 
     init { retry() }
 
+    val savingName = MutableStateFlow(false)
+    val nameError = MutableStateFlow<String?>(null)
+    fun saveName(name: String) {
+        if (savingName.value) return
+        savingName.value = true
+        viewModelScope.launch {
+            try { profiles.saveName(name); nameError.value = null }
+            catch (e: CancellationException) { throw e }
+            catch (e: Exception) { nameError.value = e.message ?: "Unable to save your name." }
+            finally { savingName.value = false }
+        }
+    }
+
     fun retry() {
         if (observation?.isActive == true) return
         state.update { it.copy(errorMessage = null) }

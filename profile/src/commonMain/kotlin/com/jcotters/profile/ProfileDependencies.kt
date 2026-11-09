@@ -8,6 +8,6 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val profileDependencies = module {
-    single<DeviceProfileRepository> { LocalDeviceProfileRepository(get<MoversDatabase>().profileDao()) }
+    single<DeviceProfileRepository> { LocalDeviceProfileRepository(get<MoversDatabase>().profileDao(), getOrNull()) }
     viewModelOf(::ProfileViewModel)
 }

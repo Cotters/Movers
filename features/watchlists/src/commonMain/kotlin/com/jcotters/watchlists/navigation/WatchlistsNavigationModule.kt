@@ -8,6 +8,8 @@ import com.jcotters.watchlists.ui.WatchlistsRoute
 
 object WatchlistsNavigationModule {
     fun provideEntries(): EntryProviderInstaller = { navigator, stackId ->
+        entry<JoinWatchlistKey> { com.jcotters.watchlists.ui.JoinWatchlistRoute(navigator) }
+        entry<SharedListKey> { key -> com.jcotters.watchlists.ui.SharedListRoute(key.listId,key.section,navigator) }
         entry<WatchlistsKey> { WatchlistsRoute(navigator) }
         entry<WatchlistDetailKey> { key -> WatchlistDetailRoute(key.listId, navigator, stackId) }
         entry<AddToListsKey>(metadata = BottomSheetSceneStrategy.metadata) { key ->

@@ -35,6 +35,15 @@ interface WatchlistDao {
     @Query("DELETE FROM watchlists WHERE id = :id")
     suspend fun delete(id: String): Int
 
+    @Query("SELECT * FROM watchlists WHERE id = :id")
+    suspend fun get(id: String): DbWatchlist?
+
+    @Query("DELETE FROM watchlist_movies WHERE watchlistId = :id")
+    suspend fun clearMovies(id: String)
+
+    @androidx.room.Upsert
+    suspend fun upsert(list: DbWatchlist)
+
     @Query("SELECT COUNT(*) FROM watchlists WHERE id IN (:ids)")
     suspend fun countLists(ids: List<String>): Int
 

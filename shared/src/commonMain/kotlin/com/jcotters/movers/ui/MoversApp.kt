@@ -43,7 +43,16 @@ fun MoversApp(installers: Set<EntryProviderInstaller>) {
     val startup by viewModel.startupState.collectAsStateWithLifecycle()
     when (startup) {
         StartupState.Loading -> MoversSplashScreen()
-        StartupState.Ready -> MoversNavigationShell(networkStatus, installers)
+        StartupState.NameRequired -> {
+            val busy by viewModel.savingName.collectAsStateWithLifecycle()
+            val error by viewModel.nameError.collectAsStateWithLifecycle()
+            val suggestedName by viewModel.suggestedName.collectAsStateWithLifecycle()
+            com.jcotters.profile.ui.NameEntryScreen(busy, error, suggestedName, viewModel::saveName)
+        }
+        StartupState.Ready -> {
+            SharedListSynchronization()
+            MoversNavigationShell(networkStatus, installers)
+        }
         StartupState.Failed -> androidx.compose.foundation.layout.Column {
             Text("Unable to open local app data.")
             androidx.compose.material3.Button(onClick = viewModel::initializeProfile) { Text("Retry") }
@@ -59,6 +68,13 @@ internal fun MoversNavigationShell(
     state: NavigationState = rememberNavigationState(),
 ) {
     val navigator = remember(state) { AppNavigator(state) }
+    val invitation by com.jcotters.contract.watchlists.domain.InvitationInbox.invitation.collectAsStateWithLifecycle()
+    androidx.compose.runtime.LaunchedEffect(invitation) {
+        if (invitation != null) {
+            if (state.selectedTab != TopLevelDestination.Watchlists) state.selectTab(TopLevelDestination.Watchlists)
+            navigator.navigate(com.jcotters.watchlists.navigation.JoinWatchlistKey)
+        }
+    }
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
     val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     Scaffold(

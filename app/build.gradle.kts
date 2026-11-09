@@ -1,14 +1,23 @@
+import java.util.Properties
+
 plugins {
     id("movers.android.application")
     id("movers.android.compose")
     id("movers.android.unit-testing")
 }
+val backendProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+fun backendString(name: String): String = "\"" + backendProperties.getProperty(name, "").replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
 android {
+    buildFeatures { buildConfig = true }
     namespace = "com.jcotters.movers"
     defaultConfig {
         applicationId = "com.jcotters.movers"
         versionCode = 2
         versionName = "2.0"
+        buildConfigField("String", "SUPABASE_URL", backendString("supabase.url"))
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", backendString("supabase.publishableKey"))
     }
     buildTypes.getByName("release") {
         isMinifyEnabled = true

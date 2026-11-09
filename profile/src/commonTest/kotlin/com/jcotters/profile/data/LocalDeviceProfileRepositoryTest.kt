@@ -11,15 +11,20 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class LocalDeviceProfileRepositoryTest {
-    @Test fun newInstallationStartsAsJoshAndKeepsItsIdentity() = runTest {
+    @Test fun newInstallationRequiresANameAndKeepsItsIdentity() = runTest {
         val dao = MemoryProfileDao()
         val repository = LocalDeviceProfileRepository(dao)
         repository.initialize()
         val first = assertNotNull(repository.profile.first())
-        assertEquals("Josh", first.displayName)
+        assertEquals("", first.displayName)
+        assertEquals(false,first.nameConfirmed)
+        repository.saveName("Josh")
+        val confirmed = assertNotNull(repository.profile.first())
+        assertEquals("Josh",confirmed.displayName)
+        assertTrue(confirmed.nameConfirmed)
         assertTrue(first.installationId.isNotBlank())
         LocalDeviceProfileRepository(dao).initialize()
-        assertEquals(first, repository.profile.first())
+        assertEquals(confirmed, repository.profile.first())
         assertEquals(1, dao.insertions)
     }
     @Test fun storedProfileIsNotReplacedOnStartup() = runTest {
@@ -34,6 +39,7 @@ class LocalDeviceProfileRepositoryTest {
         var insertions = 0
         override fun observe() = row
         override suspend fun get() = row.value
+        override suspend fun saveName(name: String) { row.value = row.value?.copy(displayName = name,nameConfirmed = true) }
         override suspend fun insert(profile: DeviceProfile) {
             insertions++
             if (row.value == null) row.value = profile

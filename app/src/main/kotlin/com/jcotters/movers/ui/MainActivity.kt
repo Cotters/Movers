@@ -13,7 +13,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(restorableState)
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
+        if (savedInstanceState == null) intent?.dataString?.let({ com.jcotters.movers.receiveInvitation(it) })
         setContent { SharedApp() }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent.dataString?.let { com.jcotters.movers.receiveInvitation(it) }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

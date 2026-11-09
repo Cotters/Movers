@@ -42,5 +42,6 @@ include(":navigation:contract")
 include(":features:watchlists")
 
 include(":shared")
+include(":backend:supabase")
 include(":features:search")
 include(":features:search:contract")

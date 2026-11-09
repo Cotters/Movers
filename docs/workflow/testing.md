@@ -80,7 +80,7 @@ Choose tests for the guarantee being changed:
 | --- | --- |
 | ViewModel/use-case decisions | Observable state/results, repeated submissions, delayed completion, failure/retry, cancellation, and account changes as relevant. Use controlled coroutine scheduling and clocks. |
 | Repository/cache behavior | Preserve saved data on failed refresh, idempotent writes, concurrent callers, freshness boundaries, mapping, and cancellation. Mocked DAO tests cannot prove actual Room behavior. |
-| Room schema/query | Export and review schemas; preserve device identity, bookmarks, and constraints outside the explicitly authorized legacy reset. The host migration/list-storage suite validates populated 7→8 migration, relationships, idempotence, and atomic rollback with Android SQLite. Production bundled-SQLite and legacy-reset instrumented checks await user execution on a physical device. |
+| Room schema/query | Export and review schemas; preserve device identity, bookmarks, and constraints outside the explicitly authorized legacy reset. The host migration/list-storage suite validates populated 7/8→9 migration, relationships, idempotence, and atomic rollback with Android SQLite. Production bundled-SQLite and legacy-reset instrumented checks await user execution on a physical device. |
 | Compose/navigation | Run existing host Compose UI regressions; update expectations for intentional changes. Defer new cases during the feature phase. Check real screens/resources and user actions, not only substitute navigation entries. Physical acceptance still covers OS behavior, accessibility, and rendering differences. |
 | Workflow/scripts/CI | Check shell syntax and prerequisite/failure handling, validate workflow YAML, and run the same script used by CI. Remote execution remains pending until GitHub runs it. |
 | Convention plugins | Run `./gradlew -p build-logic :convention:check`; validate the full task graph with `./gradlew build --dry-run`. Check debug/release and test-APK compilation for plugin/code-generation changes. TestKit fixtures never start devices. |
@@ -96,7 +96,7 @@ The app uses JUnit 4, MockK, Koin, and Compose. `movers.multiplatform.ui-testing
 ./scripts/verify.sh
 ```
 
-`WatchlistsUiTest` covers list management, duplicate-name warnings, immediate multi-list check/uncheck and restoration, editable saved membership, inline list creation/automatic addition, consecutive contextual search add/remove, source retention, and search failure/retry/empty states. `WatchlistPersistenceTest` opens a populated exported version-7 schema, migrates/reopens version 8, and checks preserved profile/bookmarks/enrichment; it also checks real adapter idempotence and transaction rollback.
+`WatchlistsUiTest` covers list management, duplicate-name warnings, immediate multi-list check/uncheck and restoration, editable saved membership, inline list creation/automatic addition, consecutive contextual search add/remove, source retention, and search failure/retry/empty states. `WatchlistPersistenceTest` opens a populated exported version-7 schema, migrates/reopens version 9, and checks preserved profile/bookmarks/enrichment; it also checks real adapter idempotence and transaction rollback.
 
 `CatalogueNavigationUiTest` opens the real shared app, enters movie details and uses Back repeatedly, bookmarks via Profile, and restores saved navigation. It runs at phone and Fold-sized configurations. HTTP responses are fixed fixtures; movie data does not require credentials or a live service. It uses the production Koin definitions, ViewModels, repositories, and Room schema, with an in-memory database and Robolectric's Android SQLite driver instead of production bundled SQLite. Those driver/native-platform differences still require separate integration acceptance.
 
@@ -154,7 +154,7 @@ The current Android integration tests compile without running them:
 ./gradlew :app:assembleRelease
 ```
 
-The shared test APK contains navigation/store/restoration, movie-screen, DAO, and reset/persistence tests. Movie internal retains its real Room/mediator integration tests. Login/session and legacy preservation scenarios were retired with the removed account feature; the reset test checks version-6 data is discarded once and current device-profile data survives reopening. The separate host test checks preservation from version 7 into version 8.
+The shared test APK contains navigation/store/restoration, movie-screen, DAO, and reset/persistence tests. Movie internal retains its real Room/mediator integration tests. Login/session and legacy preservation scenarios were retired with the removed account feature; the reset test checks version-6 data is discarded once and current device-profile data survives reopening. The existing host migration case now checks populated versions 7 and 8 through version 9, including profile confirmation/color and existing list membership.
 
 For configuration-cache checks, run `./gradlew :app:assembleDebug --configuration-cache --configuration-cache-problems=fail` twice and require reuse. Cache compatibility is task-specific and remains opt-in globally.
 

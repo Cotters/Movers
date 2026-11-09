@@ -6,6 +6,7 @@ import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.isOff
@@ -75,6 +76,10 @@ class WatchlistsUiTest {
         compose.onNodeWithText("List name").performTextReplacement("Classics")
         compose.onNodeWithText("Save").performClick()
         awaitText("Classics")
+        compose.waitUntil("Rename dialog closes and list controls become editable", 10_000) {
+            compose.onAllNodesWithText("List name").fetchSemanticsNodes().isEmpty() &&
+                compose.onAllNodes(hasContentDescription("List options") and isEnabled()).fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNodeWithContentDescription("List options").performClick()
         compose.onNodeWithText("Delete list").performClick()
         compose.onNodeWithText("Delete").performClick()

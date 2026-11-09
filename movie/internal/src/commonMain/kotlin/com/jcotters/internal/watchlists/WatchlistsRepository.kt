@@ -13,7 +13,7 @@ import kotlin.uuid.Uuid
 
 internal class WatchlistsRepository(private val database: WatchlistDatabase, private val clock: AppClock) : IWatchlistsRepository {
     override fun observeWatchlists() = database.observeLists().map { rows -> rows.map(WatchlistRecord::toDomain) }
-    override fun observeWatchlist(id: String) = database.observeContent(id).map { it?.let { content -> WatchlistContent(content.list.toDomain(), content.movies) } }
+    override fun observeWatchlist(id: String) = database.observeContent(id).map { it?.let { content -> WatchlistContent(content.list.toDomain(), content.movies, content.contributions) } }
     override fun observeMovieIds(listId: String) = database.observeMovieIds(listId)
     override fun observeListIds(movieId: Int) = database.observeListIds(movieId)
 
@@ -43,8 +43,10 @@ internal class WatchlistsRepository(private val database: WatchlistDatabase, pri
     } catch (error: IllegalArgumentException) {
         Result.failure(error)
     } catch (error: Exception) {
-        Result.failure(IllegalStateException(message, error))
+        Result.failure(if (error is com.jcotters.contract.watchlists.data.SharedConnectionException ||
+            error is com.jcotters.contract.watchlists.data.SharedAccessDeniedException ||
+            error is com.jcotters.contract.watchlists.data.SharingUnavailableException) error else IllegalStateException(message, error))
     }
 }
 
-private fun WatchlistRecord.toDomain() = Watchlist(id, name, createdAt, movieCount)
+private fun WatchlistRecord.toDomain() = Watchlist(id, name, createdAt, movieCount, shared)

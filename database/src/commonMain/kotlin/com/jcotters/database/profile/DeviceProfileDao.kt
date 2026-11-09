@@ -14,6 +14,9 @@ interface DeviceProfileDao {
     @Query("SELECT * FROM device_profile WHERE id = 1")
     suspend fun get(): DeviceProfile?
 
+    @Query("UPDATE device_profile SET displayName = :name, nameConfirmed = 1 WHERE id = 1")
+    suspend fun saveName(name: String)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(profile: DeviceProfile)
 }

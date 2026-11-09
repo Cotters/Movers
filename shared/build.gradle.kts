@@ -41,6 +41,7 @@ kotlin {
             implementation(project(":movie:internal"))
             implementation(project(":movie:contract"))
             implementation(project(":database"))
+            implementation(project(":backend:supabase"))
             implementation(project(":data:network"))
         }
         androidMain.dependencies { implementation(libs.ktor.client.okhttp) }

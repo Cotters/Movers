@@ -43,11 +43,16 @@ internal fun WatchlistsRoute(navigator: Navigator) {
     }
     Scaffold(topBar = {
         TopAppBar(title = { Text("Watchlists") }, actions = {
+            TextButton(onClick = { navigator.navigate(com.jcotters.watchlists.navigation.JoinWatchlistKey) }) { Text("Join list") }
             TextButton(onClick = { viewModel.clearError(); creating = true }, enabled = !state.loading && !state.busy) { Text("Create list") }
         })
     }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             if (state.loading) LinearProgressIndicator()
+            state.syncError?.let {
+                Text("Shared updates unavailable. Cached lists remain readable.",Modifier.padding(16.dp))
+                TextButton(onClick = viewModel::refreshShared) { Text("Retry shared updates") }
+            }
             state.error?.let {
                 Text(it, Modifier.padding(16.dp))
                 TextButton(onClick = { viewModel.clearError(); viewModel.retry() }) { Text("Retry") }
@@ -62,7 +67,8 @@ internal fun WatchlistsRoute(navigator: Navigator) {
                 items(state.lists, key = { it.id }) { list ->
                     ListItem(
                         headlineContent = { Text(list.name) },
-                        supportingContent = { Text("${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}") },
+                        supportingContent = { Text("${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}" + (list.shared?.let { " · Shared · ${it.members.size} members" } ?: "")) },
+                        leadingContent = list.shared?.let { info -> { com.jcotters.presentation.ParticipantAvatar(info.creator.name,info.creator.color) } },
                         modifier = Modifier.clickable { navigator.navigate(WatchlistDetailKey(list.id)) },
                     )
                 }

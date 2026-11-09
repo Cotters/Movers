@@ -16,8 +16,8 @@ import re
 import sys
 
 root = Path(sys.argv[1]).resolve()
-documents = [root / "AGENTS.md", root / "build-logic/README.md"]
-documents.extend(sorted((root / "docs/workflow").rglob("*.md")))
+documents = [root / "AGENTS.md", root / "README.md", root / "build-logic/README.md", root / "supabase/README.md"]
+documents.extend(sorted((root / "docs").rglob("*.md")))
 failures = []
 links = 0
 for document in documents:

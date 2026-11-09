@@ -1,5 +1,6 @@
 plugins {
     id("movers.multiplatform.library")
+    id("movers.kotlin.serialization")
 }
 
 kotlin {
@@ -7,5 +8,6 @@ kotlin {
     sourceSets.commonMain.dependencies {
         api(libs.androidx.paging.common)
         api(libs.kotlinx.coroutines.core)
+        implementation(libs.kotlin.serialization.json)
     }
 }

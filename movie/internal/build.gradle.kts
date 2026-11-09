@@ -17,6 +17,8 @@ kotlin {
         implementation(libs.androidx.room)
         implementation(libs.androidx.room.paging)
         implementation(project(":database"))
+        implementation(project(":profile:contract"))
+        implementation(project(":data:network"))
         implementation(project(":movie:contract"))
         implementation(libs.kotlin.serialization.json)
     }

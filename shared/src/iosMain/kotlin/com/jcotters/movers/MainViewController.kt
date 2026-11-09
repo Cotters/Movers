@@ -16,7 +16,11 @@ fun MainViewController() = ComposeUIViewController {
     SharedApp()
 }
 
-fun initializeIosMovers(apiToken: String) = initializeMovers(module {
+fun initializeIosMovers(apiToken: String, backendUrl: String = "", backendKey: String = "") = initializeMovers(module {
+    val backend = com.jcotters.backend.supabase.createIosBackend(backendUrl,backendKey)
+    single<com.jcotters.profile.domain.ParticipantIdentity> { backend }
+    single<com.jcotters.contract.watchlists.data.SharedWatchlistRemote> { backend }
+    single<com.jcotters.contract.watchlists.domain.InvitationSharing> { IosInvitationSharing() }
     single { createDatabase(databaseBuilder(), Dispatchers.IO) }
     single<NetworkMonitor> { IosNetworkMonitor() }
     single { HttpClient(Darwin) { configureMovieApi(apiToken) } }

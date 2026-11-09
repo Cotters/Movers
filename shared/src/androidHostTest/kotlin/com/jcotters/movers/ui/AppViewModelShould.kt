@@ -32,7 +32,10 @@ class AppViewModelShould {
     }
 
     @Before
-    fun setUp() { Dispatchers.setMain(dispatcher) }
+    fun setUp() {
+        Dispatchers.setMain(dispatcher)
+        io.mockk.every { profiles.profile } returns flowOf(com.jcotters.profile.domain.Profile("test","Josh"))
+    }
 
     @After
     fun tearDown() {

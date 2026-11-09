@@ -78,6 +78,7 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
                     Checkbox(checked = existing, onCheckedChange = null, enabled = enabled)
                     Column(Modifier.padding(start = 12.dp)) {
                         Text(list.name)
+                        list.shared?.let { shared -> Text("Shared · ${shared.members.size} members",style = MaterialTheme.typography.bodySmall) }
                         Text(if (list.id in state.saving) "Saving…" else "${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}", style = MaterialTheme.typography.bodySmall)
                     }
                 }

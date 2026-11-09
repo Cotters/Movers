@@ -1,5 +1,6 @@
 package com.jcotters.watchlists.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,6 +50,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     var menu by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
+    var attribution by androidx.compose.runtime.remember { mutableStateOf<com.jcotters.contract.watchlists.data.FilmContribution?>(null) }
     LaunchedEffect(listId) { viewModel.load(listId) }
     LaunchedEffect(state.deleted) { if (state.deleted) navigator.goBack() }
     LaunchedEffect(state.renamed) { if (state.renamed) { renaming = false; viewModel.consumeRenamed() } }
@@ -65,7 +67,12 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
             }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                 DropdownMenuItem(text = { Text("Rename list") }, onClick = { menu = false; viewModel.clearError(); renaming = true })
-                DropdownMenuItem(text = { Text("Delete list") }, onClick = { menu = false; viewModel.clearError(); deleting = true })
+                DropdownMenuItem(text = { Text(if (list?.shared != null) "Leave list" else "Delete list") }, onClick = { menu = false; viewModel.clearError(); deleting = true })
+                DropdownMenuItem(text = { Text(if (list?.shared != null) "Invite friends" else "Share with friends") }, onClick = { menu = false; navigator.navigate(com.jcotters.watchlists.navigation.SharedListKey(listId,com.jcotters.watchlists.navigation.SharedSection.Sharing)) })
+                if (list?.shared != null) {
+                    DropdownMenuItem(text = { Text("Members") }, onClick = { menu = false; navigator.navigate(com.jcotters.watchlists.navigation.SharedListKey(listId,com.jcotters.watchlists.navigation.SharedSection.Members)) })
+                    DropdownMenuItem(text = { Text("Activity") }, onClick = { menu = false; navigator.navigate(com.jcotters.watchlists.navigation.SharedListKey(listId,com.jcotters.watchlists.navigation.SharedSection.Activity)) })
+                }
             }
         })
     }) { padding ->
@@ -78,13 +85,24 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
             if (!state.loading && state.error == null && state.content == null) Text("This list no longer exists.", Modifier.padding(24.dp))
             state.content?.let { content ->
                 Text("${content.movies.size} ${if (content.movies.size == 1) "movie" else "movies"}", Modifier.padding(16.dp))
+                content.watchlist.shared?.let { info ->
+                    Text("Created by ${info.creator.name} · Updated ${com.jcotters.presentation.formatActivityTime(info.updatedAt)}",Modifier.padding(horizontal = 16.dp))
+                    androidx.compose.foundation.layout.Row(Modifier.padding(16.dp).clickable { navigator.navigate(com.jcotters.watchlists.navigation.SharedListKey(listId,com.jcotters.watchlists.navigation.SharedSection.Members)) },horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)) {
+                        info.members.take(5).forEach { com.jcotters.presentation.ParticipantAvatar(it.name,it.color) }
+                        Text("${info.members.size} members")
+                    }
+                    Text("Shared · cached reading is available offline; edits need a connection.",Modifier.padding(horizontal = 16.dp))
+                }
                 if (content.movies.isEmpty()) Text("No movies yet. Tap + to find films.", Modifier.padding(24.dp))
                 LazyColumn {
                     items(content.movies, key = { it.id }) { movie ->
                         MovieListRow(movie, Modifier.height(180.dp).fillMaxWidth(),
                             posterModifier = moviePosterTransitionModifier(movie.id, stackId),
                             onOpen = { navigator.navigate(MovieDetailsKey(movie.id, targetListId = listId)) }) {
-                            TextButton(onClick = { viewModel.removeMovie(movie.id) }, enabled = !state.busy) { Text("Remove") }
+                            content.contributions[movie.id]?.let { contribution ->
+                                com.jcotters.presentation.ParticipantAvatar(contribution.actor.name,contribution.actor.color,Modifier.clickable { attribution = contribution })
+                            }
+                            TextButton(onClick = { viewModel.removeMovie(movie.id) }, enabled = !state.busy && movie.id !in state.removing) { Text(if (movie.id in state.removing) "Removing…" else "Remove") }
                         }
                         HorizontalDivider()
                     }
@@ -95,9 +113,12 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     if (renaming && list != null) ListNameDialog("Rename list", state.lists, list.name, list.id, state.busy, state.error,
         onDismiss = { renaming = false; viewModel.clearError() }, onSave = viewModel::rename)
     if (deleting && list != null) AlertDialog(
-        onDismissRequest = { if (!state.busy) deleting = false }, title = { Text("Delete list?") },
-        text = { Column { Text("Delete “${list.name}” and its movie selections?"); state.error?.let { Text(it) } } },
-        confirmButton = { TextButton(onClick = viewModel::delete, enabled = !state.busy) { Text("Delete") } },
+        onDismissRequest = { if (!state.busy) deleting = false }, title = { Text(if (list.shared != null) "Leave list?" else "Delete list?") },
+        text = { Column { Text(if (list.shared != null) "Remove “${list.name}” from this device? Other members keep access. If you are the last member, the list will be retired." else "Delete “${list.name}” and its movie selections?"); state.error?.let { Text(it) } } },
+        confirmButton = { TextButton(onClick = { if (list.shared != null) viewModel.leave() else viewModel.delete() }, enabled = !state.busy) { Text(if (list.shared != null) "Leave" else "Delete") } },
         dismissButton = { TextButton(onClick = { deleting = false }, enabled = !state.busy) { Text("Cancel") } },
     )
+    attribution?.let { contribution -> AlertDialog(onDismissRequest = { attribution = null },title = { Text(contribution.actor.name) },
+        text = { Text("${if (contribution.imported) "Imported when shared" else "Added"} · ${com.jcotters.presentation.formatActivityTime(contribution.addedAt)}") },
+        confirmButton = { TextButton(onClick = { attribution = null }) { Text("Close") } }) }
 }

@@ -5,6 +5,15 @@ import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
 @Serializable
+data object JoinWatchlistKey : NavKey
+
+@Serializable
+enum class SharedSection { Members, Activity, Sharing }
+
+@Serializable
+data class SharedListKey(val listId: String, val section: SharedSection) : NavKey
+
+@Serializable
 data class WatchlistDetailKey(val listId: String) : NavKey
 
 @Serializable

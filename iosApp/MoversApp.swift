@@ -6,12 +6,16 @@ import MoversShared
 struct MoversApp: App {
     init() {
         let token = Bundle.main.object(forInfoDictionaryKey: "TMDB_API_TOKEN") as? String ?? ""
-        MainViewControllerKt.initializeIosMovers(apiToken: token)
+        let backendUrl = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String ?? ""
+        let backendKey = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_PUBLISHABLE_KEY") as? String ?? ""
+        MainViewControllerKt.initializeIosMovers(apiToken: token, backendUrl: backendUrl, backendKey: backendKey)
     }
 
     var body: some Scene {
         WindowGroup {
-            ComposeView().ignoresSafeArea()
+            ComposeView().ignoresSafeArea().onOpenURL { url in
+                IncomingInvitationKt.receiveInvitation(url: url.absoluteString)
+            }
         }
     }
 }

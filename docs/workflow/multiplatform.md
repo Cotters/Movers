@@ -12,7 +12,8 @@ Movers shares its screens, navigation, ViewModels, repositories, HTTP policy, ca
 | Existing feature modules and contracts | Shared screens/state/use cases and feature-owned NavKeys |
 | `:profile:contract`, `:profile` | Device-profile model/repository contract, local implementation, and Profile UI |
 | `:movie:contract`, `:movie:internal` | Public movie/bookmark/search/list operations and neutral list storage API; Ktor transport, mapping, paging, freshness, and repository implementations |
-| `:database` | Room entities/DAOs, version 8 schema with preserving 7→8 migration, bundled SQLite, and platform database paths |
+| `:database` | Room entities/DAOs, version 9 schema with preserving 7→8→9 migrations, bundled SQLite, and platform database paths |
+| `:backend:supabase` | Supabase SDK/remote operations, anonymous identity and native secure session storage behind neutral contracts |
 | `:presentation`, `:data:network` | Shared images/transitions/snackbars and network-status contract; native network observers |
 
 Use `src/commonMain/kotlin` and `composeResources` for reusable code/assets. `androidMain` and `iosMain` contain native integrations. Only the composition module creates the iOS framework; other modules remain libraries. iOS targets are `iosArm64` for physical devices and `iosSimulatorArm64` for Apple silicon simulators, minimum iOS 15. No Intel simulator or desktop target is configured. Room's KSP processor is configured for both iOS targets.
@@ -23,11 +24,11 @@ Retain the existing Home feed, details/retry/cache behavior, bookmarks, custom W
 
 ## Device profile and reset
 
-Accounts, passwords, saved-credential prompts, logout, and session expiry are removed. Room stores one random installation ID and the temporary name **Josh**. Initialization is idempotent; reopening the app keeps that identity and new bookmarks. Names and installation IDs are not remote authorization credentials.
+Account login, passwords, saved-credential prompts and logout are removed. Room stores one random installation ID, a confirmed name and a randomly assigned avatar color. First launch asks for a name; existing Josh profiles confirm or replace it once. Initialization is idempotent. Shared Lists additionally use a securely persisted anonymous backend identity behind `ParticipantIdentity`; names and installation IDs are not authorization credentials.
 
-The user explicitly authorized discarding old local data for this migration. Version 7 resets databases from versions 1–6, including old accounts/bookmarks/cache. Android also removes retired credential/session preference files and rejects old navigation saved state. Version 8 preserves version-7 data through an explicit migration; do not broaden the destructive fallback. Old schema exports remain historical records.
+The user explicitly authorized discarding old local data for this migration. Version 7 resets databases from versions 1–6, including old accounts/bookmarks/cache. Android also removes retired credential/session preference files and rejects old navigation saved state. Versions 8 and 9 preserve earlier profile/list data through explicit migrations; do not broaden the destructive fallback. Old schema exports remain historical records.
 
-**Onboarding is out of scope.** The private Todo records first-launch name entry and a feature introduction to replace the temporary Josh seed. No name-entry or account UI should be added incidentally. Shared Lists and backend identity/authorization remain separate planned work; retain the [vendor-neutral database boundary](open-source.md).
+**The feature tour remains deferred.** First-launch name entry is explicitly included in Shared Lists. See the [agreed design](../features/shared-watchlists.md), [backend setup](../../supabase/README.md), and [vendor-neutral boundary](open-source.md). Avatar color customization and identity recovery/device linking are deferred.
 
 ## Configure and build
 
@@ -55,7 +56,7 @@ Host checks cover shared policy, transport fixtures, repositories, profile initi
 
 They cover retained navigation/ViewModel stores/restoration, screen loading/error states, observable/idempotent bookmarks, movie enrichment/cache transactions, and the one-time reset followed by persistence. They are not executed by agents.
 
-On your own Android device and iPhone, check Home loading and infinite scroll, a movie's details and retry, bookmark/unbookmark and Profile updates, the Josh name, all three tabs and retained histories, and relaunch persistence. Check offline startup, cached content, reconnect/retry, system insets, keyboard-free navigation, and light/dark themes. On Android, check Back/reselection/process restoration and run the compiled integration tests. Confirm the authorized reset on an old Android install using disposable data. Send device/OS versions and sanitized observations/screenshots/logs; keep runtime acceptance pending until evidence arrives.
+On your own Android device and iPhone, check Home loading and infinite scroll, a movie's details and retry, bookmark/unbookmark and Profile updates, confirmed name/avatar, all three tabs and retained histories, and relaunch persistence. Check offline startup, cached content, reconnect/retry, system insets, keyboard-free navigation, and light/dark themes. On Android, check Back/reselection/process restoration and run the compiled integration tests. Confirm the authorized reset on an old Android install using disposable data. Send device/OS versions and sanitized observations/screenshots/logs; keep runtime acceptance pending until evidence arrives.
 
 Official references: [incremental migration](https://kotlinlang.org/docs/multiplatform/migrate-from-android.html), [Android KMP plugin](https://developer.android.com/kotlin/multiplatform/plugin), [Nav 3 serialization](https://kotlinlang.org/docs/multiplatform/compose-navigation-3.html), [Koin Compose](https://insert-koin.io/docs/reference/koin-compose/compose/), and [Room KMP](https://developer.android.com/kotlin/multiplatform/room). The current Room guide contains Room 3 prerelease snippets; Movers intentionally retains Room 2.8.5. Match installed APIs rather than copying package/version changes incidentally.
 

@@ -88,6 +88,12 @@ internal class AddToListsViewModel(
 
     private suspend fun updateMembership(movieId: Int, listId: String, added: Boolean) {
         val previouslyListed = state.value.lists.any { it.id == listId }
+        if (state.value.lists.any { it.id == listId && it.shared != null }) {
+            repository.setMembership(listId,movieId,added).onSuccess { ack ->
+                state.first { value -> value.readFailed || value.lists.none { it.id == listId } || (value.lists.firstOrNull { it.id == listId }?.shared?.revision ?: -1) >= (ack.revision ?: 0) }
+            }.onFailure { error -> state.update { it.copy(error = error.message) } }
+            return
+        }
         val result = if (added) repository.addMovieToLists(movieId, setOf(listId)) else repository.removeMovie(listId, movieId)
         result.onSuccess {
             // Keep the row busy until persisted observation confirms the new checkbox state.

@@ -7,7 +7,11 @@ Start with [Human.md](docs/workflow/Human.md) for the workflow, its purpose, and
 
 After completing the verification prerequisites, run `./scripts/verify.sh` for host tests, lint, and an Android debug build. On macOS, `./scripts/verify-ios.sh` builds the unsigned iOS app with the physical-device SDK. See [multiplatform setup](docs/workflow/multiplatform.md) for configuration and ownership. Physical-device acceptance remains user-owned.
 
-Run the [shared native smoke flow](docs/workflow/testing.md#shared-native-smoke-flow) on already-running Android and iOS targets after each change set. These automated runs are authorized; manual device interaction and starting/resetting targets require a separate request. Host Compose UI regressions run without devices through `verify.sh`.
+Agents run host checks and builds only. People verify on physical Android/iOS devices; agents never start or interact with emulators/simulators or run connected tests. Retained [native smoke flows](docs/workflow/testing.md#shared-native-smoke-flow) remain available for user-owned validation. Host Compose UI regressions run through `verify.sh`.
+
+## Shared lists
+
+Publish a personal list, invite friends, and collaborate with contributor avatars and film activity. Local lists work without a backend. Configure your own instance using [Supabase setup](supabase/README.md); the [design](docs/features/shared-watchlists.md) explains permissions, offline behavior, device identity and replaceable adapters.
 
 ## Technologies
 - Kotlin Multiplatform and Compose Multiplatform for shared logic and UI
@@ -22,7 +26,7 @@ Run the [shared native smoke flow](docs/workflow/testing.md#shared-native-smoke-
 
 While this is a work in progress, here's a preview of the app.
 
-Historical Android preview: bookmarking and movie-poster transitions. Its sign-in/logout UI has since been replaced by a device profile; the temporary name is Josh. First-launch name entry and a feature introduction are deferred.
+Historical Android preview: bookmarking and movie-poster transitions. Its sign-in/logout UI has since been replaced by a device profile; users now choose a name on first launch. A feature introduction remains deferred.
 
 https://github.com/user-attachments/assets/96d1be5d-352e-4a44-8161-f212dc407207
 

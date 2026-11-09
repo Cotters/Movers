@@ -1,2 +1,5 @@
 // Copy to Local.xcconfig and supply your own TMDB read-access token.
 TMDB_API_TOKEN = YOUR_TMDB_READ_ACCESS_TOKEN
+// Optional sharing backend. $() preserves // in xcconfig URLs.
+SUPABASE_URL = https:/$()/YOUR_PROJECT.supabase.co
+SUPABASE_PUBLISHABLE_KEY = YOUR_PUBLISHABLE_KEY

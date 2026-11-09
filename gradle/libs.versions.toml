@@ -8,10 +8,12 @@ kotlin = "2.4.21"
 composeMultiplatform = "1.12.2"
 koin = "4.2.0"
 ktor = "3.6.1"
+supabase = "3.9.0"
 kotlinxCoroutines = "1.11.0"
 coreKtx = "1.19.1"
 kotlinxSerializationJson = "1.12.0"
 lifecycleRuntimeKtx = "2.11.0"
+lifecycleShared = "2.10.0"
 activityCompose = "1.13.0"
 composeBom = "2026.08.00"
 navigation3 = "1.2.1"
@@ -32,6 +34,10 @@ junitKtx = "1.3.0"
 sqliteBundled = "2.7.1"
 
 [libraries]
+androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycleShared" }
+supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt", version.ref = "supabase" }
+supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt", version.ref = "supabase" }
+supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt", version.ref = "supabase" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-sqlite-framework = { module = "androidx.sqlite:sqlite-framework", version.ref = "sqliteBundled" }
 multiplatform-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }

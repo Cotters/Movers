@@ -10,6 +10,6 @@ class MoversApplication : Application() {
         listOf("auth_prefs.preferences_pb", "session_prefs.preferences_pb").forEach { name ->
             File(filesDir, "datastore/$name").delete()
         }
-        initializeAndroidMovers(this)
+        initializeAndroidMovers(this, BuildConfig.SUPABASE_URL, BuildConfig.SUPABASE_PUBLISHABLE_KEY)
     }
 }

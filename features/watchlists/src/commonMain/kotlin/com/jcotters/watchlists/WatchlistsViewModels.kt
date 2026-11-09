@@ -16,14 +16,18 @@ import kotlinx.coroutines.launch
 
 internal data class WatchlistsState(
     val lists: List<Watchlist> = emptyList(), val loading: Boolean = true,
-    val busy: Boolean = false, val error: String? = null, val createdId: String? = null,
+    val busy: Boolean = false, val error: String? = null, val createdId: String? = null, val syncError: String? = null,
 )
 
-internal class WatchlistsViewModel(private val repository: IWatchlistsRepository) : ViewModel() {
+internal class WatchlistsViewModel(private val repository: IWatchlistsRepository, private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository) : ViewModel() {
     private val state = MutableStateFlow(WatchlistsState())
     val uiState = state.asStateFlow()
     private var observation: Job? = null
-    init { retry() }
+    init {
+        retry()
+        viewModelScope.launch { sharing.syncStatus.collect { status -> state.update { it.copy(syncError = status.error) } } }
+    }
+    fun refreshShared() { viewModelScope.launch { sharing.refresh() } }
 
     fun retry() {
         if (observation?.isActive == true) return
@@ -55,9 +59,10 @@ internal data class WatchlistDetailState(
     val content: WatchlistContent? = null, val loading: Boolean = true, val busy: Boolean = false,
     val error: String? = null, val deleted: Boolean = false, val renamed: Boolean = false,
     val lists: List<Watchlist> = emptyList(),
+    val removing: Set<Int> = emptySet(),
 )
 
-internal class WatchlistDetailViewModel(private val repository: IWatchlistsRepository) : ViewModel() {
+internal class WatchlistDetailViewModel(private val repository: IWatchlistsRepository, private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository) : ViewModel() {
     private val state = MutableStateFlow(WatchlistDetailState())
     val uiState = state.asStateFlow()
     private var listId: String? = null
@@ -77,7 +82,16 @@ internal class WatchlistDetailViewModel(private val repository: IWatchlistsRepos
     }
 
     fun rename(name: String) = write(renaming = true) { id -> repository.rename(id, name) }
-    fun removeMovie(movieId: Int) = write { id -> repository.removeMovie(id, movieId) }
+    fun removeMovie(movieId: Int) {
+        val id = listId ?: return
+        if (state.value.busy || movieId in state.value.removing) return
+        state.update { it.copy(removing = it.removing + movieId,error = null) }
+        viewModelScope.launch {
+            try { repository.removeMovie(id,movieId).onFailure { error -> state.update { it.copy(error = error.message) } } }
+            finally { state.update { it.copy(removing = it.removing - movieId) } }
+        }
+    }
+    fun leave() = write(deleting = true) { id -> sharing.leave(id) }
     fun delete() = write(deleting = true) { id -> repository.delete(id) }
     fun clearError() { state.update { it.copy(error = null) } }
     fun consumeRenamed() { state.update { it.copy(renamed = false) } }

@@ -32,10 +32,11 @@ class WatchlistPersistenceTest {
     @Test
     fun migrationPreservesProfileBookmarksAndEnrichedCatalogueAcrossReopening() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val name = "watchlist-migration-test.db"
+        for (sourceVersion in listOf(7, 8)) {
+        val name = "watchlist-migration-$sourceVersion-test.db"
         context.deleteDatabase(name)
         val schema = Json.parseToJsonElement(checkNotNull(javaClass.getResourceAsStream(
-            "/com.jcotters.database.MoversDatabase/7.json",
+            "/com.jcotters.database.MoversDatabase/$sourceVersion.json",
         )).bufferedReader().use { it.readText() }).jsonObject.getValue("database").jsonObject
         try {
             SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath(name).also { it.parentFile?.mkdirs() }, null).use { old ->
@@ -52,14 +53,21 @@ class WatchlistPersistenceTest {
                 old.execSQL("INSERT INTO bookmarks VALUES(12)")
                 old.execSQL("INSERT INTO movie_catalogue_entries VALUES('popular',12,1,0)")
                 old.execSQL("INSERT INTO movie_catalogue_remote_keys VALUES('popular',2,999)")
-                old.version = 7
+                if (sourceVersion == 8) {
+                    old.execSQL("INSERT INTO watchlists VALUES('existing-list','Existing list',1)")
+                    old.execSQL("INSERT INTO watchlist_movies VALUES('existing-list',12,2)")
+                }
+                old.version = sourceVersion
             }
             fun open() = Room.databaseBuilder<MoversDatabase>(context, name)
                 .setDriver(AndroidSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO)
-                .addMigrations(WatchlistMigration7To8).build()
+                .addMigrations(WatchlistMigration7To8, com.jcotters.database.watchlists.SharedMigration8To9).build()
             MoversUiFixture(open()).use { fixture ->
                 val db = fixture.database
                 assertEquals("stable-installation", db.profileDao().get()?.installationId)
+                assertFalse(checkNotNull(db.profileDao().get()).nameConfirmed)
+                assertTrue(checkNotNull(db.profileDao().get()).color in 0..7)
+                if (sourceVersion == 8) assertEquals(listOf(12), fixture.lists.observeWatchlist("existing-list").first()?.movies?.map { it.id })
                 assertEquals(125, db.movieDao().getMovieById(12)?.runtimeMinutes)
                 assertEquals(1234L, db.movieDao().getMovieById(12)?.detailsFetchedAt)
                 assertTrue(db.bookmarkDao().observeMovieBookmark(12).first())
@@ -68,13 +76,14 @@ class WatchlistPersistenceTest {
                 fixture.lists.addMovieToLists(12, setOf(id)).getOrThrow()
             }
             MoversUiFixture(open()).use { fixture ->
-                val list = fixture.lists.observeWatchlists().first().single()
+                val list = fixture.lists.observeWatchlists().first().single { it.name == "Survives restart" }
                 assertEquals("Survives restart", list.name)
                 assertEquals(1, list.movieCount)
                 assertEquals(listOf(12), fixture.lists.observeWatchlist(list.id).first()?.movies?.map { it.id })
                 assertEquals("stable-installation", fixture.database.profileDao().get()?.installationId)
             }
         } finally { context.deleteDatabase(name) }
+        }
     }
 
     @Test
