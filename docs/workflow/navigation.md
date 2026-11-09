@@ -9,10 +9,10 @@ Home is the infinite movie feed. Watchlists owns custom lists, list details/mana
 - Back pops feature destinations; Back at a non-Home root selects Home's retained history. Android Back at Home root exits through the platform.
 - Detail entries for the same movie in different stacks own different ViewModel stores. Repeated taps on the current movie do not duplicate its entry.
 - Saved navigation uses explicit polymorphic key serialization, with no Android reflection requirement. The Android host ignores pre-migration saved activity state once, then preserves the new state normally.
-- The bottom bar stays visible on the main screens, search, and details. The quick-add modal overlays the retained source and closes after a successful atomic add. Startup loading/storage failure is handled before the navigation shell; no onboarding screen is implemented.
+- The bottom bar stays visible on the main screens, search, and details. The quick-add modal overlays the retained source and stays open while check/uncheck saves membership immediately; Close returns to the source. Startup loading/storage failure is handled before the navigation shell; no onboarding screen is implemented.
 - The shared detail header has an accessible Back button wired by its feature entry provider to the Navigator. Host UI tests cover this action and Android system Back; the shared native smoke flow uses the visible button on both platforms. iOS edge-gesture acceptance remains pending.
 
-List/search/picker keys live in feature contracts and are registered by `:shared`. Each entry owns its ViewModel; picker selections and the search query use SavedStateHandle. The shared Nav 3 overlay scene strategy presents the bottom sheet on both platforms. Returning to a source retains its query, paging, scroll, and navigation state. A target list is context, not authorization.
+List/search/picker keys live in feature contracts and are registered by `:shared`. Each entry owns its ViewModel; the search query uses SavedStateHandle, while picker checkboxes come from persisted membership. The shared Nav 3 overlay scene strategy presents the bottom sheet on both platforms. Returning to a source retains its query, paging, scroll, and navigation state. A target list is context, not authorization.
 
 ## Physical-device acceptance
 
@@ -23,8 +23,8 @@ Run these on your own Android device and iPhone, using configured movie API acce
 3. Pop details through the on-screen/platform Back behavior and iOS navigation gesture. Confirm the selected tab and Home-return policy remain coherent.
 4. Bookmark/unbookmark a movie. Confirm Profile changes through persisted observation, shows Josh, and offers no account controls. Relaunch and confirm bookmarks/name persist.
 5. Check status/navigation-bar and safe-area insets, landscape, large text, and light/dark mode. The bar must stay visible on details and Profile.
-6. Create two lists (including equal names), add a catalogue film to both, open its details, and verify memberships are checked/disabled. Create another list inside the picker; cancel and confirm that list persists.
-7. In a list, tap +, search, add two films consecutively, and confirm search stays open with Added states. Open a result detail, use quick-add, then return and check query/scroll. Rename/remove/delete and relaunch; verify persistence and independent bookmarks. Repeat cached list access offline and search failure/retry.
+6. Create two lists (including equal names), add a catalogue film to both, open its details, and verify memberships are checked and editable. Uncheck/recheck to remove/add immediately, then close with no confirmation. Create another list inside the picker; it automatically receives the movie and persists when the picker closes.
+7. In a list, tap +, search, add two films consecutively, and confirm search stays open with red Remove actions. Remove an accidentally added result, verify it returns to Add, then re-add without leaving search. Open a result detail, use quick-add, then return and check query/scroll. Rename/remove/delete and relaunch; verify persistence and independent bookmarks. Repeat cached list access offline and search failure/retry.
 8. On Android, recreate the activity and test process restoration with a detail open in another tab. Confirm the selected stack restores without stale Auth keys or duplicate ViewModels.
 
 The compiled `MoversNavigationShellTest` in `:shared` checks retained per-entry stores and saved-state restoration. Agents only compile it. Record physical-device observations, device/OS versions, and sanitized screenshots/logs before marking acceptance complete. No runtime result has been inferred from compilation or host policy tests.

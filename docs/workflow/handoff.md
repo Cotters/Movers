@@ -8,6 +8,23 @@ The Android/iOS KMP and Compose Multiplatform migration is implemented from base
 
 Android host verification and the unsigned physical-iOS app build pass. Runtime acceptance on physical Android/iPhone devices, IDE sync, signing, and remote GitHub CI remain pending. No emulator/simulator or connected test was used during the initial migration. Subsequent explicitly authorized debugging exceptions and the switch to host UI tests are recorded below. The user committed the migration and host UI setup as `c21bd56`; earlier references to uncommitted migration code are historical. Recheck Git before resuming.
 
+## Latest follow-up: immediate membership editing
+
+The user replaced confirmation-based additions with immediate edits: checking a list saves the movie immediately, unchecking removes it, and the picker stays open until Close. Existing memberships remain editable. There is no Add-to-N confirmation button or temporary saved selection; persisted observation owns checkbox state. A target list only positions the picker at that row and does not silently add on opening. Inline list creation still automatically adds the movie; if that add fails the created list remains available to retry.
+
+Contextual list search now switches Add to a red, theme-aware Remove action. Both operations keep search/query/results open. Each changed row is disabled until its write and persisted observation complete; errors retain the last saved membership and allow another attempt. Repositories, schema 8, and backend boundaries are unchanged. The original confirmation/Already-added/disabled interaction described below is historical and superseded by this request.
+
+**Current testing policy:** during feature implementation, run the existing suite and update its expectations for intentional changes. Do not add new test cases, especially UI tests, unless explicitly requested. Coverage expansion is deferred to the post-feature item in private Notes/Todo.md. Existing failures still need investigation, not disabled checks. AGENTS.md, Human.md, development/testing guides, and the existing smoke definition have been updated. Existing unit/UI cases are maintained; no additional test cases are retained in this follow-up.
+
+Verification for the follow-up against `e407ed6` plus the working tree, 9 November 2026:
+
+- `./scripts/verify.sh` passes: **92 existing host tests across 24 suites**, zero failures/errors/skips, with five convention tests reusing passing outputs. The final app phase took 32 seconds (33 executed/506 up-to-date); the shared UI and updated unit cases executed, with other suites partly reused. Android lint/debug APK pass; lint retains 30 warnings and no errors. No new test cases are retained.
+- `./scripts/verify-ios.sh` exits 0 with the unsigned physical-device SDK; the built app is newer than all changed production sources. Retained Android test APKs compile (2 seconds, 22 executed/314 up-to-date), without execution. Existing Maestro watchlist flow passes syntax validation only.
+- The host suite exposed an order-dependent Paging dispatcher stall after earlier UI cases. Diagnostics showed completed HTTP fixture requests but queued native UI work in later cases. An outer TestWatcher now drains the host main queue **after** the Compose rule disposes content; @After cleanup alone ran too early. The complete existing suite passes with ordinary timeouts and all assertions intact. Temporary reflection/request diagnostics were removed; timeout failures retain a useful semantics-tree report.
+- Documentation links and `git diff --check` pass. Human.md remains concise at 208 words, preserves feedback, and records the temporary feature-phase test policy. The ignored Todo includes the post-feature test review. The user committed the earlier feature as `e407ed6` during this session; no agent commit/index operation was performed.
+
+Physical Android/iPhone acceptance remains pending and no emulator/simulator has been used. Check immediate check/uncheck persistence, red Remove/Add reversal in contextual search, picker Close/source retention, and inline creation on physical devices; report sanitized observations if behavior differs.
+
 ## Local watchlists implementation — 9 November 2026
 
 The agreed local-list plan is implemented against `d3a7d97` plus the working tree. Preserve the user's staging; no commit or index update was performed by the agent.

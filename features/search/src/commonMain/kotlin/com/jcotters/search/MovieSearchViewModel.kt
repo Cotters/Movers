@@ -19,11 +19,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
@@ -32,6 +34,7 @@ import kotlinx.coroutines.launch
 internal data class SearchActionsState(
     val lists: List<Watchlist> = emptyList(), val loadingLists: Boolean = true,
     val saving: Set<Int> = emptySet(), val error: String? = null,
+    val membershipLoading: Boolean = true, val membershipReadFailed: Boolean = false,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,9 +64,13 @@ internal class MovieSearchViewModel(
     }.cachedIn(viewModelScope)
 
     val addedIds = combine(target, membershipRetries) { id, _ -> id }.flatMapLatest { id ->
-        (if (id == null) flowOf(emptySet()) else lists.observeMovieIds(id)).catch { error ->
+        (if (id == null) flowOf(emptySet()) else lists.observeMovieIds(id)).onStart {
+            actions.update { it.copy(membershipLoading = true, membershipReadFailed = false) }
+        }.onEach {
+            actions.update { it.copy(membershipLoading = false) }
+        }.catch { error ->
             if (error is CancellationException || error !is Exception) throw error
-            actions.update { it.copy(error = "Unable to read list membership.") }
+            actions.update { it.copy(membershipLoading = false, membershipReadFailed = true, error = "Unable to read list membership.") }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
@@ -86,13 +93,20 @@ internal class MovieSearchViewModel(
         }
     }
 
-    fun add(movieId: Int) {
+    fun setMembership(movieId: Int, added: Boolean) {
         val id = target.value ?: return
-        if (movieId in actions.value.saving || movieId in addedIds.value) return
+        val current = actions.value
+        if (current.membershipLoading || current.membershipReadFailed || movieId in current.saving) return
+        if ((movieId in addedIds.value) == added) return
         actions.update { it.copy(saving = it.saving + movieId, error = null) }
         viewModelScope.launch {
             try {
-                lists.addMovieToLists(movieId, setOf(id)).onFailure { error -> actions.update { it.copy(error = error.message) } }
+                val result = if (added) lists.addMovieToLists(movieId, setOf(id)) else lists.removeMovie(id, movieId)
+                result.onSuccess {
+                    combine(addedIds, actionsState) { ids, state ->
+                        state.membershipReadFailed || (!state.membershipLoading && (movieId in ids) == added)
+                    }.first { it }
+                }.onFailure { error -> actions.update { it.copy(error = error.message) } }
             } finally { actions.update { it.copy(saving = it.saving - movieId) } }
         }
     }

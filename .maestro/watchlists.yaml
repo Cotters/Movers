@@ -33,7 +33,9 @@ name: Local watchlists and search
     index: 0
 - tapOn: ${output.one}
 - tapOn: ${output.two}
-- tapOn: "Add to 2 lists"
+- tapOn:
+    text: "Close"
+    enabled: true
 - assertVisible: "Popular Movies"
 - tapOn: "Watchlists"
 - tapOn: ${output.one}
@@ -49,9 +51,21 @@ name: Local watchlists and search
     text: "Add"
     index: 0
 - extendedWaitUntil:
-    visible: "Added"
+    visible: "Remove"
     timeout: 10000
 - assertVisible: "Matrix"
+- tapOn:
+    text: "Remove"
+    index: 0
+- extendedWaitUntil:
+    visible: "Add"
+    timeout: 10000
+- tapOn:
+    text: "Add"
+    index: 0
+- extendedWaitUntil:
+    visible: "Remove"
+    timeout: 10000
 - tapOn: "Back"
 - assertVisible: "2 movies"
 - tapOn: "List options"

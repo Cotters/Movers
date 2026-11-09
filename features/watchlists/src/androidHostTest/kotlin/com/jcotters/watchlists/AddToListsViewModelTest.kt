@@ -1,6 +1,5 @@
 package com.jcotters.watchlists
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import com.jcotters.contract.detail.domain.IMovieDetailsRepository
 import com.jcotters.contract.detail.domain.models.Movie
@@ -33,12 +32,13 @@ class AddToListsViewModelTest {
     private val lists = mockk<IWatchlistsRepository>()
     private val movies = mockk<IMovieDetailsRepository>()
     private val available = MutableStateFlow(listOf(Watchlist("one", "One", 1, 0), Watchlist("two", "Two", 2, 1)))
+    private val memberships = MutableStateFlow(setOf("two"))
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         every { lists.observeWatchlists() } returns available
-        every { lists.observeListIds(12) } returns flowOf(setOf("two"))
+        every { lists.observeListIds(12) } returns memberships
         every { movies.observeMovieWithId(12) } returns flowOf(Movie(12, "Movie", "", ""))
     }
 
@@ -46,46 +46,51 @@ class AddToListsViewModelTest {
     fun tearDown() { store.clear(); dispatcher.scheduler.runCurrent(); Dispatchers.resetMain() }
 
     @Test
-    fun failedAddKeepsSelectionForRetryAndAlreadyAddedCannotBeToggled() = runTest {
-        coEvery { lists.addMovieToLists(12, setOf("one")) } returnsMany listOf(Result.failure(IllegalStateException("offline")), Result.success(Unit))
+    fun failedWritesKeepThePreviousCheckboxStateAndCanBeRetried() = runTest {
+        coEvery { lists.addMovieToLists(12, setOf("one")) } returns Result.failure(IllegalStateException("add failed"))
+        coEvery { lists.removeMovie("two", 12) } returns Result.failure(IllegalStateException("remove failed"))
         val model = create()
-        model.load(12, "one")
+        model.load(12)
         runCurrent()
-        model.toggle("two")
-        assertEquals(setOf("one"), model.uiState.value.destinations)
-        model.add()
-        model.add()
+        model.setMembership("one", true)
+        model.setMembership("one", true)
         runCurrent()
-        assertEquals("offline", model.uiState.value.error)
-        assertEquals(setOf("one"), model.uiState.value.destinations)
-        assertFalse(model.uiState.value.completed)
+        assertEquals("add failed", model.uiState.value.error)
+        assertEquals(setOf("two"), model.uiState.value.existing)
         coVerify(exactly = 1) { lists.addMovieToLists(any(), any()) }
-        model.add()
+        model.setMembership("two", false)
         runCurrent()
-        assertTrue(model.uiState.value.completed)
+        assertEquals("remove failed", model.uiState.value.error)
+        assertEquals(setOf("two"), model.uiState.value.existing)
+        assertFalse(model.uiState.value.busy)
+        coEvery { lists.removeMovie("two", 12) } coAnswers { memberships.value = emptySet(); Result.success(Unit) }
+        model.setMembership("two", false)
+        runCurrent()
+        assertTrue(model.uiState.value.existing.isEmpty())
     }
 
     @Test
-    fun inlineCreatedListIsSelectedAndSelectionRestores() = runTest {
+    fun inlineCreationAutomaticallyAddsAndFailedAddLeavesTheListAvailableForRetry() = runTest {
         coEvery { lists.create("New") } coAnswers {
             available.value += Watchlist("new", "New", 3, 0)
             Result.success("new")
         }
-        val handle = SavedStateHandle()
-        val model = create(handle)
-        model.load(12, null)
+        coEvery { lists.addMovieToLists(12, setOf("new")) } returns Result.failure(IllegalStateException("add failed"))
+        val model = create()
+        model.load(12)
         runCurrent()
         model.create("New")
         runCurrent()
         assertEquals("new", model.uiState.value.createdId)
-        assertEquals(setOf("new"), model.uiState.value.destinations)
-        val restored = create(handle)
-        restored.load(12, null)
+        assertTrue(model.uiState.value.lists.any { it.id == "new" })
+        assertFalse("new" in model.uiState.value.existing)
+        assertFalse(model.uiState.value.busy)
+        coEvery { lists.addMovieToLists(12, setOf("new")) } coAnswers { memberships.value += "new"; Result.success(Unit) }
+        model.setMembership("new", true)
         runCurrent()
-        assertEquals(setOf("new"), restored.uiState.value.destinations)
-        coVerify(exactly = 0) { lists.addMovieToLists(any(), any()) }
+        assertTrue("new" in model.uiState.value.existing)
+        coVerify(exactly = 1) { lists.create("New") }
     }
 
-    private fun create(handle: SavedStateHandle = SavedStateHandle()) =
-        AddToListsViewModel(lists, movies, handle).also { store.put("picker", it) }
+    private fun create() = AddToListsViewModel(lists, movies).also { store.put("picker", it) }
 }

@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -36,8 +36,14 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var creating by rememberSaveable { mutableStateOf(false) }
     var name by rememberSaveable { mutableStateOf("") }
-    LaunchedEffect(movieId, initialListId) { viewModel.load(movieId, initialListId) }
-    LaunchedEffect(state.completed) { if (state.completed) navigator.goBack() }
+    val scroll = rememberLazyListState()
+    LaunchedEffect(movieId) { viewModel.load(movieId) }
+    LaunchedEffect(state.loading, initialListId) {
+        if (!state.loading && initialListId != null) {
+            val index = state.lists.indexOfFirst { it.id == initialListId }
+            if (index >= 0) scroll.scrollToItem(index)
+        }
+    }
     LaunchedEffect(state.createdId) {
         if (state.createdId != null) { creating = false; name = ""; viewModel.consumeCreated() }
     }
@@ -51,24 +57,28 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
         if (!state.loading && state.error == null && state.lists.isEmpty()) Text("Create your first list to save this movie.")
         state.error?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
-            TextButton(onClick = { viewModel.clearError(); viewModel.load(movieId, initialListId) }) { Text("Retry") }
+            TextButton(onClick = {
+                viewModel.clearError()
+                if (state.readFailed) viewModel.load(movieId)
+            }) { Text(if (state.readFailed) "Retry" else "Dismiss") }
         }
-        LazyColumn(Modifier.weight(1f, fill = false).fillMaxWidth().heightIn(max = 340.dp)) {
+        LazyColumn(Modifier.weight(1f, fill = false).fillMaxWidth().heightIn(max = 340.dp), state = scroll) {
             items(state.lists, key = { it.id }) { list ->
                 val existing = list.id in state.existing
+                val enabled = !state.loading && !state.readFailed && !state.creating && list.id !in state.saving
                 Row(
                     Modifier.fillMaxWidth().toggleable(
-                        value = existing || list.id in state.selected,
-                        enabled = !existing && !state.busy,
+                        value = existing,
+                        enabled = enabled,
                         role = Role.Checkbox,
-                        onValueChange = { viewModel.toggle(list.id) },
+                        onValueChange = { viewModel.setMembership(list.id, it) },
                     ).padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Checkbox(checked = existing || list.id in state.selected, onCheckedChange = null, enabled = !existing && !state.busy)
+                    Checkbox(checked = existing, onCheckedChange = null, enabled = enabled)
                     Column(Modifier.padding(start = 12.dp)) {
                         Text(list.name)
-                        Text(if (existing) "Already added" else "${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}", style = MaterialTheme.typography.bodySmall)
+                        Text(if (list.id in state.saving) "Saving…" else "${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -80,10 +90,7 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
                 TextButton(onClick = { creating = false; viewModel.clearError() }, enabled = !state.busy) { Text("Cancel") }
             }
         } else {
-            TextButton(onClick = { viewModel.clearError(); creating = true }, enabled = !state.busy) { Text("Create new list") }
-        }
-        Button(onClick = viewModel::add, enabled = !state.loading && !state.busy && state.destinations.isNotEmpty(), modifier = Modifier.fillMaxWidth()) {
-            Text("Add to ${state.destinations.size} ${if (state.destinations.size == 1) "list" else "lists"}")
+            TextButton(onClick = { viewModel.clearError(); creating = true }, enabled = !state.busy && !state.loading && !state.readFailed) { Text("Create new list") }
         }
     }
 }

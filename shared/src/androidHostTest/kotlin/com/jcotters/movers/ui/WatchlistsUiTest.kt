@@ -1,18 +1,26 @@
 package com.jcotters.movers.ui
 
+import android.os.Looper
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isEnabled
+import androidx.compose.ui.test.isOff
+import androidx.compose.ui.test.isOn
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.printToString
 import com.jcotters.database.movies.DbMovie
 import com.jcotters.movers.SharedApp
 import kotlinx.coroutines.runBlocking
@@ -21,8 +29,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -30,11 +41,21 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [35], qualifiers = "w360dp-h800dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class WatchlistsUiTest {
-    @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule(order = 0)
+    val drainUiDispatcher = object : TestWatcher() {
+        override fun finished(description: Description) {
+            // Paging's process-wide dispatcher must drain after the Compose rule disposes content.
+            shadowOf(Looper.getMainLooper()).idle()
+        }
+    }
+    @get:Rule(order = 1) val compose = createAndroidComposeRule<ComponentActivity>()
     private lateinit var fixture: MoversUiFixture
 
     @Before fun setUp() { fixture = MoversUiFixture() }
-    @After fun tearDown() { compose.activityRule.scenario.close(); fixture.close() }
+    @After fun tearDown() {
+        compose.activityRule.scenario.close()
+        fixture.close()
+    }
 
     @Test
     fun createDuplicateNamesRenameAndDeleteOnlyOneList() {
@@ -71,21 +92,29 @@ class WatchlistsUiTest {
         awaitText("One")
         compose.onNodeWithText("One").performClick()
         compose.onNodeWithText("Two").performClick()
+        awaitMembership("One", true)
+        awaitMembership("Two", true)
         restore.emulateSavedInstanceStateRestore()
-        compose.onNodeWithText("Add to 2 lists").performClick()
+        awaitMembership("One", true)
+        awaitMembership("Two", true)
+        compose.onAllNodesWithText("Add to 2 lists").assertCountEquals(0)
+        compose.onNodeWithText("Close").performClick()
         awaitSheetClosed()
         compose.onNodeWithText("Popular Movies").assertIsDisplayed()
         compose.onNodeWithText("Test Movie").performClick()
         awaitText("Loaded movie details")
         compose.onNodeWithContentDescription("Add to list").performClick()
-        awaitText("Already added")
-        compose.onAllNodesWithText("Already added").assertCountEquals(2)
+        awaitMembership("One", true)
+        awaitMembership("Two", true)
+        compose.onNodeWithText("One").performClick()
+        awaitMembership("One", false)
         compose.onNodeWithText("Close").performClick()
         awaitSheetClosed()
         compose.onNodeWithText("Loaded movie details").assertIsDisplayed()
         compose.onNodeWithText("Watchlists").performClick()
         awaitText("One")
-        compose.onAllNodesWithText("1 movie").assertCountEquals(2)
+        compose.onAllNodesWithText("1 movie").assertCountEquals(1)
+        compose.onAllNodesWithText("0 movies").assertCountEquals(1)
     }
 
     @Test
@@ -100,9 +129,13 @@ class WatchlistsUiTest {
         compose.onNodeWithText("Search films").performTextInput("test")
         awaitText("Search Movie")
         compose.onAllNodesWithText("Add")[0].performClick()
-        awaitText("Added")
+        awaitText("Remove")
+        compose.onNodeWithText("Remove").performClick()
+        compose.waitUntil(10_000) { compose.onAllNodesWithText("Add").fetchSemanticsNodes().size == 2 }
         compose.onAllNodesWithText("Add")[0].performClick()
-        compose.waitUntil(10_000) { compose.onAllNodesWithText("Added").fetchSemanticsNodes().size == 2 }
+        awaitText("Remove")
+        compose.onAllNodesWithText("Add")[0].performClick()
+        compose.waitUntil(10_000) { compose.onAllNodesWithText("Remove").fetchSemanticsNodes().size == 2 }
         compose.onNodeWithText("Search films").assertTextContains("test")
         compose.onNodeWithContentDescription("Back").performClick()
         awaitText("2 movies")
@@ -133,8 +166,9 @@ class WatchlistsUiTest {
         compose.onNodeWithText("Create new list").performClick()
         compose.onNodeWithText("List name").performTextInput("Search picks")
         compose.onNodeWithText("Create").performClick()
-        awaitText("Add to 1 list")
-        compose.onNodeWithText("Add to 1 list").performClick()
+        awaitMembership("Search picks", true)
+        compose.onAllNodesWithText("Add to 1 list").assertCountEquals(0)
+        compose.onNodeWithText("Close").performClick()
         awaitSheetClosed()
         compose.onNodeWithText("Search films").assertTextContains("search")
         compose.onNodeWithText("Search Movie").assertIsDisplayed()
@@ -165,10 +199,23 @@ class WatchlistsUiTest {
     }
 
     private fun awaitText(text: String) {
-        compose.waitUntil(10_000) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
+        try {
+            compose.waitUntil("Text '$text' appears", 10_000) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
+        } catch (error: ComposeTimeoutException) {
+            val tree = runCatching { compose.onRoot(useUnmergedTree = true).printToString() }.getOrDefault("No single root available")
+            throw AssertionError("Expected '$text'.\n$tree", error)
+        }
     }
 
     private fun awaitSheetClosed() {
         compose.waitUntil(10_000) { compose.onAllNodesWithText("Close").fetchSemanticsNodes().isEmpty() }
     }
+
+    private fun awaitMembership(name: String, added: Boolean) {
+        compose.waitUntil("Membership '$name' becomes $added and is editable", 10_000) {
+            compose.onAllNodes(hasText(name) and isEnabled() and (if (added) isOn() else isOff()))
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
 }

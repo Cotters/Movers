@@ -9,11 +9,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,9 +44,9 @@ import com.jcotters.presentation.moviePosterTransitionModifier
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.arrow_back
 import com.jcotters.watchlists.navigation.AddToListsKey
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,8 +104,15 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                             if (listId == null) {
                                 AddToListButton(onClick = { keyboard?.hide(); navigator.navigate(AddToListsKey(movie.id)) })
                             } else {
-                                TextButton(onClick = { viewModel.add(movie.id) }, enabled = movie.id !in added && movie.id !in actions.saving) {
-                                    Text(if (movie.id in added) "Added" else if (movie.id in actions.saving) "Adding…" else "Add")
+                                val isAdded = movie.id in added
+                                TextButton(
+                                    onClick = { viewModel.setMembership(movie.id, !isAdded) },
+                                    enabled = !actions.membershipLoading && !actions.membershipReadFailed && movie.id !in actions.saving,
+                                    colors = ButtonDefaults.textButtonColors(
+                                        contentColor = if (isAdded) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                    ),
+                                ) {
+                                    Text(if (movie.id in actions.saving) "Saving…" else if (isAdded) "Remove" else "Add")
                                 }
                             }
                         }

@@ -1,5 +1,9 @@
 # Verification
 
+## Current feature-phase policy
+
+Run the existing test suite for feature changes and update existing assertions when intended behavior changes. Do not add new test cases, especially UI tests, unless the user explicitly requests them. Defer broader coverage work until the post-feature review recorded in private `Notes/Todo.md`. Keep existing checks passing; investigate failures rather than disabling tests or weakening assertions. The guidance below describes the retained infrastructure and future coverage choices, not a requirement to expand coverage during this phase.
+
 ## Prerequisites
 
 - Bash, an executable Gradle wrapper, and **JDK 17**. Set `JAVA_HOME` if the shell's Java differs from Android Studio's Gradle JDK.
@@ -55,7 +59,7 @@ Choose tests for the guarantee being changed:
 | ViewModel/use-case decisions | Observable state/results, repeated submissions, delayed completion, failure/retry, cancellation, and account changes as relevant. Use controlled coroutine scheduling and clocks. |
 | Repository/cache behavior | Preserve saved data on failed refresh, idempotent writes, concurrent callers, freshness boundaries, mapping, and cancellation. Mocked DAO tests cannot prove actual Room behavior. |
 | Room schema/query | Export and review schemas; preserve device identity, bookmarks, and constraints outside the explicitly authorized legacy reset. The host migration/list-storage suite validates populated 7→8 migration, relationships, idempotence, and atomic rollback with Android SQLite. Production bundled-SQLite and legacy-reset instrumented checks await user execution on a physical device. |
-| Compose/navigation | Add/update and pass a relevant host Compose UI regression before completion. Check real screens/resources and user actions, not only substitute navigation entries. Physical acceptance still covers OS behavior, accessibility, and rendering differences. |
+| Compose/navigation | Run existing host Compose UI regressions; update expectations for intentional changes. Defer new cases during the feature phase. Check real screens/resources and user actions, not only substitute navigation entries. Physical acceptance still covers OS behavior, accessibility, and rendering differences. |
 | Workflow/scripts/CI | Check shell syntax and prerequisite/failure handling, validate workflow YAML, and run the same script used by CI. Remote execution remains pending until GitHub runs it. |
 | Convention plugins | Run `./gradlew -p build-logic :convention:check`; validate the full task graph with `./gradlew build --dry-run`. Check debug/release and test-APK compilation for plugin/code-generation changes. TestKit fixtures never start devices. |
 
@@ -70,11 +74,11 @@ The app uses JUnit 4, MockK, Koin, and Compose. `movers.multiplatform.ui-testing
 ./scripts/verify.sh
 ```
 
-`WatchlistsUiTest` covers list management, duplicate-name warnings, multi-list additions/restoration, already-added membership, inline list creation, consecutive contextual search additions, source retention, and search failure/retry/empty states. `WatchlistPersistenceTest` opens a populated exported version-7 schema, migrates/reopens version 8, and checks preserved profile/bookmarks/enrichment; it also checks real adapter idempotence and transaction rollback.
+`WatchlistsUiTest` covers list management, duplicate-name warnings, immediate multi-list check/uncheck and restoration, editable saved membership, inline list creation/automatic addition, consecutive contextual search add/remove, source retention, and search failure/retry/empty states. `WatchlistPersistenceTest` opens a populated exported version-7 schema, migrates/reopens version 8, and checks preserved profile/bookmarks/enrichment; it also checks real adapter idempotence and transaction rollback.
 
 `CatalogueNavigationUiTest` opens the real shared app, enters movie details and uses Back repeatedly, bookmarks via Profile, and restores saved navigation. It runs at phone and Fold-sized configurations. HTTP responses are fixed fixtures; movie data does not require credentials or a live service. It uses the production Koin definitions, ViewModels, repositories, and Room schema, with an in-memory database and Robolectric's Android SQLite driver instead of production bundled SQLite. Those driver/native-platform differences still require separate integration acceptance.
 
-The test uses Robolectric 4.17, API 35, and native graphics. Keep UI tests deterministic and use semantics/state-based waits. A relevant UI test must pass before marking shared UI/navigation work complete. `testAndroidHostTest` already runs in `verify.sh` and Android CI; failures propagate to a failing verification result. Host simulation does not prove iOS behavior or replace physical-device acceptance.
+The tests use Robolectric 4.17, API 35, and native graphics. The watchlist suite drains the host main queue in an outer rule after Compose disposes its content; doing so in @After is too early and can leave Paging’s process-wide dispatcher stalled for later cases. Keep UI tests deterministic and use semantics/state-based waits. The existing suite must pass before marking shared UI/navigation work complete. New-case expansion is deferred during the feature phase. `testAndroidHostTest` already runs in `verify.sh` and Android CI; failures propagate to a failing verification result. Host simulation does not prove iOS behavior or replace physical-device acceptance.
 
 References: [Robolectric setup](https://robolectric.org/getting-started/) and [Android KMP host-test resources](https://developer.android.com/kotlin/multiplatform/plugin#configure-tests).
 
@@ -91,7 +95,7 @@ Install [Maestro CLI 2.12.1](https://github.com/mobile-dev-inc/maestro/releases/
 
 The wrapper rejects an absent/offline target and does not build, install the app, or start devices. Maestro installs its test driver as needed. Keep manual interaction idle during the run. JUnit output is `build/ui-smoke/<platform>/report.xml`; local command traces/screenshots are under `artifacts/`. All outputs are ignored. Failure propagates to a nonzero exit code; analytics are disabled. The wrapper does not invoke cloud services or upload test artifacts.
 
-This native flow is separate from `verify.sh` and the existing device-free CI job; native results remain pending until supplied by the user. A shared flow definition does not establish a pass on both platforms: record each actual platform run separately. Do not start or interact with targets to obtain a result; request physical-device observations. Extend relevant host/native tests when adding features, including Watchlists. Native CI jobs remain future setup work. The flow does not replace physical-device acceptance or verify the iOS edge gesture. See [Maestro's cross-platform model](https://docs.maestro.dev/get-started/how-maestro-works).
+This native flow is separate from `verify.sh` and the existing device-free CI job; native results remain pending until supplied by the user. A shared flow definition does not establish a pass on both platforms: record each actual platform run separately. Do not start or interact with targets to obtain a result; request physical-device observations. Defer new host/native cases to the post-feature review unless requested. Native CI jobs remain future setup work. The flow does not replace physical-device acceptance or verify the iOS edge gesture. See [Maestro's cross-platform model](https://docs.maestro.dev/get-started/how-maestro-works).
 
 Do not add a new test framework, screenshot system, or broad coverage target merely to change documentation. Test user-visible guarantees rather than private implementation calls. `NO-SOURCE`, empty test scaffolding, compilation, and skipped tests are not passing behavior coverage.
 
