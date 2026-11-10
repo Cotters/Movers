@@ -11,7 +11,7 @@ Movers shares its screens, navigation, ViewModels, repositories, HTTP policy, ca
 | `:shared` | App composition, Koin graph, theme, retained bottom-navigation state, and platform service bindings |
 | Existing feature modules and contracts | Shared screens/state/use cases and feature-owned NavKeys |
 | `:profile:contract`, `:profile` | Device-profile model/repository contract, local implementation, and Profile UI |
-| `:movie:contract`, `:movie:internal` | Public movie/bookmark/search/list operations and neutral list storage API; Ktor transport, mapping, paging, freshness, and repository implementations |
+| `:movie:contract`, `:movie:internal` | Public movie/search/list operations and neutral list storage API; Ktor transport, mapping, paging, freshness, and repository implementations |
 | `:database` | Room entities/DAOs, version 9 schema with preserving 7→8→9 migrations, bundled SQLite, and platform database paths |
 | `:backend:supabase` | Supabase SDK/remote operations, anonymous identity and native secure session storage behind neutral contracts |
 | `:presentation`, `:data:network` | Shared images/transitions/snackbars and network-status contract; native network observers |
@@ -20,19 +20,19 @@ Use `src/commonMain/kotlin` and `composeResources` for reusable code/assets. `an
 
 Koin definitions stay at composition boundaries; constructors receive typed dependencies. Feature entry providers own their screens. ViewModels use the Nav 3 entry's store, not a global singleton. Navigation uses an explicit polymorphic serializer registry on both platforms; register new keys when adding destinations. Do not reintroduce Android reflection-based serialization in common code.
 
-Retain the existing Home feed, details/retry/cache behavior, bookmarks, custom Watchlists/search, and Profile. Each tab keeps its history. Reselection pops to that tab's root; Back from another tab root returns Home. Android Back at Home root exits. Error messages use the shared snackbar; Android dynamic colors remain platform-specific.
+Retain the existing Home feed, details/retry/cache behavior, custom Watchlists/search, and Profile. Each tab keeps its history. Reselection pops to that tab's root; Back from another tab root returns Home. Android Back at Home root exits. Error messages use the shared snackbar; Android dynamic colors remain platform-specific.
 
 ## Device profile and reset
 
 Account login, passwords, saved-credential prompts and logout are removed. Room stores one random installation ID, a confirmed name and a randomly assigned avatar color. First launch asks for a name; existing Josh profiles confirm or replace it once. Initialization is idempotent. Shared Lists additionally use a securely persisted anonymous backend identity behind `ParticipantIdentity`; names and installation IDs are not authorization credentials.
 
-The user explicitly authorized discarding old local data for this migration. Version 7 resets databases from versions 1–6, including old accounts/bookmarks/cache. Android also removes retired credential/session preference files and rejects old navigation saved state. Versions 8 and 9 preserve earlier profile/list data through explicit migrations; do not broaden the destructive fallback. Old schema exports remain historical records.
+The user explicitly authorized discarding old local data for this migration. Version 7 resets databases from versions 1–6, including old accounts/bookmarks/cache. Android also removes retired credential/session preference files and rejects old navigation saved state. Versions 8–10 preserve earlier profile/list data through explicit migrations; 9→10 drops only the retired bookmark table; do not broaden the destructive fallback. Old schema exports remain historical records.
 
 **The feature tour remains deferred.** First-launch name entry is explicitly included in Shared Lists. See the [agreed design](../features/shared-watchlists.md), [backend setup](../../supabase/README.md), and [vendor-neutral boundary](open-source.md). Avatar color customization and identity recovery/device linking are deferred.
 
 ## Configure and build
 
-Use JDK 17 and the SDK prerequisites in [testing](testing.md). Android uses an ignored `movie/internal/src/androidMain/kotlin/com/jcotters/internal/ApiConstants.kt`; preserve existing credentials and use the placeholder example in the testing guide for host checks. No token is compiled into common Kotlin sources.
+Build only when requested or concretely necessary for a substantial change/release; ordinary iteration uses static checks. The commands below are available tools, not automatic gates. Use JDK 17 and the SDK prerequisites in [testing](testing.md). Android uses an ignored `movie/internal/src/androidMain/kotlin/com/jcotters/internal/ApiConstants.kt`; preserve existing credentials and use the placeholder example in the testing guide for host checks. No token is compiled into common Kotlin sources.
 
 For iOS, copy `iosApp/Local.xcconfig.example` to ignored `iosApp/Local.xcconfig` and supply your own TMDB read-access token. Without it, the placeholder permits compilation but cannot load live movie data. Set `DEVELOPMENT_TEAM` in that same ignored file for physical-device/TestFlight signing; keep personal team IDs out of the project and `project.yml`. Do not commit or share the local file or unreviewed build logs. Live backend settings, Apple team IDs, signing credentials and privileged keys stay local.
 
@@ -79,9 +79,9 @@ Host checks cover shared policy, transport fixtures, repositories, profile initi
 ./gradlew :shared:assembleAndroidDeviceTest :movie:internal:assembleAndroidDeviceTest
 ```
 
-They cover retained navigation/ViewModel stores/restoration, screen loading/error states, observable/idempotent bookmarks, movie enrichment/cache transactions, and the one-time reset followed by persistence. They are not executed by agents.
+They cover retained navigation/ViewModel stores/restoration, screen loading/error states, movie enrichment/list relationships/cache transactions, and the one-time reset followed by persistence. They are not executed by agents.
 
-On your own Android device and iPhone, check Home loading and infinite scroll, a movie's details and retry, bookmark/unbookmark and Profile updates, confirmed name/avatar, all three tabs and retained histories, and relaunch persistence. Check offline startup, cached content, reconnect/retry, system insets, keyboard-free navigation, and light/dark themes. On Android, check Back/reselection/process restoration and run the compiled integration tests. Confirm the authorized reset on an old Android install using disposable data. Send device/OS versions and sanitized observations/screenshots/logs; keep runtime acceptance pending until evidence arrives.
+On your own Android device and iPhone, check Home loading and infinite scroll, a movie's details and retry, Add to list and saved memberships, Profile name editing and confirmed name/avatar, all three tabs and retained histories, and relaunch persistence. Check offline startup, cached content, reconnect/retry, system insets, keyboard-free navigation, and light/dark themes. On Android, check Back/reselection/process restoration and run the compiled integration tests. Confirm the authorized reset on an old Android install using disposable data. Send device/OS versions and sanitized observations/screenshots/logs; keep runtime acceptance pending until evidence arrives.
 
 Official references: [incremental migration](https://kotlinlang.org/docs/multiplatform/migrate-from-android.html), [Android KMP plugin](https://developer.android.com/kotlin/multiplatform/plugin), [Nav 3 serialization](https://kotlinlang.org/docs/multiplatform/compose-navigation-3.html), [Koin Compose](https://insert-koin.io/docs/reference/koin-compose/compose/), and [Room KMP](https://developer.android.com/kotlin/multiplatform/room). The current Room guide contains Room 3 prerelease snippets; Movers intentionally retains Room 2.8.5. Match installed APIs rather than copying package/version changes incidentally.
 
@@ -91,7 +91,7 @@ KMP supplies shared code/logic and target integrations; Compose Multiplatform su
 
 - Follow the dependency actually consumed by the module. Shared navigation uses the JetBrains artifact through `libs.multiplatform.navigation3.ui`; Android and shared catalog entries can have different versions. Likewise Material 3, Compose UI and lifecycle versions are independent.
 - Review common sources and public contracts for Android/JVM/provider-only types. Preserve entry-scoped ViewModels, explicit NavKey serializers and Koin bindings on both hosts. Verify packaged resources when assets/conventions change; compilation/accessors alone do not establish packaging or portable XML parsing.
-- Run the existing host gate and unsigned physical-iOS build for shared/iOS changes. For target, KSP, resource-packaging or convention changes, also compile affected configured targets, including `:shared:linkDebugFrameworkIosSimulatorArm64` when affected. This builds a framework without starting a simulator. Compile relevant Android test APKs separately.
+- Apply the [requested/necessary build policy](testing.md#verification-by-change); no automatic gates during iteration. When verification is requested/necessary, select affected host/native checks. For target, KSP, resource-packaging or convention changes, consider affected configured targets, including `:shared:linkDebugFrameworkIosSimulatorArm64` when affected. This builds a framework without starting a simulator. Compile relevant Android test APKs separately.
 - Record each target and result separately. Robolectric is Android host simulation; it does not execute iOS. Linking a framework or preparing simulator resources does not prove native launch/runtime behavior.
 - Keep platform warnings visible. The historical bundled ICU Simulator object warning (built for 18.5; configured minimum 15.0) remains a release/compatibility follow-up; successful newer-OS validation does not establish minimum-OS support.
 

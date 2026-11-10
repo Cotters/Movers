@@ -2,7 +2,7 @@
 
 The shared Compose app owns retained Home, Watchlists, and Profile tab stacks. Feature contract modules own serializable NavKeys; features provide their entries. Koin creates ViewModels using each Nav 3 entry's ViewModelStore. The composition module registers all key serializers explicitly for Android and iOS.
 
-Home is the infinite movie feed. Watchlists owns custom lists, list details/management, and the multi-list quick-add sheet. A separate Search feature supplies global and list-targeted search. Profile shows the confirmed device name/avatar, name editing, and persisted bookmarks. Name entry precedes the main shell on first launch; the feature tour remains deferred. There is no Auth destination, password entry or logout. Sharing uses anonymous backend sessions internally; see the [feature design](../features/shared-watchlists.md) for invitations, Members and Activity.
+Home is the infinite movie feed. Watchlists owns custom lists, list details/management, and the multi-list quick-add sheet. A separate Search feature supplies global and list-targeted search. Profile shows the confirmed device name/avatar, and name editing. Saved films belong to Watchlists. Name entry precedes the main shell on first launch; the feature tour remains deferred. There is no Auth destination, password entry or logout. Sharing uses anonymous backend sessions internally; see the [feature design](../features/shared-watchlists.md) for invitations, Members and Activity.
 
 - Switching tabs preserves their histories and root scroll state.
 - Reselecting the active tab pops it to its root.
@@ -18,13 +18,13 @@ List/search/picker keys live in feature contracts and are registered by `:shared
 
 Run these on your own Android device and iPhone, using configured movie API access:
 
-1. Scroll Home, open a detail, switch to Profile, open a bookmarked movie, and switch back. Confirm each tab retains its own detail/history and Home scroll position.
+1. Scroll Home, open a detail, switch to Profile, confirm name/avatar, and switch back to the retained detail. Confirm each tab retains its own detail/history and Home scroll position.
 2. Tap the active tab again. Confirm it returns to its root without losing the other tabs' history; repeated taps at the root do not duplicate entries.
 3. Pop details through the on-screen/platform Back behavior and iOS navigation gesture. Confirm the selected tab and Home-return policy remain coherent.
-4. Bookmark/unbookmark a movie. Confirm Profile changes through persisted observation, shows the confirmed name/avatar and offers name editing without account controls. Relaunch and confirm bookmarks/name persist.
+4. Confirm movie details offer Add to list without a bookmark action. Profile shows the confirmed name/avatar and name editing, with no bookmark shelf. Edit the name and relaunch to confirm it persists.
 5. Check status/navigation-bar and safe-area insets, landscape, large text, and light/dark mode. The bar must stay visible on details and Profile.
 6. Create two lists (including equal names), add a catalogue film to both, open its details, and verify memberships are checked and editable. Uncheck/recheck to remove/add immediately, then close with no confirmation. Create another list inside the picker; it automatically receives the movie and persists when the picker closes.
-7. In a list, tap +, search, add two films consecutively, and confirm search stays open with red Remove actions. Remove an accidentally added result, verify it returns to Add, then re-add without leaving search. Open a result detail, use quick-add, then return and check query/scroll. Rename/remove/delete and relaunch; verify persistence and independent bookmarks. Repeat cached list access offline and search failure/retry.
+7. In a list, tap +, search, add two films consecutively, and confirm search stays open with red Remove actions. Remove an accidentally added result, verify it returns to Add, then re-add without leaving search. Open a result detail, use quick-add, then return and check query/scroll. Rename/remove/delete and relaunch; verify list membership and movie details persist. Repeat cached list access offline and search failure/retry.
 8. On Android, recreate the activity and test process restoration with a detail open in another tab. Confirm the selected stack restores without stale Auth keys or duplicate ViewModels.
 
-The compiled `MoversNavigationShellTest` in `:shared` checks retained per-entry stores and saved-state restoration. Agents only compile it. Record physical-device observations, device/OS versions, and sanitized screenshots/logs before marking acceptance complete. No runtime result has been inferred from compilation or host policy tests.
+The compiled `MoversNavigationShellTest` in `:shared` checks retained per-entry stores and saved-state restoration. Agents may compile it only under the requested/necessary build policy. Record physical-device observations, device/OS versions, and sanitized screenshots/logs before marking acceptance complete. No runtime result has been inferred from compilation or host policy tests.

@@ -14,8 +14,6 @@ kotlin {
         implementation(project(":presentation"))
         implementation(project(":navigation:contract"))
         implementation(project(":profile:contract"))
-        implementation(project(":movie:contract"))
-        implementation(project(":features:details:contract"))
     }
 }
 

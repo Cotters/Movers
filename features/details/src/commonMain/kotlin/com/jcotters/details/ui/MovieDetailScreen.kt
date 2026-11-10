@@ -66,8 +66,6 @@ import com.jcotters.presentation.moviePosterKey
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.add
 import com.jcotters.presentation.resources.arrow_back
-import com.jcotters.presentation.resources.bookmark_filled
-import com.jcotters.presentation.resources.bookmark_outline
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -97,7 +95,7 @@ fun MovieDetailScreen(
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             MovieHeader(
-                movie, viewState, onViewEvent, posterModifier, movieId, onBack, onAddToList,
+                movie, posterModifier, movieId, onBack, onAddToList,
                 loadingMissingDetails, placeholderAlpha,
             )
             Column(
@@ -175,8 +173,6 @@ fun MovieDetailScreen(
 @Composable
 private fun MovieHeader(
     movie: Movie?,
-    viewState: MovieDetailViewState,
-    onViewEvent: (MovieDetailViewEvent) -> Unit,
     posterModifier: Modifier,
     movieId: Int?,
     onBack: (() -> Unit)?,
@@ -213,26 +209,17 @@ private fun MovieHeader(
             if (onBack != null) {
                 HeaderButton(Res.drawable.arrow_back, "Back", onClick = onBack)
             } else Spacer(Modifier.size(48.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (movie != null) {
-                    if (onAddToList != null) HeaderButton(Res.drawable.add, "Add to list", onClick = onAddToList)
-                    HeaderButton(
-                        icon = if (viewState.isBookmarked) Res.drawable.bookmark_filled else Res.drawable.bookmark_outline,
-                        description = "Bookmark movie button",
-                        onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) },
-                        enabled = viewState.isBookmarkLoaded && !viewState.isSavingBookmark,
-                    )
-                }
+            if (movie != null && onAddToList != null) {
+                HeaderButton(Res.drawable.add, "Add to list", onClick = onAddToList)
             }
         }
     }
 }
 
 @Composable
-private fun HeaderButton(icon: DrawableResource, description: String, onClick: () -> Unit, enabled: Boolean = true) {
+private fun HeaderButton(icon: DrawableResource, description: String, onClick: () -> Unit) {
     IconButton(
         onClick = onClick,
-        enabled = enabled,
         modifier = Modifier.size(48.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.5f)),
     ) {
         Icon(painterResource(icon), contentDescription = description, tint = Color.White)
@@ -277,8 +264,8 @@ private fun MovieSummary(
             )
             DetailValue("tagline", movie?.tagline, loading, placeholderAlpha)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                movie?.releaseDate?.takeIf { it.isNotBlank() }?.let {
-                    Text("Released $it", style = MaterialTheme.typography.bodyMedium)
+                movie?.releaseDate?.takeIf(String::isNotBlank)?.let { date ->
+                    Text(text = date, style = MaterialTheme.typography.bodyMedium)
                 }
                 DetailValue(
                     "runtime", movie?.runtimeMinutes?.let(::formatRuntime), loading, placeholderAlpha,
@@ -346,7 +333,7 @@ private val previewMovie = Movie(
 @Preview(name = "Completed", widthDp = 360, heightDp = 800)
 @Composable
 private fun MovieDetailScreenPreview() {
-    DetailPreview(MovieDetailViewState(isLoading = false, movie = previewMovie, isBookmarked = true, isBookmarkLoaded = true))
+    DetailPreview(MovieDetailViewState(isLoading = false, movie = previewMovie))
 }
 
 @Preview(name = "Initial loading", widthDp = 360, heightDp = 800)

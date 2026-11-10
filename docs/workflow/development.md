@@ -6,8 +6,8 @@ Reviewed 9 November 2026. These are current working agreements. The [retrospecti
 
 1. Inspect Git status/HEAD, relevant code and existing checks. Locate the nearest working feature, actual consumed dependencies and platform boundaries before proposing changes.
 2. For a new feature, agree outcome, consequential unknowns and scope. A clear follow-up can proceed directly. Keep a short requirement note in the handoff for substantial work: behavior, affected modules, exclusions, checks and unresolved assumptions. Do not create a new planning system for every task.
-3. Implement one coherent slice at a time. Follow existing conventions, use focused checks during iteration and preserve unrelated edits. Product changes and toolchain migrations are separate tasks unless explicitly combined.
-4. Review the resulting diff against requirements. During the feature phase, run existing tests and update intended expectations; add no new cases unless requested. Use [the verification decision table](testing.md#verification-by-change) and run the applicable final gates after changes settle.
+3. Implement one coherent slice at a time. Follow existing conventions, use source/diff/static checks during iteration and preserve unrelated edits. Product changes and toolchain migrations are separate tasks unless explicitly combined.
+4. Review the resulting diff against requirements. During the feature phase, update existing test expectations; add no new cases unless requested. Do not run routine builds, compilation-backed tests or automatic final gates. Run them only on explicit request or a concrete need for a substantial change/release, explained before execution. Use [the verification decision table](testing.md#verification-by-change) to choose the smallest necessary scope and report deferred verification.
 5. Report outcome, evidence and limits; update current memory. A docs-only edit needs document validation, not an Android/iOS rebuild. Do not rerun successful checks to generate a newer timestamp when nothing relevant changed.
 
 A useful substantial-task note is small:
@@ -33,7 +33,7 @@ Keep a short working record, not another permanent log for every command:
 1. Wait for the active process to finish or identify its current state. Use a fresh log path per run; avoid concurrent Gradle/Xcode jobs against shared outputs. A filtered test run can overwrite a module's earlier JUnit XML, so do not mix their counts.
 2. Read the complete failure chain and failing assertion. For a UI timeout, identify the expected screen/text and inspect its semantics/loading/error state. Inspect installed library source or exception definitions when needed. A timeout alone does not identify a deadlock, slow network or infinite recomposition.
 3. Distinguish production behavior, fixture/harness behavior and environment/setup failure. An isolated pass followed by a suite failure suggests order/lifecycle/shared-state work to investigate; it does not prove an app defect.
-4. Make one evidence-backed change, run the smallest relevant check, and inspect its result. After **two failed hypotheses**, stop speculative edits, collect missing diagnostics, and update the user with what is known and what the next check will distinguish. This is a project heuristic to prevent loops, not a research-proven threshold or an instruction to abandon the task.
+4. Make one evidence-backed change, run the smallest relevant check permitted by the build policy, and inspect its result. After **two failed hypotheses**, stop speculative edits, collect missing diagnostics, and update the user with what is known and what the next check will distinguish. This is a project heuristic to prevent loops, not a research-proven threshold or an instruction to abandon the task.
 5. Remove failed experiments and temporary diagnostics. Keep only the confirmed fix and useful failure reporting. Do not change product architecture merely to appease a host fixture, increase timeouts blindly, disable checks or present an unconfirmed cause as fact.
 
 The confirmed Paging/Robolectric cleanup issue is recorded in [testing](testing.md#host-ui-regression-gate). Treat it as a specific lifecycle lesson, not a universal dispatcher workaround.
@@ -44,12 +44,12 @@ Android's `:app` and SwiftUI `iosApp` use `:shared`. Screens, state, navigation,
 
 Representative patterns:
 
-- [MovieDetailViewModel](../../features/details/src/commonMain/kotlin/com/jcotters/details/ui/MovieDetailViewModel.kt): persisted details, refresh/retry, state and bookmark events.
-- [ProfileViewModel](../../profile/src/commonMain/kotlin/com/jcotters/profile/ui/ProfileViewModel.kt): observable local profile and bookmarks.
+- [MovieDetailViewModel](../../features/details/src/commonMain/kotlin/com/jcotters/details/ui/MovieDetailViewModel.kt): persisted details, refresh/retry and observable state.
+- [ProfileViewModel](../../profile/src/commonMain/kotlin/com/jcotters/profile/ui/ProfileViewModel.kt): observable local profile and name editing.
 - [NavigationState](../../shared/src/commonMain/kotlin/com/jcotters/movers/ui/NavigationState.kt): retained stacks and explicit key serialization.
 - [WatchlistDatabase](../../movie/contract/src/commonMain/kotlin/com/jcotters/contract/watchlists/data/WatchlistDatabase.kt): provider-neutral storage contract behind repository policy.
 
-Review non-obvious invariants: observable persisted membership rather than competing saved copies; cancellation propagation; scoped writes and pending-row guards; relationship-preserving Room migrations; resource packaging and cross-platform vector parsing; source/query/scroll retention. Use atomic StateFlow updates when deriving a new value from the old one; independent assignments are not categorically wrong. Preserve catalogue/detail freshness policies and independent bookmarks.
+Review non-obvious invariants: observable persisted membership rather than competing saved copies; cancellation propagation; scoped writes and pending-row guards; relationship-preserving Room migrations; resource packaging and cross-platform vector parsing; source/query/scroll retention. Use atomic StateFlow updates when deriving a new value from the old one; independent assignments are not categorically wrong. Preserve catalogue/detail freshness policies and list membership.
 
 Match actual artifacts and installed APIs. In particular, shared navigation consumes `org.jetbrains.androidx.navigation3:navigation3-ui` through `libs.multiplatform.navigation3.ui`; the separate Android `navigation3` version alias does not establish its version. Read the catalog/module declaration and, when necessary, dependency output before copying a sample or making a compatibility claim. Apply [KMP/CMP checks](multiplatform.md#changes-to-shared-code) without incidental upgrades.
 

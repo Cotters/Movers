@@ -26,7 +26,7 @@ Feature repositories depend on app-owned database/identity APIs. Room is the obs
 
 The server stores profiles, lists, active/inactive memberships, unique current list/movie entries, immutable film events, hashed invites and idempotency receipts. Exposed tables use RLS. RPCs validate authenticated identity and membership; private definer functions have fixed search paths and explicit grants. Film mutations and events commit together. Creator departure does not change permissions. Join and Leave serialize on the same list record.
 
-Room 8→9 preserves profile/bookmarks/personal lists/movie enrichment and adds profile confirmation/color, shared snapshots, activity/cursors and already-started online operations. Versions 1–6 remain the only authorized destructive fallback. Shared cache removal does not delete independently referenced films/bookmarks.
+Room 8→9 preserves profile/bookmarks/personal lists/movie enrichment and adds profile confirmation/color, shared snapshots, activity/cursors and already-started online operations. Versions 1–6 remain the only authorized destructive fallback. Room 9→10 intentionally removes the bookmark table; profile, lists, movie enrichment and shared cache remain. Shared cache removal does not delete independently referenced films.
 
 ## Synchronization and failure semantics
 
@@ -42,9 +42,9 @@ Room 8→9 preserves profile/bookmarks/personal lists/movie enrichment and adds 
 
 Backend setup is documented in [Supabase setup](../../supabase/README.md). Commit reviewed migrations/templates, never live credentials or user data. A new Supabase instance needs its own deployment/settings; another provider implements the neutral APIs and bindings. Live provisioning is separate from feature implementation.
 
-Run existing host tests, lint/debug packaging, unsigned physical-iOS builds, relevant Android test-APK compilation, and documentation checks. Maintain existing assertions/fixtures; new test cases remain deferred under the feature-phase policy. Disposable PostgreSQL checks verify allow/deny paths, actor attribution, deduplication/retries, invitation revocation and retirement. These do not establish deployed Supabase Auth/Realtime or native runtime acceptance.
+Use static checks during iteration. When requested or concretely necessary for substantial changes/releases, use existing host tests, lint/debug packaging, unsigned physical-iOS builds and relevant Android test-APK compilation; see [verification policy](../workflow/testing.md). Documentation checks do not require a build. Maintain existing assertions/fixtures; new test cases remain deferred under the feature-phase policy. Disposable PostgreSQL checks verify allow/deny paths, actor attribution, deduplication/retries, invitation revocation and retirement. These do not establish deployed Supabase Auth/Realtime or native runtime acceptance.
 
-People validate two physical devices: join/publish, bidirectional changes and conflicts, interruption/retry, offline/reconnect, activity/avatars, cold/warm links, leave/rejoin, persistence and existing local/bookmark/navigation behavior. Never run emulators/simulators or connected tests as an agent.
+People validate two physical devices: join/publish, bidirectional changes and conflicts, interruption/retry, offline/reconnect, activity/avatars, cold/warm links, leave/rejoin, persistence and existing local-list/profile/navigation behavior. Never run emulators/simulators or connected tests as an agent.
 
 Deferred: recovery/device linking, color picker, feature tour, HTTPS links/install fallback, push/comments/voting, and expanded automated coverage. Public source is not permission to expose an unrestricted anonymous signup service: apply CAPTCHA/abuse controls before public backend distribution. Free projects may pause when inactive.
 

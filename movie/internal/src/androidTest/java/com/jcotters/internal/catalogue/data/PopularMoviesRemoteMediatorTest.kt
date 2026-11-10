@@ -12,7 +12,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.jcotters.contract.time.AppClock
 import com.jcotters.database.MoversDatabase
-import com.jcotters.database.bookmarks.Bookmark
+import com.jcotters.database.watchlists.DbWatchlist
+import com.jcotters.database.watchlists.DbWatchlistMovie
 import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.movies.MovieCatalogue
 import com.jcotters.internal.MovieApi
@@ -45,9 +46,10 @@ class PopularMoviesRemoteMediatorTest {
     }
 
     @Test
-    fun appendingDoesNotExtendFreshnessAndRefreshPreservesBookmarks() = runTest {
+    fun appendingDoesNotExtendFreshnessAndRefreshPreservesWatchlists() = runTest {
         assertTrue(mediator(startTime).load(LoadType.REFRESH, state) is RemoteMediator.MediatorResult.Success)
-        database.bookmarkDao().insertBookmark(Bookmark(1))
+        database.watchlistDao().insert(DbWatchlist("saved", "Saved list", 1))
+        database.watchlistDao().insertMovie(DbWatchlistMovie("saved", 1, 2))
         database.movieDao().saveMovieDetails(database.movieDao().getMovieById(1)!!.copy(
             tagline = "Keep this tagline", runtimeMinutes = 125, detailsFetchedAt = startTime,
         ))
@@ -60,12 +62,12 @@ class PopularMoviesRemoteMediatorTest {
         api.title = "Updated movie"
         assertTrue(mediator(expired).load(LoadType.REFRESH, state) is RemoteMediator.MediatorResult.Success)
         assertEquals(expired, database.movieCatalogueRemoteKeysDao().getRemoteKey(MovieCatalogue.Popular.key)?.lastRefreshedAt)
-        val bookmarkedMovie = database.bookmarkDao().observeBookmarkedMovies().first().single()
-        assertEquals(1, bookmarkedMovie.id)
-        assertEquals("Updated movie", bookmarkedMovie.title)
-        assertEquals("Keep this tagline", bookmarkedMovie.tagline)
-        assertEquals(125, bookmarkedMovie.runtimeMinutes)
-        assertEquals(startTime, bookmarkedMovie.detailsFetchedAt)
+        val savedMovie = checkNotNull(database.watchlistDao().observeContent("saved").first()).entries.single().movie
+        assertEquals(1, savedMovie.id)
+        assertEquals("Updated movie", savedMovie.title)
+        assertEquals("Keep this tagline", savedMovie.tagline)
+        assertEquals(125, savedMovie.runtimeMinutes)
+        assertEquals(startTime, savedMovie.detailsFetchedAt)
     }
 
     @Test

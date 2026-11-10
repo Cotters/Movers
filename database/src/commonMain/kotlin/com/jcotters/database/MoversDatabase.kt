@@ -5,8 +5,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.jcotters.database.bookmarks.Bookmark
-import com.jcotters.database.bookmarks.BookmarkDao
 import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.movies.DbMovieCatalogueEntry
 import com.jcotters.database.movies.DbMovieCatalogueRemoteKey
@@ -15,25 +13,41 @@ import com.jcotters.database.movies.MovieCatalogueRemoteKeysDao
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.database.profile.DeviceProfile
 import com.jcotters.database.profile.DeviceProfileDao
+import com.jcotters.database.watchlists.DbSharedActivity
+import com.jcotters.database.watchlists.DbSharedActivityCursor
+import com.jcotters.database.watchlists.DbSharedList
+import com.jcotters.database.watchlists.DbSharedOperation
 import com.jcotters.database.watchlists.DbWatchlist
 import com.jcotters.database.watchlists.DbWatchlistMovie
+import com.jcotters.database.watchlists.SharedCacheDao
+import com.jcotters.database.watchlists.SharedMigration8To9
 import com.jcotters.database.watchlists.WatchlistDao
 import com.jcotters.database.watchlists.WatchlistMigration7To8
 import kotlin.coroutines.CoroutineContext
 
 @Database(
-    entities = [DeviceProfile::class, Bookmark::class, DbMovie::class, DbMovieCatalogueEntry::class, DbMovieCatalogueRemoteKey::class, DbWatchlist::class, DbWatchlistMovie::class, com.jcotters.database.watchlists.DbSharedList::class, com.jcotters.database.watchlists.DbSharedOperation::class, com.jcotters.database.watchlists.DbSharedActivity::class, com.jcotters.database.watchlists.DbSharedActivityCursor::class],
-    version = 9,
+    entities = [
+        DeviceProfile::class,
+        DbMovie::class,
+        DbMovieCatalogueEntry::class,
+        DbMovieCatalogueRemoteKey::class,
+        DbWatchlist::class,
+        DbWatchlistMovie::class,
+        DbSharedList::class,
+        DbSharedOperation::class,
+        DbSharedActivity::class,
+        DbSharedActivityCursor::class,
+    ],
+    version = 10,
 )
 @ConstructedBy(MoversDatabaseConstructor::class)
 abstract class MoversDatabase : RoomDatabase() {
     abstract fun profileDao(): DeviceProfileDao
-    abstract fun bookmarkDao(): BookmarkDao
     abstract fun movieDao(): MovieDao
     abstract fun movieCatalogueDao(): MovieCatalogueDao
     abstract fun movieCatalogueRemoteKeysDao(): MovieCatalogueRemoteKeysDao
     abstract fun watchlistDao(): WatchlistDao
-    abstract fun sharedCacheDao(): com.jcotters.database.watchlists.SharedCacheDao
+    abstract fun sharedCacheDao(): SharedCacheDao
 }
 
 @Suppress("KotlinNoActualForExpect")
@@ -44,7 +58,7 @@ expect object MoversDatabaseConstructor : RoomDatabaseConstructor<MoversDatabase
 fun createDatabase(builder: RoomDatabase.Builder<MoversDatabase>, queryContext: CoroutineContext): MoversDatabase = builder
     .setDriver(BundledSQLiteDriver())
     .setQueryCoroutineContext(queryContext)
-    .addMigrations(WatchlistMigration7To8, com.jcotters.database.watchlists.SharedMigration8To9)
+    .addMigrations(WatchlistMigration7To8, SharedMigration8To9, RemoveBookmarksMigration9To10)
     // One-time, explicitly authorized reset from the retired account-based app.
     .fallbackToDestructiveMigrationFrom(true, 1, 2, 3, 4, 5, 6)
     .build()

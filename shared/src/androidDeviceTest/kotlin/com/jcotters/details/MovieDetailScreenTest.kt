@@ -51,7 +51,7 @@ class MovieDetailScreenTest {
             .onNodeWithText(movie.synopsis)
             .assertIsDisplayed()
         composeTestRule
-            .onNodeWithText("Released ${movie.releaseDate}")
+            .onNodeWithText(movie.releaseDate)
             .assertIsDisplayed()
     }
 

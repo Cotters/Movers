@@ -7,7 +7,8 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.jcotters.database.MoversDatabase
-import com.jcotters.database.bookmarks.Bookmark
+import com.jcotters.database.watchlists.DbWatchlist
+import com.jcotters.database.watchlists.DbWatchlistMovie
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -66,12 +67,13 @@ fun deviceProfileKeepsItsOriginalInstallationId() = runTest {
             tagline = "Saved tagline", runtimeMinutes = 125, genres = listOf(DbMovieGenre(18, "Drama")),
             voteAverage = 7.8, voteCount = 50, status = "Released", originalLanguage = "en", detailsFetchedAt = 123)
         movieDao.saveMovieDetails(enriched)
-        database.bookmarkDao().insertBookmark(Bookmark(7))
+        database.watchlistDao().insert(DbWatchlist("saved", "Saved list", 1))
+        database.watchlistDao().insertMovie(DbWatchlistMovie("saved", 7, 2))
         database.movieCatalogueDao().insertCatalogueEntries(listOf(DbMovieCatalogueEntry("popular", 7, 1, 0)))
         movieDao.upsertCatalogueMovies(listOf(DbMovie(7, "New title", "New overview", "2027", voteAverage = 8.1, voteCount = 100)))
         val expected = enriched.copy(title = "New title", synopsis = "New overview", releaseDate = "2027", voteAverage = 8.1, voteCount = 100)
         assertEquals(expected, movieDao.getMovieById(7))
-        assertEquals(listOf(expected), database.bookmarkDao().observeBookmarkedMovies().first())
+        assertEquals(expected, database.watchlistDao().observeContent("saved").first()?.entries?.single()?.movie)
         val page = movieDao.getPopularMoviesPagingSource("popular").load(
             PagingSource.LoadParams.Refresh(key = null, loadSize = 20, placeholdersEnabled = false),
         )

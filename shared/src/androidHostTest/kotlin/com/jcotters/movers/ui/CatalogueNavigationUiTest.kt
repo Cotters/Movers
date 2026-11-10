@@ -3,11 +3,8 @@ package com.jcotters.movers.ui
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.hasContentDescription
-import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -67,26 +64,22 @@ class CatalogueNavigationUiTest {
             compose.onNodeWithText("Popular Movies").assertIsDisplayed()
         }
         openMovie()
-        compose.onNodeWithContentDescription("Bookmark movie button").performClick()
         compose.onNodeWithText("Profile").performClick()
         awaitText("Josh")
-        compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodesWithContentDescription("Movie poster for Test Movie").fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onNodeWithContentDescription("Movie poster for Test Movie").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Edit name").assertIsDisplayed()
+        compose.onNodeWithText("Bookmarks").assertDoesNotExist()
+        compose.onNodeWithText("Home").performClick()
         awaitText("Loaded movie details")
-        awaitBookmark()
-        compose.onNodeWithContentDescription("Bookmark movie button").assertIsEnabled().performClick()
         goBack(useSystemBack)
-        awaitText("No Saved Movies")
+        compose.onNodeWithText("Popular Movies").assertIsDisplayed()
     }
 
     private fun openMovie() {
         awaitText("Test Movie")
         compose.onNodeWithText("Test Movie").performClick()
         awaitText("Loaded movie details")
-        awaitBookmark()
-        compose.onNodeWithContentDescription("Bookmark movie button").assertIsDisplayed().assertIsEnabled()
+        compose.onNodeWithContentDescription("Add to list").assertIsDisplayed().assertIsEnabled()
+        compose.onNodeWithContentDescription("Bookmark movie button").assertDoesNotExist()
     }
 
     private fun goBack(useSystemBack: Boolean = false) {
@@ -104,10 +97,4 @@ class CatalogueNavigationUiTest {
         }
     }
 
-    private fun awaitBookmark() {
-        compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodes(hasContentDescription("Bookmark movie button") and isEnabled())
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-    }
 }
