@@ -1,17 +1,11 @@
 # [Movers](https://avatar.fandom.com/wiki/Mover)
 An Android and iOS movie app using [TheMovieDB](https://www.themoviedb.org/), Kotlin Multiplatform, and shared Compose UI.
 
-## Development workflow
-
-Start with [Human.md](docs/workflow/Human.md) for the workflow, its purpose, and a place to suggest improvements. [Development guidance](docs/workflow/development.md), [verification setup and commands](docs/workflow/testing.md), and [the current handoff](docs/workflow/handoff.md) preserve the details between contributors and AI sessions.
-
-Builds and compilation-backed tests run only when requested or needed for substantial changes/releases; iteration uses static checks. For verification, after completing the prerequisites, use `./scripts/verify.sh` for host tests, lint, and an Android debug build. On macOS, `./scripts/verify-ios.sh` builds the unsigned iOS app with the physical-device SDK. See [multiplatform setup](docs/workflow/multiplatform.md) for configuration and ownership. Physical-device acceptance remains user-owned.
-
-Agents run host checks and builds only. People verify on physical Android/iOS devices; agents never start or interact with emulators/simulators or run connected tests. Retained [native smoke flows](docs/workflow/testing.md#shared-native-smoke-flow) remain available for user-owned validation. Host Compose UI regressions run through `verify.sh`.
-
 ## Shared lists
 
-Publish a personal list, invite friends, and collaborate with contributor avatars and film activity. Local lists work without a backend. Configure your own instance using [Supabase setup](supabase/README.md); the [design](docs/features/shared-watchlists.md) explains permissions, offline behavior, device identity and replaceable adapters.
+Build a watchlist locally for yourself or publish to a database and collaborate with friends.
+
+Configure your own instance using [Supabase setup](supabase/README.md); the [design](docs/features/shared-watchlists.md) explains permissions, offline behavior, device identity and replaceable adapters.
 
 ## Technologies
 - Kotlin Multiplatform and Compose Multiplatform for shared logic and UI
@@ -24,9 +18,11 @@ Publish a personal list, invite friends, and collaborate with contributor avatar
 
 ## Preview
 
-While this is a work in progress, here's a preview of the app.
+Home has a feed showing popular movies and a movie detail view showing more info with expandable images.
+Watchlists contains user created lists of films. These can be personal on-device, or shared with friends and hosted on a database/backend.
+Simple add feature in every view to expand your watchlsits.
 
-Historical Android preview: movie-poster transitions and the now-retired bookmark feature. Its sign-in/logout UI has since been replaced by a device profile; users now choose a name on first launch. A feature introduction remains deferred.
+https://github.com/user-attachments/assets/0abc34e9-c8ef-48e5-aee7-b40896a8541a
 
-https://github.com/user-attachments/assets/96d1be5d-352e-4a44-8161-f212dc407207
+
 
