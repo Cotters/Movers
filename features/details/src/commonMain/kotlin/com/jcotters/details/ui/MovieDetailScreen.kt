@@ -134,7 +134,6 @@ fun MovieDetailScreen(
                             }
                         }
                     }
-                    DetailValue("rating", formatRating(movie), loadingMissingDetails, placeholderAlpha)
                     DetailValue(
                         "synopsis", movie?.synopsis, loadingMissingDetails, placeholderAlpha,
                         style = MaterialTheme.typography.bodyMedium
@@ -254,7 +253,7 @@ private fun MovieSummary(
             modifier = Modifier
                 .weight(1f)
                 .heightIn(min = posterHeight)
-                .padding(top = overlap + 12.dp)
+                .padding(top = overlap + 8.dp)
                 .animateContentSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),
         ) {
@@ -263,13 +262,26 @@ private fun MovieSummary(
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
             )
             DetailValue("tagline", movie?.tagline, loading, placeholderAlpha)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                movie?.releaseDate?.takeIf(String::isNotBlank)?.let { date ->
-                    Text(text = date, style = MaterialTheme.typography.bodyMedium)
+            val releaseDate = movie?.releaseDate?.takeIf(String::isNotBlank)
+            val runtime = movie?.runtimeMinutes?.let(::formatRuntime)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (releaseDate != null || runtime != null || loading) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (releaseDate != null) {
+                            Text(releaseDate, style = MaterialTheme.typography.bodyMedium)
+                            if (runtime != null || loading) {
+                                Text("•", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        DetailValue("runtime", runtime, loading, placeholderAlpha)
+                    }
                 }
                 DetailValue(
-                    "runtime", movie?.runtimeMinutes?.let(::formatRuntime), loading, placeholderAlpha,
-                    modifier = Modifier,
+                    "rating", formatRating(movie), loading, placeholderAlpha,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
         }
