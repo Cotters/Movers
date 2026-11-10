@@ -6,6 +6,10 @@ plugins {
 
 val catalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
+dependencies {
+    add("androidRuntimeClasspath", catalog.findLibrary("multiplatform-ui-tooling").get())
+}
+
 kotlin {
     android { androidResources.enable = true }
     sourceSets.commonMain.dependencies {

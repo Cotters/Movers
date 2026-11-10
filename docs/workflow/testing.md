@@ -89,6 +89,8 @@ For Compose resource or packaging changes, inspect the built APK's `assets/compo
 
 ## Host UI regression gate
 
+For layout work, use bounded, state-only Compose previews alongside the existing host suite. Movie-detail previews include loading, partial/error data, long titles with large text and a wide viewport; image components use static inspection-mode placeholders without initializing the live image loader. `ComposeViewAdapter` must resolve on the feature's Android runtime classpath (see [conventions](../../build-logic/README.md)). Ask the user to sync/refresh and report actual IDE rendering; previews/builds do not replace physical-device layout acceptance.
+
 The app uses JUnit 4, MockK, Koin, and Compose. `movers.multiplatform.ui-testing` adds Robolectric only to opted-in Android host tests, with Android resources and Compose test APIs. No emulator, simulator, ADB, installation, or device interaction is involved. Run the UI regression directly or through the complete host script:
 
 ```sh

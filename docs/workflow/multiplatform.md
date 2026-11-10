@@ -48,17 +48,28 @@ The iOS verification script builds unsigned with the physical-device SDK; it doe
 
 For archive readiness, run `./scripts/verify-ios.sh --archive` as a separate check. It exercises Release optimization and writes an unsigned archive to `build/iosArchives/Movers.xcarchive`; use Xcode's signed Archive flow for actual device/TestFlight distribution. See [verification](testing.md#shared-androidios-verification) for heap settings and the difference between Debug and archive coverage.
 
-### App Store Connect setup
+### App Store Connect and uploads
 
-A registered bundle ID and an App Store Connect app record are separate. The supplied upload logs show successful registration of `com.jcotters.movers`, followed by missing-app-record errors and HTTP 409 because the requested App Store name was already used by another account. Keep the bundle ID consistent with the archive and choose an available listing name. See Apple's [app-record setup](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/) and [bundle-ID requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/).
+The app record now exists as **Movers: Shared Watchlists**, with bundle ID and SKU `com.jcotters.movers`. The latest Xcode log records successful creation (HTTP 201), and ASC CLI independently confirms it. A repeated SKU warning during another creation attempt is not a reason to change the bundle ID: reuse the existing record. See Apple's [app-record setup](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/) and [bundle-ID/SKU requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/).
 
-The approved iOS display/listing name is **Movers: Shared Watchlists**, with a unique listing-name fallback if necessary. `APP_DISPLAY_NAME` in `iosApp/Configuration.xcconfig` supplies the display name through `Info.plist` and the XcodeGen specification. The internal product/short bundle name remains Movers; its bundle ID remains `com.jcotters.movers`. Plist version fields reference `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`, so the packaged version follows Xcode's settings rather than stale literals.
+Android and iOS marketing versions are **0.1.0**, with numeric build counter **2**. Keep the counter monotonic for later uploads. `APP_DISPLAY_NAME` in `iosApp/Configuration.xcconfig` supplies the iOS display name; plist and XcodeGen reference it. Plist version fields reference `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`, preventing stale literal values in archives. The internal product name remains Movers.
 
-Create a fresh signed archive in Xcode with Product → Archive, then choose Distribute App → App Store Connect → Upload in Organizer. If asked to create the app record, explicitly enter **Movers: Shared Watchlists**, select `com.jcotters.movers`, and use a stable SKU such as `com.jcotters.movers`. If Organizer cannot create it, use App Store Connect → Apps → + → New App with those same values, then retry the archive's upload. A project display-name change does not register or reserve the server-side listing name; Apple must accept the chosen name.
+Both normal Xcode Organizer upload and ASC CLI upload are supported. The verified CLI pipeline is:
 
-The user switched to this Xcode route after ASC CLI 5.1 web login failed with HTTP 404 while fetching its auth-service key. Do not keep requesting CLI password/2FA to work around that failure. Its API authentication remains useful for read-only verification, using installed commands discovered through `--help`, such as `asc apps list --bundle-id com.jcotters.movers`. Record creation through `asc web apps create` requires a separate working Apple web session; the API key alone is insufficient.
+1. Run existing host verification, then `asc xcode archive` for the Movers scheme in Release configuration, with a generic iOS destination and a distinct ignored archive path. The verification script's unsigned archive is a separate build check.
+2. Generate export options with `asc xcode export-options generate`, writing them under ignored `build/`. Use `method=app-store-connect`, `destination=export`, automatic signing and `manageAppVersionAndBuildNumber=false` to preserve the verified version/build.
+3. Run `asc xcode export` with those options and `--xcodebuild-flag=-allowProvisioningUpdates`. Xcode's signing account/provisioning setup must work; check the resulting IPA's signature, App Store profile and metadata before upload.
+4. Upload the signed IPA through the working API-key authentication and wait for processing:
 
-Keep Xcode distribution logs, `.asc/config.json`, private keys, provisioning profiles and archives out of Git. Distribution logs can include account/session details; inspect them with sanitized output. The project's ignore rules cover those artifacts. After local name/version changes, archive again to capture the new metadata. Verify actual App Store Connect state before reporting an upload or TestFlight success.
+```sh
+asc builds upload --app com.jcotters.movers   --ipa PATH_TO_SIGNED_IPA --checksum --wait
+```
+
+Discover flags through the installed command's `--help`; this flow was verified with ASC CLI 5.1. The CLI's separate Apple web-login path returned HTTP 404 fetching its auth-service key, but that did not prevent signed export or API upload. Do not request repeated web logins for an existing app's upload. Confirm `VALID` processing with `asc builds list` before declaring success; an upload is separate from review submission, tester distribution and store publication.
+
+For Organizer, create a fresh signed archive with Product → Archive, then choose Distribute App → App Store Connect → Upload. Use the existing record. If the failed creation flow remains open, close it and begin distribution again, checking the selected account/team.
+
+Keep distribution logs, `.asc/config.json`, private keys, provisioning profiles, export options, archives and IPAs out of Git. Inspect logs with sanitized output. No real signing identifiers or credentials belong in public setup examples.
 
 ## Verification and physical-device acceptance
 

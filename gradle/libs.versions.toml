@@ -45,6 +45,7 @@ multiplatform-foundation = { module = "org.jetbrains.compose.foundation:foundati
 multiplatform-material3 = { module = "org.jetbrains.compose.material3:material3", version = "1.9.0" }
 multiplatform-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 multiplatform-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+multiplatform-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 compose-multiplatform-gradlePlugin = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "composeMultiplatform" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }

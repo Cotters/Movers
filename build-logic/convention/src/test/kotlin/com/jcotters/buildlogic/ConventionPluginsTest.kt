@@ -154,6 +154,8 @@ class ConventionPluginsTest {
             assert !pluginManager.hasPlugin('com.google.dagger.hilt.android')
             assert !pluginManager.hasPlugin('com.google.devtools.ksp')
             assert configurations.commonMainImplementation.dependencies.any { it.name == 'material3' }
+            assert configurations.androidRuntimeClasspath.dependencies.any { it.name == 'ui-tooling' }
+            assert !configurations.commonMainImplementation.dependencies.any { it.name == 'ui-tooling' }
             assert !configurations.commonMainImplementation.dependencies.any { it.name.contains('koin') }
         """)
         val drawable = File(project, "shared/src/commonMain/composeResources/drawable/bookmark.xml")

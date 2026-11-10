@@ -12,6 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
@@ -47,6 +50,14 @@ fun MoverImageView(
     modifier: Modifier = Modifier,
     sharedImageKey: String? = null,
 ) {
+    val imageModifier = modifier
+        .clip(RoundedCornerShape(8.dp))
+        .background(Color.LightGray.copy(alpha = 0.3f))
+    if (LocalInspectionMode.current) {
+        val description = contentDescription
+        Box(imageModifier.semantics { this.contentDescription = description })
+        return
+    }
     val context = LocalPlatformContext.current
     val imageLoader = SingletonImageLoader.get(context)
     val request = remember(context, imageLoader, posterUrl, sharedImageKey) {
@@ -59,11 +70,7 @@ fun MoverImageView(
             .fallback(cachedImage)
             .build()
     }
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color.LightGray.copy(alpha = 0.3f))
-    ) {
+    Box(modifier = imageModifier) {
         AsyncImage(
             model = request,
             imageLoader = imageLoader,

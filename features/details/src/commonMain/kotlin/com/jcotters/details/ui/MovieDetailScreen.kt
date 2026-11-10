@@ -1,9 +1,6 @@
 package com.jcotters.details.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -16,17 +13,22 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,6 +57,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.MovieGenre
@@ -65,6 +68,7 @@ import com.jcotters.presentation.resources.add
 import com.jcotters.presentation.resources.arrow_back
 import com.jcotters.presentation.resources.bookmark_filled
 import com.jcotters.presentation.resources.bookmark_outline
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -92,25 +96,19 @@ fun MovieDetailScreen(
 
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            MovieHeader(movie, viewState, onViewEvent, posterModifier, movieId, onBack, onAddToList)
+            MovieHeader(
+                movie, viewState, onViewEvent, posterModifier, movieId, onBack, onAddToList,
+                loadingMissingDetails, placeholderAlpha,
+            )
             Column(
-                modifier = Modifier.padding(top = 50.dp).padding(horizontal = 16.dp, vertical = 16.dp),
+                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                    .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth().animateContentSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    DetailValue("title", movie?.title, loadingMissingDetails, placeholderAlpha,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold))
-                    DetailValue("tagline", movie?.tagline, loadingMissingDetails, placeholderAlpha)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        movie?.releaseDate?.takeIf { it.isNotBlank() }?.let {
-                            Text("Released $it", style = MaterialTheme.typography.bodyMedium)
-                        }
-                        DetailValue("runtime", movie?.runtimeMinutes?.let(::formatRuntime),
-                            loadingMissingDetails, placeholderAlpha, modifier = Modifier)
-                    }
                     val genres = movie?.genres.orEmpty()
                     if (genres.isNotEmpty() || loadingMissingDetails) {
                         AnimatedContent(
@@ -121,9 +119,15 @@ fun MovieDetailScreen(
                             if (loadedGenres.isNotEmpty()) {
                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     loadedGenres.forEach { genre ->
-                                        Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
-                                            Text(genre.name, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                                style = MaterialTheme.typography.labelLarge)
+                                        Surface(
+                                            shape = RoundedCornerShape(16.dp),
+                                            color = MaterialTheme.colorScheme.secondaryContainer
+                                        ) {
+                                            Text(
+                                                genre.name,
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                style = MaterialTheme.typography.labelLarge
+                                            )
                                         }
                                     }
                                 }
@@ -133,8 +137,10 @@ fun MovieDetailScreen(
                         }
                     }
                     DetailValue("rating", formatRating(movie), loadingMissingDetails, placeholderAlpha)
-                    DetailValue("synopsis", movie?.synopsis, loadingMissingDetails, placeholderAlpha,
-                        style = MaterialTheme.typography.bodyMedium)
+                    DetailValue(
+                        "synopsis", movie?.synopsis, loadingMissingDetails, placeholderAlpha,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                     DetailValue("status", movie?.status?.let { "Status: $it" }, loadingMissingDetails, placeholderAlpha)
                     DetailValue("original language", movie?.originalLanguage?.let { code ->
                         "Original language: ${languageName(code)}"
@@ -148,7 +154,11 @@ fun MovieDetailScreen(
                 val error = viewState.detailsError ?: viewState.errorMessage.takeIf { it.isNotBlank() }
                 if (error != null) {
                     Column(modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
-                        Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         TextButton(onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) }, enabled = !loading) {
                             Text("Retry")
                         }
@@ -171,51 +181,109 @@ private fun MovieHeader(
     movieId: Int?,
     onBack: (() -> Unit)?,
     onAddToList: (() -> Unit)?,
+    loading: Boolean,
+    placeholderAlpha: State<Float>,
 ) {
-    Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
-        MoverImageView(
-            posterUrl = movie?.backdropUrl.orEmpty(),
-            contentDescription = "Movie backdrop image for ${movie?.title.orEmpty()}",
-            modifier = Modifier.fillMaxSize(),
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val backdropHeight = 200.dp
+        val posterWidth = (maxWidth / 3).coerceAtMost(120.dp)
+        val posterHeight = posterWidth * 1.5f
+        val overlap = posterHeight * 0.3f
+        Box(Modifier.fillMaxWidth().height(backdropHeight)) {
+            MoverImageView(
+                posterUrl = movie?.backdropUrl.orEmpty(),
+                contentDescription = "Movie backdrop image for ${movie?.title.orEmpty()}",
+                modifier = Modifier.fillMaxSize(),
+            )
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
+                listOf(Color.Black.copy(alpha = 0.35f), Color.Black.copy(alpha = 0.6f)),
+            )))
+        }
+        MovieSummary(
+            movie, movieId, posterModifier, posterWidth, posterHeight, overlap,
+            loading, placeholderAlpha,
+            modifier = Modifier.padding(top = backdropHeight - overlap),
         )
-        Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(
-            listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f)),
-        )))
-        if (onBack != null) {
-            Box(modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(16.dp)
-                .clip(CircleShape).size(48.dp).background(Color.Black.copy(alpha = 0.5f))) {
-                IconButton(onClick = onBack) {
-                    Icon(painterResource(Res.drawable.arrow_back), contentDescription = "Back",
-                        modifier = Modifier.size(25.dp), tint = Color.White)
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            if (onBack != null) {
+                HeaderButton(Res.drawable.arrow_back, "Back", onClick = onBack)
+            } else Spacer(Modifier.size(48.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (movie != null) {
+                    if (onAddToList != null) HeaderButton(Res.drawable.add, "Add to list", onClick = onAddToList)
+                    HeaderButton(
+                        icon = if (viewState.isBookmarked) Res.drawable.bookmark_filled else Res.drawable.bookmark_outline,
+                        description = "Bookmark movie button",
+                        onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) },
+                        enabled = viewState.isBookmarkLoaded && !viewState.isSavingBookmark,
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun HeaderButton(icon: DrawableResource, description: String, onClick: () -> Unit, enabled: Boolean = true) {
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.size(48.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.5f)),
+    ) {
+        Icon(painterResource(icon), contentDescription = description, tint = Color.White)
+    }
+}
+
+@Composable
+private fun MovieSummary(
+    movie: Movie?,
+    movieId: Int?,
+    posterModifier: Modifier,
+    posterWidth: Dp,
+    posterHeight: Dp,
+    overlap: Dp,
+    loading: Boolean,
+    placeholderAlpha: State<Float>,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         MoverImageView(
             posterUrl = movie?.posterUrl.orEmpty(),
             contentDescription = movie?.let { "Movie poster for ${it.title}" } ?: "Movie poster",
             sharedImageKey = movieId?.let(::moviePosterKey),
-            modifier = posterModifier.align(Alignment.BottomStart).padding(start = 24.dp)
-                .offset(y = 50.dp).size(width = 120.dp, height = 180.dp),
+            modifier = posterModifier.size(width = posterWidth, height = posterHeight),
         )
-        if (movie != null) {
-            if (onAddToList != null) {
-                Box(modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(16.dp)
-                    .clip(CircleShape).size(48.dp).background(Color.Black.copy(alpha = 0.5f))) {
-                    IconButton(onClick = onAddToList) {
-                        Icon(painterResource(Res.drawable.add), "Add to list", tint = Color.White)
-                    }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = posterHeight)
+                .padding(top = overlap + 12.dp)
+                .animateContentSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),
+        ) {
+            DetailValue(
+                "title", movie?.title, loading, placeholderAlpha,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+            )
+            DetailValue("tagline", movie?.tagline, loading, placeholderAlpha)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                movie?.releaseDate?.takeIf { it.isNotBlank() }?.let {
+                    Text("Released $it", style = MaterialTheme.typography.bodyMedium)
                 }
-            }
-            Box(modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).clip(CircleShape)
-                .size(48.dp).background(Color.Black.copy(alpha = 0.5f))) {
-                val bookmarkIcon = if (viewState.isBookmarked) Res.drawable.bookmark_filled else Res.drawable.bookmark_outline
-                IconButton(
-                    onClick = { onViewEvent(MovieDetailViewEvent.BookmarkTapped(movie.id)) },
-                    enabled = viewState.isBookmarkLoaded && !viewState.isSavingBookmark,
-                ) {
-                    Icon(painter = painterResource(bookmarkIcon), contentDescription = "Bookmark movie button",
-                        modifier = Modifier.size(25.dp), tint = Color.White)
-                }
+                DetailValue(
+                    "runtime", movie?.runtimeMinutes?.let(::formatRuntime), loading, placeholderAlpha,
+                    modifier = Modifier,
+                )
             }
         }
     }
@@ -227,7 +295,7 @@ private fun DetailValue(
     value: String?,
     loading: Boolean,
     placeholderAlpha: State<Float>,
-    modifier: Modifier = Modifier.fillMaxWidth(),
+    modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
     val text = value?.takeIf { it.isNotBlank() }
@@ -238,7 +306,7 @@ private fun DetailValue(
         label = "Loaded $label",
     ) { loadedText ->
         if (loadedText != null) {
-            Text(loadedText, modifier = modifier, style = style)
+            Text(loadedText, modifier = modifier.fillMaxWidth(), style = style)
         } else {
             DetailPlaceholder(label, placeholderAlpha)
         }
@@ -247,10 +315,11 @@ private fun DetailValue(
 
 @Composable
 private fun DetailPlaceholder(label: String, opacity: State<Float>) {
-    Spacer(modifier = Modifier.fillMaxWidth(0.65f).height(20.dp).clip(RoundedCornerShape(6.dp))
-        .graphicsLayer { alpha = opacity.value }
-        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
-        .semantics { contentDescription = "Loading $label" })
+    Spacer(
+        modifier = Modifier.fillMaxWidth(0.65f).height(20.dp).clip(RoundedCornerShape(6.dp))
+            .graphicsLayer { alpha = opacity.value }
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+            .semantics { contentDescription = "Loading $label" })
 }
 
 internal fun formatRuntime(minutes: Int): String = when {
@@ -263,6 +332,7 @@ internal fun formatRating(movie: Movie?): String? = when {
     movie?.voteCount == 0 -> "Not yet rated"
     movie?.voteAverage != null && movie.voteCount != null ->
         "TMDB ${kotlin.math.round(requireNotNull(movie.voteAverage) * 10) / 10}/10 · ${movie.voteCount} votes"
+
     else -> null
 }
 
@@ -273,33 +343,54 @@ private val previewMovie = Movie(
     voteAverage = 7.8, voteCount = 1234, status = "Released", originalLanguage = "en", detailsFetchedAt = 1,
 )
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Preview(name = "Completed")
+@Preview(name = "Completed", widthDp = 360, heightDp = 800)
 @Composable
 private fun MovieDetailScreenPreview() {
-    SharedTransitionLayout {
-        AnimatedVisibility(visible = true) {
-            MovieDetailScreen({}, MovieDetailViewState(isLoading = false, movie = previewMovie, isBookmarked = true))
-        }
-    }
+    DetailPreview(MovieDetailViewState(isLoading = false, movie = previewMovie, isBookmarked = true, isBookmarkLoaded = true))
 }
 
-@Preview(name = "Initial loading")
+@Preview(name = "Initial loading", widthDp = 360, heightDp = 800)
 @Composable
 private fun InitialLoadingPreview() {
-    MovieDetailScreen({}, MovieDetailViewState(isRefreshingDetails = true))
+    DetailPreview(MovieDetailViewState(isRefreshingDetails = true))
 }
 
-@Preview(name = "Partial content")
+@Preview(name = "Partial content", widthDp = 360, heightDp = 800)
 @Composable
 private fun PartialContentPreview() {
-    MovieDetailScreen({}, MovieDetailViewState(isLoading = false, isRefreshingDetails = true,
-        movie = Movie(1, "Preview: The Movie", "A preview to die for...", "2026-10-07")))
+    DetailPreview(MovieDetailViewState(
+        isLoading = false, isRefreshingDetails = true,
+        movie = Movie(1, "Preview: The Movie", "A preview to die for...", "2026-10-07"),
+    ))
 }
 
-@Preview(name = "Fetch failed")
+@Preview(name = "Fetch failed", widthDp = 360, heightDp = 800)
 @Composable
 private fun FetchFailedPreview() {
-    MovieDetailScreen({}, MovieDetailViewState(isLoading = false, movie = previewMovie,
-        detailsError = "Unable to load additional movie details."))
+    DetailPreview(MovieDetailViewState(
+        isLoading = false, movie = previewMovie,
+        detailsError = "Unable to load additional movie details.",
+    ))
+}
+
+@Preview(name = "Long title · large text", widthDp = 320, heightDp = 800, fontScale = 1.5f)
+@Composable
+private fun LongTitlePreview() {
+    DetailPreview(MovieDetailViewState(isLoading = false, movie = previewMovie.copy(
+        title = "A Very Long Movie Title That Needs Room to Wrap",
+        tagline = "A longer subtitle that should remain readable beside the film poster.",
+    )))
+}
+
+@Preview(name = "Wide", widthDp = 840, heightDp = 640)
+@Composable
+private fun WidePreview() {
+    DetailPreview(MovieDetailViewState(isLoading = false, movie = previewMovie))
+}
+
+@Composable
+private fun DetailPreview(state: MovieDetailViewState) {
+    MaterialTheme {
+        MovieDetailScreen(onViewEvent = {}, viewState = state, onBack = {}, onAddToList = {})
+    }
 }
