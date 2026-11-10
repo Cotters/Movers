@@ -48,6 +48,18 @@ The iOS verification script builds unsigned with the physical-device SDK; it doe
 
 For archive readiness, run `./scripts/verify-ios.sh --archive` as a separate check. It exercises Release optimization and writes an unsigned archive to `build/iosArchives/Movers.xcarchive`; use Xcode's signed Archive flow for actual device/TestFlight distribution. See [verification](testing.md#shared-androidios-verification) for heap settings and the difference between Debug and archive coverage.
 
+### App Store Connect setup
+
+A registered bundle ID and an App Store Connect app record are separate. The supplied upload logs show successful registration of `com.jcotters.movers`, followed by missing-app-record errors and HTTP 409 because the requested App Store name was already used by another account. Keep the bundle ID consistent with the archive and choose an available listing name. See Apple's [app-record setup](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/) and [bundle-ID requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/).
+
+The approved iOS display/listing name is **Movers: Shared Watchlists**, with a unique listing-name fallback if necessary. `APP_DISPLAY_NAME` in `iosApp/Configuration.xcconfig` supplies the display name through `Info.plist` and the XcodeGen specification. The internal product/short bundle name remains Movers; its bundle ID remains `com.jcotters.movers`. Plist version fields reference `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`, so the packaged version follows Xcode's settings rather than stale literals.
+
+Create a fresh signed archive in Xcode with Product → Archive, then choose Distribute App → App Store Connect → Upload in Organizer. If asked to create the app record, explicitly enter **Movers: Shared Watchlists**, select `com.jcotters.movers`, and use a stable SKU such as `com.jcotters.movers`. If Organizer cannot create it, use App Store Connect → Apps → + → New App with those same values, then retry the archive's upload. A project display-name change does not register or reserve the server-side listing name; Apple must accept the chosen name.
+
+The user switched to this Xcode route after ASC CLI 5.1 web login failed with HTTP 404 while fetching its auth-service key. Do not keep requesting CLI password/2FA to work around that failure. Its API authentication remains useful for read-only verification, using installed commands discovered through `--help`, such as `asc apps list --bundle-id com.jcotters.movers`. Record creation through `asc web apps create` requires a separate working Apple web session; the API key alone is insufficient.
+
+Keep Xcode distribution logs, `.asc/config.json`, private keys, provisioning profiles and archives out of Git. Distribution logs can include account/session details; inspect them with sanitized output. The project's ignore rules cover those artifacts. After local name/version changes, archive again to capture the new metadata. Verify actual App Store Connect state before reporting an upload or TestFlight success.
+
 ## Verification and physical-device acceptance
 
 Host checks cover shared policy, transport fixtures, repositories, profile initialization, navigation serialization, and real Compose navigation journeys at phone/Fold sizes. Run existing tests and maintain intended expectations; new cases are deferred during the feature phase. See the [host UI gate](testing.md#host-ui-regression-gate). Android device tests are compiled with:

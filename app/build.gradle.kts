@@ -15,7 +15,7 @@ android {
     defaultConfig {
         applicationId = "com.jcotters.movers"
         versionCode = 2
-        versionName = "2.0"
+        versionName = "0.1.0"
         buildConfigField("String", "SUPABASE_URL", backendString("supabase.url"))
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", backendString("supabase.publishableKey"))
     }

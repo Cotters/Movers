@@ -22,3 +22,10 @@ iosApp/Local.xcconfig
 iosApp/DerivedData/
 **/xcuserdata/
 /archive_log.txt
+*.xcdistributionlogs/
+/.asc/config.json
+*.p8
+*.p12
+*.mobileprovision
+*.xcarchive/
+*.ipa
