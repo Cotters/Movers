@@ -64,6 +64,8 @@ internal class MovieMapper() {
         status = dbMovie.status,
         originalLanguage = dbMovie.originalLanguage,
         detailsFetchedAt = dbMovie.detailsFetchedAt,
+        fullSizePosterUrl = fullSizeImageUrl(dbMovie.posterUrl),
+        fullSizeBackdropUrl = fullSizeImageUrl(dbMovie.backdropUrl),
     )
 
     fun toCatalogueEntry(catalogue: String, movies: List<DbMovie>, page: Int): List<DbMovieCatalogueEntry> =
@@ -71,6 +73,14 @@ internal class MovieMapper() {
 
     private fun imageUrl(path: String?): String? = path?.takeIf { it.isNotBlank() }
         ?.let { "https://image.tmdb.org/t/p/w500/${it.trimStart('/')}" }
+
+    private fun fullSizeImageUrl(url: String?): String? {
+        val image = url?.takeIf { it.isNotBlank() } ?: return null
+        val thumbnailPrefix = "https://image.tmdb.org/t/p/w500/"
+        return if (image.startsWith(thumbnailPrefix)) {
+            "https://image.tmdb.org/t/p/original/${image.removePrefix(thumbnailPrefix)}"
+        } else image
+    }
 
     private fun validRating(rating: Double?): Double? = rating?.takeIf { it.isFinite() && it in 0.0..10.0 }
 }

@@ -14,6 +14,14 @@ Home is the infinite movie feed. Watchlists owns custom lists, list details/mana
 
 List/search/picker keys live in feature contracts and are registered by `:shared`. Each entry owns its ViewModel; the search query uses SavedStateHandle, while picker checkboxes come from persisted membership. The shared Nav 3 overlay scene strategy presents the bottom sheet on both platforms. Returning to a source retains its query, paging, scroll, and navigation state. A target list is context, not authorization.
 
+## Expanded movie artwork
+
+Tapping an available detail poster or backdrop opens `MovieImageKey` in the current tab. Close/platform Back returns to the retained detail; the bottom bar stays visible. The entry owns a Koin ViewModel observing the cached movie, without another detail refresh. Keys persist only movie/type/source-entry identity; `:shared` explicitly registers their serializer. Expansion identities include tab, source detail entry and poster/backdrop kind, separate from the catalogue/poster transition.
+
+The viewer fits the complete image on a dark background, with safe-inset, 48 dp Close controls above the transition overlay. `sharedBounds` crossfades cropped/fitted content in the existing Compose transition hierarchy. The internal movie mapper supplies full-size URLs; provider-specific sizing stays outside the feature/UI and requires no Room migration. Coil keeps the thumbnail alias as placeholder/error fallback, and Retry recreates the image request composition. Inspection-mode previews avoid live loader initialization. No pinch/pan interaction is implemented.
+
+Research reviewed 10 November 2026: [Compose shared transitions and limitations](https://developer.android.com/develop/ui/compose/animation/shared-elements), [asynchronous-image guidance](https://developer.android.com/develop/ui/compose/animation/shared-elements/common-use-cases), [Coil Compose sizing](https://coil-kt.github.io/coil/compose/), [TMDB image URLs](https://developer.themoviedb.org/docs/image-basics), and [shared Nav3](https://kotlinlang.org/docs/multiplatform/compose-navigation-3.html). Cross-checked transition/metadata/Koin APIs against installed sources. The Android CLI doc lookup could not acquire its sandboxed bundle lock, so official web documentation supplied the research. Build/device checks remain subject to the current workflow policy.
+
 ## Physical-device acceptance
 
 Run these on your own Android device and iPhone, using configured movie API access:
@@ -22,7 +30,7 @@ Run these on your own Android device and iPhone, using configured movie API acce
 2. Tap the active tab again. Confirm it returns to its root without losing the other tabs' history; repeated taps at the root do not duplicate entries.
 3. Pop details through the on-screen/platform Back behavior and iOS navigation gesture. Confirm the selected tab and Home-return policy remain coherent.
 4. Confirm movie details offer Add to list without a bookmark action. Profile shows the confirmed name/avatar and name editing, with no bookmark shelf. Edit the name and relaunch to confirm it persists.
-5. Check status/navigation-bar and safe-area insets, landscape, large text, and light/dark mode. The bar must stay visible on details and Profile.
+5. Check status/navigation-bar and safe-area insets, landscape, large text, and light/dark mode. The bar must stay visible on details, the image viewer and Profile. Tap poster/backdrop, verify expansion and an uncropped larger image, close/back to the same detail/scroll, and check each tab retains its own viewer. Repeat in landscape and offline: cached artwork remains usable, failed full-size loading offers Retry and Close stays tappable. Check missing-image films expose no expand action.
 6. Create two lists (including equal names), add a catalogue film to both, open its details, and verify memberships are checked and editable. Uncheck/recheck to remove/add immediately, then close with no confirmation. Create another list inside the picker; it automatically receives the movie and persists when the picker closes.
 7. In a list, tap +, search, add two films consecutively, and confirm search stays open with red Remove actions. Remove an accidentally added result, verify it returns to Add, then re-add without leaving search. Open a result detail, use quick-add, then return and check query/scroll. Rename/remove/delete and relaunch; verify list membership and movie details persist. Repeat cached list access offline and search failure/retry.
 8. On Android, recreate the activity and test process restoration with a detail open in another tab. Confirm the selected stack restores without stale Auth keys or duplicate ViewModels.

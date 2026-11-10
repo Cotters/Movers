@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -51,6 +52,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -61,7 +63,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.MovieGenre
+import com.jcotters.details.navigation.MovieImageType
 import com.jcotters.presentation.MoverImageView
+import com.jcotters.presentation.movieBackdropKey
 import com.jcotters.presentation.moviePosterKey
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.add
@@ -78,6 +82,8 @@ fun MovieDetailScreen(
     movieId: Int? = viewState.movie?.id,
     onBack: (() -> Unit)? = null,
     onAddToList: (() -> Unit)? = null,
+    backdropModifier: Modifier = Modifier,
+    onImageTapped: ((MovieImageType) -> Unit)? = null,
 ) {
     val movie = viewState.movie
     val loading = viewState.isLoading || viewState.isRefreshingDetails
@@ -97,6 +103,7 @@ fun MovieDetailScreen(
             MovieHeader(
                 movie, posterModifier, movieId, onBack, onAddToList,
                 loadingMissingDetails, placeholderAlpha,
+                backdropModifier, onImageTapped,
             )
             Column(
                 modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
@@ -178,9 +185,11 @@ private fun MovieHeader(
     onAddToList: (() -> Unit)?,
     loading: Boolean,
     placeholderAlpha: State<Float>,
+    backdropModifier: Modifier,
+    onImageTapped: ((MovieImageType) -> Unit)?,
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val backdropHeight = 200.dp
+        val backdropHeight = 250.dp
         val posterWidth = (maxWidth / 3).coerceAtMost(120.dp)
         val posterHeight = posterWidth * 1.5f
         val overlap = posterHeight * 0.3f
@@ -188,7 +197,14 @@ private fun MovieHeader(
             MoverImageView(
                 posterUrl = movie?.backdropUrl.orEmpty(),
                 contentDescription = "Movie backdrop image for ${movie?.title.orEmpty()}",
-                modifier = Modifier.fillMaxSize(),
+                sharedImageKey = movieId?.let(::movieBackdropKey),
+                modifier = backdropModifier.fillMaxSize().then(
+                    if (onImageTapped != null && !movie?.backdropUrl.isNullOrBlank()) {
+                        Modifier.clickable(onClickLabel = "Expand backdrop", role = Role.Button) {
+                            onImageTapped(MovieImageType.Backdrop)
+                        }
+                    } else Modifier,
+                ),
             )
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
                 listOf(Color.Black.copy(alpha = 0.35f), Color.Black.copy(alpha = 0.6f)),
@@ -197,6 +213,7 @@ private fun MovieHeader(
         MovieSummary(
             movie, movieId, posterModifier, posterWidth, posterHeight, overlap,
             loading, placeholderAlpha,
+            onImageTapped,
             modifier = Modifier.padding(top = backdropHeight - overlap),
         )
         Row(
@@ -235,6 +252,7 @@ private fun MovieSummary(
     overlap: Dp,
     loading: Boolean,
     placeholderAlpha: State<Float>,
+    onImageTapped: ((MovieImageType) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -247,7 +265,13 @@ private fun MovieSummary(
             posterUrl = movie?.posterUrl.orEmpty(),
             contentDescription = movie?.let { "Movie poster for ${it.title}" } ?: "Movie poster",
             sharedImageKey = movieId?.let(::moviePosterKey),
-            modifier = posterModifier.size(width = posterWidth, height = posterHeight),
+            modifier = posterModifier.size(width = posterWidth, height = posterHeight).then(
+                if (onImageTapped != null && !movie?.posterUrl.isNullOrBlank()) {
+                    Modifier.clickable(onClickLabel = "Expand poster", role = Role.Button) {
+                        onImageTapped(MovieImageType.Poster)
+                    }
+                } else Modifier,
+            ),
         )
         Column(
             modifier = Modifier

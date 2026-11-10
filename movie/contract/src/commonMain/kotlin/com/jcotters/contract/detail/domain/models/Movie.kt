@@ -15,6 +15,8 @@ data class Movie(
   val status: String? = null,
   val originalLanguage: String? = null,
   val detailsFetchedAt: Long? = null,
+  val fullSizePosterUrl: String? = null,
+  val fullSizeBackdropUrl: String? = null,
 )
 
 data class MovieGenre(val id: Int, val name: String)

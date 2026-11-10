@@ -5,6 +5,8 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.jcotters.catalogue.navigation.CatalogueKey
 import com.jcotters.details.navigation.MovieDetailsKey
+import com.jcotters.details.navigation.MovieImageKey
+import com.jcotters.details.navigation.MovieImageType
 import com.jcotters.profile.navigation.ProfileKey
 import com.jcotters.search.navigation.MovieSearchKey
 import com.jcotters.watchlists.navigation.AddToListsKey
@@ -51,6 +53,7 @@ class NavigationStateShould {
         val json = Json { serializersModule = navigationSavedState.serializersModule }
         val serializer = PolymorphicSerializer(NavKey::class)
         listOf(CatalogueKey, ProfileKey, WatchlistsKey, MovieDetailsKey(14, "entry", "list"),
+            MovieImageKey(14, MovieImageType.Poster, "entry"), MovieImageKey(14, MovieImageType.Backdrop, "entry"),
             WatchlistDetailKey("list"), AddToListsKey(14, "list", "picker"), MovieSearchKey("list", "search")).forEach { key ->
             assertEquals(key, json.decodeFromString(serializer, json.encodeToString(serializer, key)))
         }

@@ -23,6 +23,8 @@ class MovieMapperShould {
         val movie = mapper.toDomainModel(db)
         assertEquals(listOf(DbMovieGenre(18, "Drama")), db.genres)
         assertEquals("https://image.tmdb.org/t/p/w500/poster.jpg", movie.posterUrl)
+        assertEquals("https://image.tmdb.org/t/p/original/poster.jpg", movie.fullSizePosterUrl)
+        assertEquals("https://image.tmdb.org/t/p/original/backdrop.jpg", movie.fullSizeBackdropUrl)
         assertEquals("Tagline", movie.tagline)
         assertEquals(125, movie.runtimeMinutes)
         assertEquals("Drama", movie.genres.single().name)
@@ -54,5 +56,7 @@ class MovieMapperShould {
         assertEquals(8.1, movie.voteAverage!!, 0.001)
         assertEquals(50, movie.voteCount)
         assertNull(movie.detailsFetchedAt)
+        assertNull(movie.fullSizePosterUrl)
+        assertNull(movie.fullSizeBackdropUrl)
     }
 }

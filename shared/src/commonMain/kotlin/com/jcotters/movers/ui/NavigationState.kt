@@ -16,6 +16,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import com.jcotters.catalogue.navigation.CatalogueKey
 import com.jcotters.details.navigation.MovieDetailsKey
+import com.jcotters.details.navigation.MovieImageKey
 import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.navigation.Navigator
 import com.jcotters.profile.navigation.ProfileKey
@@ -123,6 +124,7 @@ internal val navigationSavedState = androidx.savedstate.serialization.SavedState
             subclass(com.jcotters.watchlists.navigation.SharedListKey::class, com.jcotters.watchlists.navigation.SharedListKey.serializer())
             subclass(ProfileKey::class, ProfileKey.serializer())
             subclass(MovieDetailsKey::class, MovieDetailsKey.serializer())
+            subclass(MovieImageKey::class, MovieImageKey.serializer())
             subclass(WatchlistDetailKey::class, WatchlistDetailKey.serializer())
             subclass(AddToListsKey::class, AddToListsKey.serializer())
             subclass(MovieSearchKey::class, MovieSearchKey.serializer())

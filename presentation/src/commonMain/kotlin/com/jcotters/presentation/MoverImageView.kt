@@ -23,6 +23,7 @@ import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
 
 fun moviePosterKey(movieId: Int): String = "movie-poster-$movieId"
+fun movieBackdropKey(movieId: Int): String = "movie-backdrop-$movieId"
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
