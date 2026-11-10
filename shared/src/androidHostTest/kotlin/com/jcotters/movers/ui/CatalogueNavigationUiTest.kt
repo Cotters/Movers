@@ -64,11 +64,11 @@ class CatalogueNavigationUiTest {
             compose.onNodeWithText("Popular Movies").assertIsDisplayed()
         }
         openMovie()
-        compose.onNodeWithText("Profile").performClick()
+        compose.onNodeWithContentDescription("Profile").performClick()
         awaitText("Josh")
         compose.onNodeWithText("Edit name").assertIsDisplayed()
         compose.onNodeWithText("Bookmarks").assertDoesNotExist()
-        compose.onNodeWithText("Home").performClick()
+        compose.onNodeWithContentDescription("Home").performClick()
         awaitText("Loaded movie details")
         goBack(useSystemBack)
         compose.onNodeWithText("Popular Movies").assertIsDisplayed()

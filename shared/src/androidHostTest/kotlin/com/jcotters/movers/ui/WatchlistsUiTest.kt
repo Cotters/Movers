@@ -62,7 +62,7 @@ class WatchlistsUiTest {
     fun createDuplicateNamesRenameAndDeleteOnlyOneList() {
         compose.setContent { SharedApp() }
         awaitText("Test Movie")
-        compose.onNodeWithText("Watchlists").performClick()
+        compose.onNodeWithContentDescription("Watchlists").performClick()
         awaitText("Create a list for your next movie night.")
         createList("Weekend")
         compose.onNodeWithContentDescription("Back").performClick()
@@ -116,7 +116,7 @@ class WatchlistsUiTest {
         compose.onNodeWithText("Close").performClick()
         awaitSheetClosed()
         compose.onNodeWithText("Loaded movie details").assertIsDisplayed()
-        compose.onNodeWithText("Watchlists").performClick()
+        compose.onNodeWithContentDescription("Watchlists").performClick()
         awaitText("One")
         compose.onAllNodesWithText("1 movie").assertCountEquals(1)
         compose.onAllNodesWithText("0 movies").assertCountEquals(1)
@@ -127,7 +127,7 @@ class WatchlistsUiTest {
         runBlocking { fixture.lists.create("Tonight").getOrThrow() }
         compose.setContent { SharedApp() }
         awaitText("Test Movie")
-        compose.onNodeWithText("Watchlists").performClick()
+        compose.onNodeWithContentDescription("Watchlists").performClick()
         awaitText("Tonight")
         compose.onNodeWithText("Tonight").performClick()
         compose.onNodeWithContentDescription("Add movies").performClick()

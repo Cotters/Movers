@@ -4,6 +4,7 @@ The shared Compose app owns retained Home, Watchlists, and Profile tab stacks. F
 
 Home is the infinite movie feed. Watchlists owns custom lists, list details/management, and the multi-list quick-add sheet. A separate Search feature supplies global and list-targeted search. Profile shows the confirmed device name/avatar, and name editing. Saved films belong to Watchlists. Name entry precedes the main shell on first launch; the feature tour remains deferred. There is no Auth destination, password entry or logout. Sharing uses anonymous backend sessions internally; see the [feature design](../features/shared-watchlists.md) for invitations, Members and Activity.
 
+- Bottom navigation is icon-only: 56 dp control height plus one system-bottom/horizontal inset, down from Material 3's default 80 dp control area. Each tab retains its localized accessibility label, selectable Tab role/state and a full-width 56 dp touch area. A 44 dp rounded accent tile marks selection; icons/tile colors and press feedback animate. The outline icon set is shared on Android/iOS. Do not remove system safe-area padding to shorten the bar.
 - Switching tabs preserves their histories and root scroll state.
 - Reselecting the active tab pops it to its root.
 - Back pops feature destinations; Back at a non-Home root selects Home's retained history. Android Back at Home root exits through the platform.

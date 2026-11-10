@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,15 +22,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.ui.NavDisplay
 import com.cotters.data.network.NetworkStatus
-import com.jcotters.movers.resources.Res
-import com.jcotters.movers.resources.navigation_home
-import com.jcotters.movers.resources.navigation_profile
-import com.jcotters.movers.resources.navigation_watchlists
 import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.presentation.BottomSheetSceneStrategy
 import com.jcotters.presentation.LocalMovieTransitionScope
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -82,16 +73,7 @@ internal fun MoversNavigationShell(
         modifier = Modifier.fillMaxSize().imePadding(),
         contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
-            NavigationBar {
-                TopLevelDestination.entries.forEach { tab ->
-                    NavigationBarItem(
-                        selected = state.selectedTab == tab,
-                        onClick = { state.selectTab(tab) },
-                        icon = { Icon(painterResource(tab.iconRes), contentDescription = null) },
-                        label = { Text(stringResource(tab.labelRes)) },
-                    )
-                }
-            }
+            MoversBottomBar(selectedTab = state.selectedTab, onSelectTab = state::selectTab)
         },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
@@ -111,16 +93,4 @@ internal fun MoversNavigationShell(
             OfflineNotice(networkStatus, Modifier.align(Alignment.BottomCenter))
         }
     }
-}
-
-private val TopLevelDestination.labelRes: org.jetbrains.compose.resources.StringResource get() = when (this) {
-    TopLevelDestination.Home -> Res.string.navigation_home
-    TopLevelDestination.Watchlists -> Res.string.navigation_watchlists
-    TopLevelDestination.Profile -> Res.string.navigation_profile
-}
-
-private val TopLevelDestination.iconRes: org.jetbrains.compose.resources.DrawableResource get() = when (this) {
-    TopLevelDestination.Home -> Res.drawable.navigation_home
-    TopLevelDestination.Watchlists -> Res.drawable.navigation_watchlists
-    TopLevelDestination.Profile -> Res.drawable.navigation_profile
 }

@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.ViewModel
@@ -35,19 +36,19 @@ class MoversNavigationShellTest {
         }
         compose.onNodeWithText("Open home details").performClick()
         compose.onNodeWithText("Home details").assertIsDisplayed()
-        compose.onNodeWithText("Profile").performClick()
+        compose.onNodeWithContentDescription("Profile").performClick()
         compose.onNodeWithText("Josh").assertIsDisplayed()
         compose.onNodeWithText("Open profile details").performClick()
         compose.onNodeWithText("Profile details").assertIsDisplayed()
         compose.runOnIdle { assertNotSame(probes["Home"], probes["Profile"]) }
-        compose.onNodeWithText("Home").performClick()
+        compose.onNodeWithContentDescription("Home").performClick()
         compose.onNodeWithText("Home details").assertIsDisplayed()
         compose.runOnIdle {
             assertFalse(requireNotNull(probes["Home"]).cleared)
             assertFalse(requireNotNull(probes["Profile"]).cleared)
         }
-        compose.onNodeWithText("Profile").performClick()
-        compose.onNodeWithText("Profile").performClick()
+        compose.onNodeWithContentDescription("Profile").performClick()
+        compose.onNodeWithContentDescription("Profile").performClick()
         compose.onNodeWithText("Josh").assertIsDisplayed()
         compose.waitUntil { probes["Profile"]?.cleared == true }
         compose.runOnIdle { assertFalse(requireNotNull(probes["Home"]).cleared) }
@@ -58,11 +59,11 @@ class MoversNavigationShellTest {
         restoration.setContent {
             MaterialTheme { MoversNavigationShell(NetworkStatus.Online, entries(mutableMapOf())) }
         }
-        compose.onNodeWithText("Profile").performClick()
+        compose.onNodeWithContentDescription("Profile").performClick()
         compose.onNodeWithText("Open profile details").performClick()
         restoration.emulateSavedInstanceStateRestore()
         compose.onNodeWithText("Profile details").assertIsDisplayed()
-        compose.onNodeWithText("Home").performClick()
+        compose.onNodeWithContentDescription("Home").performClick()
         compose.onNodeWithText("Open home details").assertIsDisplayed()
     }
 

@@ -12,7 +12,7 @@ name: Catalogue details and tabs
           text: "Movie poster for.*"
           index: 0
       - extendedWaitUntil:
-          visible: "Bookmark movie button"
+          visible: "Add to list"
           timeout: 15000
       - tapOn: "Back"
       - assertVisible: "Popular Movies"
@@ -20,7 +20,7 @@ name: Catalogue details and tabs
 - assertVisible: "Create list"
 - tapOn: "Profile"
 - assertVisible: "Josh"
-- assertVisible: "Bookmarks"
+- assertVisible: "Edit name"
 - tapOn: "Home"
 - assertVisible: "Popular Movies"
 - launchApp
