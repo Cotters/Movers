@@ -9,6 +9,7 @@ Movers shares its screens, navigation, ViewModels, repositories, HTTP policy, ca
 | `:app` | Android application/activity, system bars, and platform startup |
 | `iosApp/` | SwiftUI app embedding the shared Compose controller; Xcode project and local configuration |
 | `:shared` | App composition, Koin graph, theme, retained bottom-navigation state, and platform service bindings |
+| `:designsystem`, `:features:styleguide` + contract | Experimental shared tokens/components and development-only gallery; production adoption is deferred until review |
 | Existing feature modules and contracts | Shared screens/state/use cases and feature-owned NavKeys |
 | `:profile:contract`, `:profile` | Device-profile model/repository contract, local implementation, and Profile UI |
 | `:movie:contract`, `:movie:internal` | Public movie/search/list operations and neutral list storage API; Ktor transport, mapping, paging, freshness, and repository implementations |

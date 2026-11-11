@@ -53,6 +53,10 @@ Review non-obvious invariants: observable persisted membership rather than compe
 
 Match actual artifacts and installed APIs. In particular, shared navigation consumes `org.jetbrains.androidx.navigation3:navigation3-ui` through `libs.multiplatform.navigation3.ui`; the separate Android `navigation3` version alias does not establish its version. Read the catalog/module declaration and, when necessary, dependency output before copying a sample or making a compatibility claim. Apply [KMP/CMP checks](multiplatform.md#changes-to-shared-code) without incidental upgrades.
 
+## Experimental UI work
+
+The [development style guide](../design/style-guide.md) is the approved place to refine the prospective Movers components. Its design-system module is experimental; production UI adoption and Haze effects remain separate review/planning steps. Keep gallery state synthetic and local, preserve release gating and use existing conventions. Do not introduce a second live data path or silently apply preview settings to the app.
+
 ## Durable memory
 
 | Location | Owns | Maintenance |
