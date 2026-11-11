@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		59B618B70C9A17F989359ACF /* MoversApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC4194EACF23703EA75FD79 /* MoversApp.swift */; };
 		BC8900BBCD8D42161247835C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D43F3B04B1828D884BD9C4 /* Assets.xcassets */; };
+		9A2B74F4C1494C93B626B007 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7B6F25B4C37D4B21835F5D0A /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -16,6 +17,7 @@
 		3C58815FABE728854B196125 /* Configuration.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Configuration.xcconfig; sourceTree = "<group>"; };
 		3DC4194EACF23703EA75FD79 /* MoversApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoversApp.swift; sourceTree = "<group>"; };
 		F2EB21A0273F07B73A15154C /* Movers.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Movers.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B6F25B4C37D4B21835F5D0A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -40,6 +42,7 @@
 			isa = PBXGroup;
 			children = (
 				18D43F3B04B1828D884BD9C4 /* Assets.xcassets */,
+				7B6F25B4C37D4B21835F5D0A /* PrivacyInfo.xcprivacy */,
 				3DC4194EACF23703EA75FD79 /* MoversApp.swift */,
 				620156819525036E0DFD39C6 /* iosApp */,
 				CE270A6F0C0A9D18D3ED346A /* Products */,
@@ -98,6 +101,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BC8900BBCD8D42161247835C /* Assets.xcassets in Resources */,
+				9A2B74F4C1494C93B626B007 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

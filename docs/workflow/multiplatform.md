@@ -28,7 +28,7 @@ Account login, passwords, saved-credential prompts and logout are removed. Room 
 
 The user explicitly authorized discarding old local data for this migration. Version 7 resets databases from versions 1–6, including old accounts/bookmarks/cache. Android also removes retired credential/session preference files and rejects old navigation saved state. Versions 8–10 preserve earlier profile/list data through explicit migrations; 9→10 drops only the retired bookmark table; do not broaden the destructive fallback. Old schema exports remain historical records.
 
-**The feature tour remains deferred.** First-launch name entry is explicitly included in Shared Lists. See the [agreed design](../features/shared-watchlists.md), [backend setup](../../supabase/README.md), and [vendor-neutral boundary](open-source.md). Profile offers the existing eight avatar colors; the selected index persists and uses the neutral identity update for existing shared sessions. Identity recovery/device linking remains deferred.
+First-launch name entry is followed by a short optional [feature tour](../features/onboarding.md). Completion/Skip persists in installation-local native preferences; it never replaces the confirmed profile or navigation state. See the [agreed design](../features/shared-watchlists.md), [backend setup](../../supabase/README.md), and [vendor-neutral boundary](open-source.md). Profile offers the existing eight avatar colors; the selected index persists and uses the neutral identity update for existing shared sessions. Identity recovery/device linking remains deferred.
 
 ## Configure and build
 

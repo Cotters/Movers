@@ -5,7 +5,8 @@ Updated 11 November 2026. Baseline: `7ad8b50` (first five small Todo items). Use
 ## Next feature pass
 
 - **List picks implemented:** personal/shared list menu → Pick a film → existing detail entry. Picks from the full list, ignoring the search filter; pending/committing/removing films are excluded. A small shared selection policy gives valid TMDB ratings linear weights 1–10, with weight 5 for unavailable/invalid/unrated values. All films remain eligible; no remote lookup or list writes. See [selection design](../features/list-picks.md). Diff/source/docs review only; physical acceptance pending.
-- **Next:** brief, one-time skippable feature tour after name confirmation; then TMDB trailer discovery with an embedded player and external fallback. Preserve the existing name flow, provider-neutral movie contract, cached details and Nav3 entry ownership.
+- **Feature tour implemented:** one short shared dialog after name confirmation, with Find films/Make watchlists/Share with friends. Get started, Skip and dismissal all persist completion in the existing native preference pattern; the navigation shell stays mounted underneath. App-owned UserDefaults usage is declared in the iOS privacy resource and XcodeGen/project. No startup-state/Room/profile changes or new dependencies. See [onboarding](../features/onboarding.md); static/source/docs checks only, physical first-run/Skip/relaunch and large-text checks pending.
+- **Next:** TMDB trailer discovery with an embedded player and external fallback. Preserve the provider-neutral movie contract, cached details and Nav3 entry ownership.
 
 ## Current boundaries and acceptance
 

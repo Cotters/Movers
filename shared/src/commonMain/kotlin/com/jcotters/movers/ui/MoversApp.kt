@@ -55,6 +55,7 @@ fun MoversApp(installers: Set<EntryProviderInstaller>) {
         StartupState.Ready -> {
             SharedListSynchronization()
             MoversNavigationShell(networkStatus, installers, snackbarEffects = { WatchlistUndoMessages() })
+            FeatureTour()
         }
         StartupState.Failed -> androidx.compose.foundation.layout.Column {
             Text("Unable to open local app data.")
