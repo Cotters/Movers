@@ -106,6 +106,7 @@ assertEquals(1L, entryCount)
             )
         }
 
+        override suspend fun getMovieVideos(movieId: Int): com.jcotters.internal.detail.data.MovieVideosResponse = error("Not used in catalogue tests")
         override suspend fun getMovieById(movieId: Int): MovieDto = error("Not used in catalogue tests")
         override suspend fun searchMovies(query: String, page: Int, year: Int?): CataloguePageResponse = error("Not used in catalogue tests")
         override suspend fun findMovie(imdbId: String): com.jcotters.internal.ExternalMovieResponse = error("Not used in catalogue tests")

@@ -2,6 +2,7 @@ package com.jcotters.internal
 
 import com.jcotters.contract.catalogue.domain.IMovieCatalogueRepository
 import com.jcotters.contract.detail.domain.IMovieDetailsRepository
+import com.jcotters.contract.detail.domain.IMovieTrailersRepository
 import com.jcotters.contract.search.domain.IMovieSearchRepository
 import com.jcotters.contract.time.AppClock
 import com.jcotters.contract.watchlists.data.WatchlistDatabase
@@ -11,6 +12,7 @@ import com.jcotters.internal.catalogue.data.MovieCatalogueRepository
 import com.jcotters.internal.catalogue.data.PopularMoviesRemoteMediator
 import com.jcotters.internal.detail.data.MovieDetailsRepository
 import com.jcotters.internal.detail.data.MovieMapper
+import com.jcotters.internal.detail.data.MovieTrailersRepository
 import com.jcotters.internal.search.MovieSearchRepository
 import com.jcotters.internal.watchlists.RoomWatchlistDatabase
 import com.jcotters.internal.watchlists.WatchlistsRepository
@@ -32,5 +34,6 @@ val movieDependencies = module {
     single<IMovieSearchRepository> { MovieSearchRepository(get(), get<MoversDatabase>().movieDao(), get()) }
     single { PopularMoviesRemoteMediator(get(), get(), get(), get()) }
     single<IMovieCatalogueRepository> { MovieCatalogueRepository(get(), get<MoversDatabase>().movieDao(), get()) }
+    single<IMovieTrailersRepository> { MovieTrailersRepository(get()) }
     single<IMovieDetailsRepository> { MovieDetailsRepository(get(), get<MoversDatabase>().movieDao(), get(), get()) }
 }

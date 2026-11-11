@@ -1,0 +1,13 @@
+# Movie trailers
+
+Implemented 11 November 2026. Movie details offers **Watch trailer**. Lookup happens only on tap; it never blocks cached details or changes their 24-hour freshness policy. The entry retains a successful lookup (including no trailer); failed lookups offer Retry. No trailer result is written into Room.
+
+The neutral movie trailer contract exposes a title and playback URLs. TMDB discovery/mapping remains in movie internal: `/movie/{id}/videos`, using the app's existing English locale. Require a matching movie ID, YouTube site, Trailer type and an exact 11-character video key; prefer an official trailer, otherwise the first valid trailer. Unsupported/malformed entries are ignored, with a concise empty state. These choices match the app's current English UI; broader video hosts/locales can extend the adapter later.
+
+An inline native WebView/WKWebView hosts the standard YouTube player, with user-initiated playback, inline controls and no native JavaScript bridge. The installed package/bundle ID supplies the HTTPS Referer required by YouTube; no TMDB credentials go to the player. The viewport has a 200 dp minimum height and adapts towards 16:9. Close, navigation, tab/background lifecycle changes release the player and stop playback. Returning can reopen it; playback position is not retained. Fullscreen playback is available via the external link rather than native custom fullscreen handling.
+
+**Open in YouTube** remains available beside the player, including when the video owner, WebView or network prevents embedded playback. The system chooses the YouTube app or browser; a launch failure is reported without closing details. YouTube may display its own embedded error UI. Player construction is isolated from preview/host harnesses through a default-empty detail content slot.
+
+No player dependency, database migration, backend deployment, autoplay or persisted viewing history. Verification evidence and physical-device limits live in the [handoff](../workflow/handoff.md). No new tests in this feature phase.
+
+Research, living documentation checked 11 November 2026: [TMDB videos](https://developer.themoviedb.org/reference/movie-videos), [YouTube embedded-player identity](https://developers.google.com/youtube/terms/required-minimum-functionality#embedded-player-api-client-identity), [player parameters](https://developers.google.com/youtube/player_parameters), [Android WebView](https://developer.android.com/reference/android/webkit/WebView), and [CMP UIKit integration](https://kotlinlang.org/docs/multiplatform/compose-uikit-integration.html). UIKitView signatures were also checked against the consumed CMP 1.12.2 source.

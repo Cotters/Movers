@@ -87,6 +87,7 @@ fun MovieDetailScreen(
     onAddToList: (() -> Unit)? = null,
     backdropModifier: Modifier = Modifier,
     onImageTapped: ((MovieImageType) -> Unit)? = null,
+    trailerContent: @Composable () -> Unit = {},
 ) {
     val movie = viewState.movie
     val loading = viewState.isLoading || viewState.isRefreshingDetails
@@ -157,6 +158,7 @@ fun MovieDetailScreen(
                         "Original language: ${languageName(code)}"
                     }, loadingMissingDetails, placeholderAlpha)
                 }
+                if (movie != null) trailerContent()
                 if (viewState.isRefreshingDetails && movie?.detailsFetchedAt != null) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth().semantics {
                         contentDescription = "Refreshing movie details"

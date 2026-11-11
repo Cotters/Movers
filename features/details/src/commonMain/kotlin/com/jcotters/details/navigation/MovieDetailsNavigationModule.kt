@@ -13,6 +13,7 @@ import com.jcotters.details.ui.MovieDetailViewEvent
 import com.jcotters.details.ui.MovieDetailViewModel
 import com.jcotters.details.ui.MovieImageScreen
 import com.jcotters.details.ui.MovieImageViewModel
+import com.jcotters.details.ui.MovieTrailerSection
 import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.presentation.movieBackdropKey
 import com.jcotters.presentation.movieImageExpansionModifier
@@ -39,6 +40,7 @@ object MovieDetailsNavigationModule {
                 ),
                 backdropModifier = movieImageExpansionModifier(movieBackdropKey(key.movieId), key.instanceId, stackId),
                 onImageTapped = { imageType -> navigator.navigate(MovieImageKey(key.movieId, imageType, key.instanceId)) },
+                trailerContent = { MovieTrailerSection(key.movieId) },
                 onBack = navigator::goBack,
                 onAddToList = { navigator.navigate(AddToListsKey(key.movieId, key.targetListId)) },
             )

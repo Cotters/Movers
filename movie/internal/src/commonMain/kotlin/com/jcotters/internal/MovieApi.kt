@@ -2,6 +2,7 @@ package com.jcotters.internal
 
 import com.jcotters.internal.catalogue.data.models.CatalogueMovieDto
 import com.jcotters.internal.catalogue.data.models.CataloguePageResponse
+import com.jcotters.internal.detail.data.MovieVideosResponse
 import com.jcotters.internal.detail.data.models.MovieDto
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -21,6 +22,7 @@ data class ExternalMovieResponse(@SerialName("movie_results") val movies: List<C
 
 interface MovieApi {
     suspend fun getMovieById(movieId: Int): MovieDto
+    suspend fun getMovieVideos(movieId: Int): MovieVideosResponse
     suspend fun getPopularMovies(page: Int, sortBy: String = "popularity.desc"): CataloguePageResponse
     suspend fun searchMovies(query: String, page: Int, year: Int? = null): CataloguePageResponse
     suspend fun findMovie(imdbId: String): ExternalMovieResponse
@@ -35,6 +37,9 @@ class KtorMovieApi(private val client: HttpClient) : MovieApi {
     }.body()
     override suspend fun findMovie(imdbId: String): ExternalMovieResponse = client.get("find/$imdbId") {
         parameter("external_source", "imdb_id")
+    }.body()
+    override suspend fun getMovieVideos(movieId: Int): MovieVideosResponse = client.get("movie/$movieId/videos") {
+        parameter("language", "en-US")
     }.body()
     override suspend fun getMovieById(movieId: Int): MovieDto = client.get("movie/$movieId").body()
     override suspend fun getPopularMovies(page: Int, sortBy: String): CataloguePageResponse =
