@@ -68,18 +68,41 @@ fun MoversCheckboxRow(
         horizontalArrangement = Arrangement.spacedBy(tokens.spacing * 1.5f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val outline = if (enabled) tokens.colors.accent else tokens.colors.muted
-        Box(
-            Modifier.size(24.dp).clip(RoundedCornerShape(6.dp))
-                .background(if (checked) outline else tokens.colors.surface)
-                .border(1.5.dp, outline, RoundedCornerShape(6.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (checked) MoversIcon(MoversSymbol.Check, Modifier.size(18.dp), tokens.colors.onAccent)
-        }
+        CheckboxGlyph(checked, enabled)
         Column(Modifier.weight(1f)) {
             MoversText(label, color = if (enabled) tokens.colors.content else tokens.colors.muted)
             description?.let { MoversText(it, style = tokens.type.caption, color = tokens.colors.muted) }
         }
+    }
+}
+
+/** A passive glyph when a parent row owns the checkbox action. */
+@Composable
+fun MoversCheckbox(checked: Boolean, onCheckedChange: ((Boolean) -> Unit)?, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val tokens = MoversDesign.tokens
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val pressed by interaction.collectIsPressedAsState()
+    Box(
+        modifier.size(48.dp).clip(RoundedCornerShape(tokens.cornerRadius))
+            .background(if (pressed) tokens.colors.raised else Color.Transparent)
+            .border(1.dp, if (focused) tokens.colors.accent else Color.Transparent, RoundedCornerShape(tokens.cornerRadius))
+            .then(if (onCheckedChange == null) Modifier else Modifier.toggleable(checked, interaction, null, enabled, Role.Checkbox, onCheckedChange)),
+        contentAlignment = Alignment.Center,
+    ) {
+        CheckboxGlyph(checked, enabled)
+    }
+}
+
+@Composable
+private fun CheckboxGlyph(checked: Boolean, enabled: Boolean) {
+    val colors = MoversDesign.tokens.colors
+    val color = if (enabled) colors.accent else colors.muted
+    val shape = RoundedCornerShape(6.dp)
+    Box(
+        Modifier.size(24.dp).clip(shape).background(if (checked) color else colors.surface).border(1.5.dp, color, shape),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (checked) MoversIcon(MoversSymbol.Check, Modifier.size(18.dp), colors.onAccent)
     }
 }

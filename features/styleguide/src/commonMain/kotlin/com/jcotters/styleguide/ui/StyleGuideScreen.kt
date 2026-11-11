@@ -13,11 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -37,7 +34,9 @@ import com.jcotters.designsystem.MoversDesign
 import com.jcotters.designsystem.MoversDesignTheme
 import com.jcotters.designsystem.MoversPanel
 import com.jcotters.designsystem.MoversText
-import com.jcotters.designsystem.PreviewTheme
+import com.jcotters.designsystem.MoversTextButton
+import com.jcotters.designsystem.MoversTopBar
+import com.jcotters.designsystem.ThemeMode
 import com.jcotters.navigation.Navigator
 import com.jcotters.styleguide.GuideSection
 import com.jcotters.styleguide.StyleGuideState
@@ -51,11 +50,10 @@ internal fun StyleGuideRoute(navigator: Navigator) {
     StyleGuideScreen(state, viewModel::theme, viewModel::corners, viewModel::density, viewModel::section, viewModel::reset, navigator::goBack)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun StyleGuideScreen(
     state: StyleGuideState,
-    onTheme: (PreviewTheme) -> Unit,
+    onTheme: (ThemeMode) -> Unit,
     onCorners: (Dp) -> Unit,
     onDensity: (ComponentDensity) -> Unit,
     onSection: (GuideSection) -> Unit,
@@ -64,8 +62,8 @@ internal fun StyleGuideScreen(
 ) {
     // Development chrome retains the real app theme; preview overrides never reach its bars.
     Scaffold(topBar = {
-        TopAppBar(title = { Text("Style guide") }, navigationIcon = {
-            TextButton(onClick = onBack) { Text("Back") }
+        MoversTopBar(title = { Text("Style guide") }, navigationIcon = {
+            MoversTextButton(onClick = onBack) { Text("Back") }
         })
     }) { padding ->
         MoversDesignTheme(state.settings) {
@@ -104,7 +102,7 @@ internal fun StyleGuideScreen(
 @Composable
 private fun StyleControls(
     state: StyleGuideState,
-    onTheme: (PreviewTheme) -> Unit,
+    onTheme: (ThemeMode) -> Unit,
     onCorners: (Dp) -> Unit,
     onDensity: (ComponentDensity) -> Unit,
     onReset: () -> Unit,
@@ -116,7 +114,7 @@ private fun StyleControls(
             MoversText("Preview only · local demo data", style = MoversDesign.tokens.type.caption, color = MoversDesign.tokens.colors.muted)
             MoversText("Theme", style = MoversDesign.tokens.type.label)
             FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PreviewTheme.entries.forEach { MoversChoice(it.name, state.settings.theme == it, { onTheme(it) }) }
+                ThemeMode.entries.forEach { MoversChoice(it.name, state.settings.theme == it, { onTheme(it) }) }
             }
             MoversText("Corners", style = MoversDesign.tokens.type.label)
             FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

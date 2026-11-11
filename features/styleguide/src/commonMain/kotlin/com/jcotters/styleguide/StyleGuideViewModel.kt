@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.ViewModel
 import com.jcotters.designsystem.ComponentDensity
 import com.jcotters.designsystem.MoversStyleSettings
-import com.jcotters.designsystem.PreviewTheme
+import com.jcotters.designsystem.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -22,7 +22,7 @@ internal class StyleGuideViewModel : ViewModel() {
     private val state = MutableStateFlow(StyleGuideState())
     val uiState = state.asStateFlow()
 
-    fun theme(value: PreviewTheme) { state.update { it.copy(settings = it.settings.copy(theme = value)) } }
+    fun theme(value: ThemeMode) { state.update { it.copy(settings = it.settings.copy(theme = value)) } }
     fun corners(value: Dp) { state.update { it.copy(settings = it.settings.copy(cornerRadius = value)) } }
     fun density(value: ComponentDensity) { state.update { it.copy(settings = it.settings.copy(density = value)) } }
     fun section(value: GuideSection) { state.update { it.copy(section = value) } }

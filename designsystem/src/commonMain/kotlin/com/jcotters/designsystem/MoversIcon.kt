@@ -66,6 +66,20 @@ fun MoversIconButton(
     enabled: Boolean = true,
     destructive: Boolean = false,
 ) {
+    MoversIconButton(onClick = onClick, modifier = modifier.semantics { contentDescription = label },
+        enabled = enabled, contentColor = if (destructive) MoversDesign.tokens.colors.danger else Color.Unspecified) {
+        MoversIcon(symbol, tint = androidx.compose.material3.LocalContentColor.current)
+    }
+}
+
+@Composable
+fun MoversIconButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    contentColor: Color = Color.Unspecified,
+    content: @Composable () -> Unit,
+) {
     val tokens = MoversDesign.tokens
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -76,13 +90,14 @@ fun MoversIconButton(
         contentPadding = PaddingValues(12.dp),
         modifier = modifier.size(48.dp).clip(shape)
             .background(if (pressed) tokens.colors.raised else Color.Transparent)
-            .border(1.dp, if (focused) tokens.colors.accent else Color.Transparent, shape)
-            .semantics { contentDescription = label },
+            .border(1.dp, if (focused) tokens.colors.accent else Color.Transparent, shape),
     ) {
-        MoversIcon(symbol, tint = when {
-            !enabled -> tokens.colors.muted
-            destructive -> tokens.colors.danger
-            else -> tokens.colors.content
-        })
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.material3.LocalContentColor provides when {
+                !enabled -> tokens.colors.muted
+                contentColor != Color.Unspecified -> contentColor
+                else -> tokens.colors.content
+            }, content = content,
+        )
     }
 }

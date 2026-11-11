@@ -57,7 +57,7 @@ internal fun FilmsGallery() {
     MoversRating(8.4, "1,286")
     GalleryHeading("Shared list", "Names and initials, with room for the films")
     MoversWatchlistSummary("Friday films", 12, listOf("Avery", "Morgan", "Casey"))
-    GalleryHeading("Activity", "Existing added/red and removed/green semantics")
+    GalleryHeading("Activity", "Added/imported green; removed red")
     MoversActivity("Avery", demoTitles[0], "added", "Today · 19:42", removed = false)
     MoversActivity("Morgan", demoTitles[1], "removed", "Yesterday · 18:10", removed = true)
     GalleryHeading("Empty list")

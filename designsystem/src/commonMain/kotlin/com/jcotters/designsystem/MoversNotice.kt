@@ -2,7 +2,7 @@ package com.jcotters.designsystem
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +22,7 @@ fun MoversNotice(
     kind: NoticeKind = NoticeKind.Information,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    onDismiss: (() -> Unit)? = null,
 ) {
     val tokens = MoversDesign.tokens
     val background = when (kind) {
@@ -34,14 +35,16 @@ fun MoversNotice(
         NoticeKind.Success -> tokens.colors.success
         NoticeKind.Error -> tokens.colors.danger
     }
-    Row(
+    FlowRow(
         modifier.fillMaxWidth().background(background, RoundedCornerShape(tokens.cornerRadius))
             .padding(tokens.controlPadding).semantics { liveRegion = LiveRegionMode.Polite },
-        horizontalArrangement = Arrangement.spacedBy(tokens.spacing), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(tokens.spacing), verticalArrangement = Arrangement.spacedBy(tokens.spacing),
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         MoversText(message, Modifier.weight(1f), style = tokens.type.label, color = foreground)
         if (actionLabel != null && onAction != null) {
             MoversButton(actionLabel, onAction, variant = ButtonVariant.Quiet)
         }
+        if (onDismiss != null) MoversIconButton(MoversSymbol.Close, "Dismiss message", onDismiss)
     }
 }

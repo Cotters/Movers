@@ -67,9 +67,9 @@ object MoversDesign {
 @Composable
 fun MoversDesignTheme(settings: MoversStyleSettings = MoversStyleSettings(), content: @Composable () -> Unit) {
     val dark = when (settings.theme) {
-        PreviewTheme.System -> isSystemInDarkTheme()
-        PreviewTheme.Light -> false
-        PreviewTheme.Dark -> true
+        ThemeMode.System -> isSystemInDarkTheme()
+        ThemeMode.Light -> false
+        ThemeMode.Dark -> true
     }
     val family = FontFamily(
         Font(Res.font.inter_regular, FontWeight.Normal),
@@ -89,7 +89,9 @@ fun MoversDesignTheme(settings: MoversStyleSettings = MoversStyleSettings(), con
         spacing = if (settings.density == ComponentDensity.Comfortable) 8.dp else 6.dp,
         controlPadding = if (settings.density == ComponentDensity.Comfortable) 16.dp else 12.dp,
     )
-    CompositionLocalProvider(LocalMoversDesign provides tokens, content = content)
+    CompositionLocalProvider(LocalMoversDesign provides tokens) {
+        MoversMaterialBridge(tokens, dark, content)
+    }
 }
 
 private val darkColors = MoversColors(
