@@ -22,6 +22,8 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>TMDB_API_TOKEN</key>
 	<string>$(TMDB_API_TOKEN)</string>
 	<key>UILaunchScreen</key>

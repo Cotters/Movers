@@ -1,6 +1,10 @@
 # Current handoff
 
-Updated 11 November 2026. Baseline: `9d85330` (`Improve watchlist activity UI`) plus uncommitted release-version/docs changes. Current task: approved swipe actions in watchlists and Home list rows, with delayed-write Undo. Preserve earlier release work and user edits/staging. No new upload, public App Store submission/release, Git commit/push, device/simulator interaction or hosted backend changes for this feature. Earlier decisions/evidence are archived in [pre-release context](history/2026-11-11-before-0.2.0.md).
+Updated 11 November 2026. Baseline: `60b3c27` (swipe actions). Current task: implement and separately commit five small backlog items: encryption metadata, edit toolbar, import keyboard dismissal, avatar colour and unified import/export. UI refresh requires discussion and is skipped. No routine builds, new tests, device interaction, upload or backend deployment. Earlier release evidence is retained below.
+
+## Small backlog pass
+
+- **Encryption metadata complete:** persist the previously confirmed exemption as Boolean `ITSAppUsesNonExemptEncryption=false` in Info.plist and XcodeGen. This matches [Apple's metadata guidance](https://developer.apple.com/documentation/bundleresources/information-property-list/itsappusesnonexemptencryption); reassess if cryptography changes. Plist syntax/value and spec consistency checked; no archive/upload needed for this source change.
 
 ## Swipe/Undo follow-up
 
