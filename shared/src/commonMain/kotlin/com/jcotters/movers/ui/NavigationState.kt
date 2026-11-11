@@ -17,6 +17,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import com.jcotters.catalogue.navigation.CatalogueKey
 import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.details.navigation.MovieImageKey
+import com.jcotters.movers.LocalDevelopmentToolsEnabled
 import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.navigation.Navigator
 import com.jcotters.profile.navigation.ProfileKey
@@ -34,11 +35,12 @@ internal const val NavigationTabMetadata = "movers.navigation.tab"
 
 @Composable
 internal fun rememberNavigationState(): NavigationState {
+    val developmentTools = LocalDevelopmentToolsEnabled.current
     val selected = rememberSaveable { mutableStateOf(TopLevelDestination.Home.name) }
     val home = rememberNavBackStack(navigationSavedState, CatalogueKey)
     val watchlists = rememberNavBackStack(navigationSavedState, WatchlistsKey)
     val profile = rememberNavBackStack(navigationSavedState, ProfileKey)
-    return remember {
+    return remember(developmentTools) {
         NavigationState(
             selected,
             mapOf(
@@ -46,6 +48,7 @@ internal fun rememberNavigationState(): NavigationState {
                 TopLevelDestination.Watchlists to watchlists,
                 TopLevelDestination.Profile to profile,
             ),
+            developmentTools = developmentTools,
         )
     }
 }
@@ -53,7 +56,13 @@ internal fun rememberNavigationState(): NavigationState {
 internal class NavigationState(
     private val selected: MutableState<String>,
     internal val backStacks: Map<TopLevelDestination, NavBackStack<NavKey>>,
+    internal val developmentTools: Boolean = false,
 ) {
+    init {
+        // Sanitize every restored stack before providers run, even if Profile isn't selected.
+        if (!developmentTools) backStacks.values.forEach { stack -> stack.removeAll { it == StyleGuideKey } }
+    }
+
     val selectedTab: TopLevelDestination get() = TopLevelDestination.valueOf(selected.value)
     val currentStack: NavBackStack<NavKey> get() = backStacks.getValue(selectedTab)
 
@@ -117,6 +126,7 @@ internal class NavigationState(
 
 internal class AppNavigator(private val state: NavigationState) : Navigator {
     override fun navigate(key: NavKey) {
+        if (key == StyleGuideKey && !state.developmentTools) return
         val current = state.currentStack.lastOrNull()
         if (current is MovieDetailsKey && key is MovieDetailsKey && current.movieId == key.movieId) return
         if (current is AddToListsKey && key is AddToListsKey && current.movieId == key.movieId) return

@@ -29,6 +29,7 @@ data class MoversColors(
     val accent: Color,
     val onAccent: Color,
     val border: Color,
+    val controlOutline: Color,
     val danger: Color,
     val dangerSurface: Color,
     val success: Color,
@@ -94,7 +95,7 @@ fun MoversDesignTheme(settings: MoversStyleSettings = MoversStyleSettings(), con
 private val darkColors = MoversColors(
     background = Color(0xFF101619), surface = Color(0xFF192225), raised = Color(0xFF243034),
     content = Color(0xFFEAF1EF), muted = Color(0xFFABBDB7), accent = Color(0xFF93E5D8),
-    onAccent = Color(0xFF10251F), border = Color(0xFF3C4D48),
+    onAccent = Color(0xFF10251F), border = Color(0xFF3C4D48), controlOutline = Color(0xFF647D73),
     danger = Color(0xFFF1A9AE), dangerSurface = Color(0xFF42282C),
     success = Color(0xFFADD8B8), successSurface = Color(0xFF24372A),
 )
@@ -102,7 +103,7 @@ private val darkColors = MoversColors(
 private val lightColors = MoversColors(
     background = Color(0xFFF4F7F6), surface = Color.White, raised = Color(0xFFE7EEEB),
     content = Color(0xFF172421), muted = Color(0xFF52645E), accent = Color(0xFF146C63),
-    onAccent = Color.White, border = Color(0xFFA6B9B1),
+    onAccent = Color.White, border = Color(0xFFA6B9B1), controlOutline = Color(0xFF788F86),
     danger = Color(0xFF9D303B), dangerSurface = Color(0xFFFCE9EA),
     success = Color(0xFF28653C), successSurface = Color(0xFFE9F4E9),
 )

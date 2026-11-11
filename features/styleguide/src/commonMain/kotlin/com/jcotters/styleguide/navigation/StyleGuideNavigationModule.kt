@@ -1,15 +1,13 @@
 package com.jcotters.styleguide.navigation
 
-import androidx.compose.runtime.LaunchedEffect
 import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.styleguide.ui.StyleGuideRoute
 
 object StyleGuideNavigationModule {
     fun provideEntries(enabled: Boolean): EntryProviderInstaller = { navigator, _ ->
-        // Keep the key readable after a Debug → Release update, without exposing the gallery.
+        // The app sanitizes restored development keys; retain a guard at the entry too.
         entry<StyleGuideKey> {
             if (enabled) StyleGuideRoute(navigator)
-            else LaunchedEffect(Unit) { navigator.goBack() }
         }
     }
 }

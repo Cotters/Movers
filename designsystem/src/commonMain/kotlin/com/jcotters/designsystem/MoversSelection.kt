@@ -36,7 +36,7 @@ fun MoversChoice(label: String, selected: Boolean, onClick: () -> Unit, modifier
     Box(
         modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).clip(shape)
             .background(if (selected) tokens.colors.accent else tokens.colors.surface)
-            .border(if (focused) 2.dp else 1.dp, if (focused) tokens.colors.accent else tokens.colors.border, shape)
+            .border(if (focused) 2.dp else 1.dp, if (focused) tokens.colors.accent else tokens.colors.controlOutline, shape)
             .selectable(selected, interactionSource = interaction, indication = null, role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = tokens.controlPadding, vertical = tokens.spacing),
         contentAlignment = Alignment.Center,

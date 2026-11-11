@@ -50,7 +50,7 @@ fun MoversTextField(
     val outline = when {
         error != null -> tokens.colors.danger
         focused -> tokens.colors.accent
-        else -> tokens.colors.border
+        else -> tokens.colors.controlOutline
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
         MoversText(label, style = tokens.type.label)

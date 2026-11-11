@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.jcotters.designsystem.MoversDesign
 import com.jcotters.designsystem.MoversDesignTheme
@@ -65,7 +67,7 @@ internal fun FoundationsGallery() {
 @Composable
 internal fun GalleryHeading(title: String, subtitle: String? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        MoversText(title, style = MoversDesign.tokens.type.title)
+        MoversText(title, Modifier.semantics { heading() }, style = MoversDesign.tokens.type.title)
         subtitle?.let { MoversText(it, style = MoversDesign.tokens.type.caption, color = MoversDesign.tokens.colors.muted) }
     }
 }

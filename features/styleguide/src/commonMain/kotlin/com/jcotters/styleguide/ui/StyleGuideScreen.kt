@@ -90,8 +90,8 @@ internal fun StyleGuideScreen(
                             when (state.section) {
                                 GuideSection.Basics -> FoundationsGallery()
                                 GuideSection.Controls -> ControlsGallery()
-                                GuideSection.Overlays -> MoversText("Overlay examples are next.")
-                                GuideSection.Films -> MoversText("Film examples are next.")
+                                GuideSection.Overlays -> OverlaysGallery()
+                                GuideSection.Films -> FilmsGallery()
                             }
                         }
                     }

@@ -5,6 +5,9 @@ kotlin {
     sourceSets.commonMain.dependencies {
         implementation(libs.unstyled.button)
         implementation(libs.unstyled.text.field)
+        implementation(libs.unstyled.dialog)
+        implementation(libs.unstyled.dropdown.menu)
+        implementation(libs.unstyled.modal.bottom.sheet)
     }
 }
 
