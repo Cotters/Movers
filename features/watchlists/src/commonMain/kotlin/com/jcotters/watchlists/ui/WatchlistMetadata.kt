@@ -33,6 +33,7 @@ internal fun WatchlistSummary(
     sharedInfo: SharedListInfo?,
     onMembers: () -> Unit,
     modifier: Modifier = Modifier,
+    totalMovieCount: Int = movieCount,
 ) {
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -40,7 +41,8 @@ internal fun WatchlistSummary(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            "$movieCount ${if (movieCount == 1) "movie" else "movies"}",
+            if (movieCount == totalMovieCount) "$movieCount ${if (movieCount == 1) "movie" else "movies"}"
+            else "$movieCount of $totalMovieCount ${if (totalMovieCount == 1) "movie" else "movies"}",
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

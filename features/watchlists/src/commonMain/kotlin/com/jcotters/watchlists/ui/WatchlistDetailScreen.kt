@@ -57,6 +57,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     var deleting by rememberSaveable { mutableStateOf(false) }
     var editing by rememberSaveable(listId) { mutableStateOf(false) }
     var showGrid by rememberSaveable(listId) { mutableStateOf(false) }
+    var query by rememberSaveable(listId) { mutableStateOf("") }
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     var attribution by remember(listId) { mutableStateOf<FilmContribution?>(null) }
@@ -105,14 +106,34 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
             }
             if (!state.loading && state.error == null && state.content == null) Text("This list no longer exists.", Modifier.padding(24.dp))
             state.content?.let { content ->
+                val shared = content.watchlist.shared != null
+                val visibleMovies = remember(content.movies, query, shared) {
+                    val terms = if (shared) query.trim().split(Regex("\\s+")).filter(String::isNotBlank) else emptyList()
+                    if (terms.isEmpty()) content.movies else content.movies.filter { movie ->
+                        terms.all { movie.title.contains(it, ignoreCase = true) }
+                    }
+                }
+                if (shared) {
+                    WatchlistSearchField(
+                        value = query,
+                        onValueChange = {
+                            query = it
+                            listState.requestScrollToItem(0)
+                            gridState.requestScrollToItem(0)
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
                 WatchlistSummary(
-                    movieCount = content.movies.size,
+                    movieCount = visibleMovies.size,
+                    totalMovieCount = content.movies.size,
                     sharedInfo = content.watchlist.shared,
                     onMembers = { navigator.navigate(SharedListKey(listId, SharedSection.Members)) },
                 )
                 if (content.movies.isEmpty()) Text("No movies yet. Tap + to find films.", Modifier.padding(24.dp))
+                else if (visibleMovies.isEmpty()) Text("No matching films.", Modifier.padding(24.dp))
                 WatchlistMovies(
-                    content = content,
+                    content = content.copy(movies = visibleMovies),
                     showGrid = showGrid,
                     listState = listState,
                     gridState = gridState,
