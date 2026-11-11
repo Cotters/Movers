@@ -27,6 +27,9 @@ fun ProfileScreen(
     onSaveName: (String) -> Unit = {},
     savingName: Boolean = false,
     nameError: String? = null,
+    onSaveColor: (Int) -> Unit = {},
+    savingColor: Boolean = false,
+    colorError: String? = null,
 ) {
     var editing by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     var name by androidx.compose.runtime.saveable.rememberSaveable(viewState.profile?.displayName) { androidx.compose.runtime.mutableStateOf(viewState.profile?.displayName.orEmpty()) }
@@ -39,6 +42,10 @@ fun ProfileScreen(
                 viewState = viewState,
                 onRetry = onRetry,
                 onEditName = { editing = true },
+                onSaveColor = onSaveColor,
+                savingColor = savingColor,
+                colorError = colorError,
+                savingName = savingName,
             )
         }
     }
@@ -56,6 +63,10 @@ fun ProfileView(
     viewState: ProfileViewState,
     onRetry: () -> Unit,
     onEditName: () -> Unit = {},
+    onSaveColor: (Int) -> Unit = {},
+    savingColor: Boolean = false,
+    colorError: String? = null,
+    savingName: Boolean = false,
 ) {
     Column(
         modifier = modifier
@@ -66,8 +77,12 @@ fun ProfileView(
             androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp),verticalAlignment = Alignment.CenterVertically) {
                 com.jcotters.presentation.ParticipantAvatar(it.displayName,it.color)
                 ProfileDetailsView(it)
-                androidx.compose.material3.TextButton(onClick = onEditName) { Text("Edit name") }
+                androidx.compose.material3.TextButton(onClick = onEditName, enabled = !savingName && !savingColor) { Text("Edit name") }
             }
+            Text("Avatar colour", style = MaterialTheme.typography.titleSmall)
+            AvatarColorPicker(selected = it.color, enabled = !savingName && !savingColor, onSelect = onSaveColor)
+            if (savingColor) LinearProgressIndicator(Modifier.fillMaxWidth())
+            colorError?.let { message -> Text(message, color = MaterialTheme.colorScheme.error) }
         }
 
         viewState.errorMessage?.let { message ->

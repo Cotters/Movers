@@ -16,6 +16,9 @@ object ProfileNavigationModule {
                 viewState = state,
                 onRetry = viewModel::retry,
                 onSaveName = viewModel::saveName,
+                onSaveColor = viewModel::saveColor,
+                savingColor = viewModel.savingColor.collectAsStateWithLifecycle().value,
+                colorError = viewModel.colorError.collectAsStateWithLifecycle().value,
                 savingName = viewModel.savingName.collectAsStateWithLifecycle().value,
                 nameError = viewModel.nameError.collectAsStateWithLifecycle().value,
             )

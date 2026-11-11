@@ -8,4 +8,6 @@ interface DeviceProfileRepository {
     val profile: Flow<Profile?>
     suspend fun initialize()
     suspend fun saveName(name: String)
+    /** Stable palette index, 0–7; retained across devices and app versions. */
+    suspend fun saveColor(color: Int)
 }

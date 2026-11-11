@@ -23,8 +23,10 @@ class LocalDeviceProfileRepositoryTest {
         assertEquals("Josh",confirmed.displayName)
         assertTrue(confirmed.nameConfirmed)
         assertTrue(first.installationId.isNotBlank())
+        val color = (confirmed.color + 1) % 8
+        repository.saveColor(color)
         LocalDeviceProfileRepository(dao).initialize()
-        assertEquals(confirmed, repository.profile.first())
+        assertEquals(confirmed.copy(color = color), repository.profile.first())
         assertEquals(1, dao.insertions)
     }
     @Test fun storedProfileIsNotReplacedOnStartup() = runTest {
@@ -40,6 +42,7 @@ class LocalDeviceProfileRepositoryTest {
         override fun observe() = row
         override suspend fun get() = row.value
         override suspend fun saveName(name: String) { row.value = row.value?.copy(displayName = name,nameConfirmed = true) }
+        override suspend fun saveColor(color: Int) { row.value = row.value?.copy(color = color) }
         override suspend fun insert(profile: DeviceProfile) {
             insertions++
             if (row.value == null) row.value = profile

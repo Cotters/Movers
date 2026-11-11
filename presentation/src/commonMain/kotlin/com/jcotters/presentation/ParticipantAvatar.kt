@@ -13,11 +13,23 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
-private val avatarColors = listOf(0xFF385F9D,0xFF79519B,0xFF9A414A,0xFF496E3C,0xFF826019,0xFF236C73,0xFF8C4D25,0xFF645D74)
+data class ParticipantAvatarColor(val label: String, val background: Color)
+
+// Indices are persisted and shared. Keep this order stable.
+val participantAvatarColors = listOf(
+    ParticipantAvatarColor("Blue", Color(0xFF385F9D)),
+    ParticipantAvatarColor("Purple", Color(0xFF79519B)),
+    ParticipantAvatarColor("Red", Color(0xFF9A414A)),
+    ParticipantAvatarColor("Green", Color(0xFF496E3C)),
+    ParticipantAvatarColor("Gold", Color(0xFF826019)),
+    ParticipantAvatarColor("Teal", Color(0xFF236C73)),
+    ParticipantAvatarColor("Orange", Color(0xFF8C4D25)),
+    ParticipantAvatarColor("Grey", Color(0xFF645D74)),
+)
 
 @Composable
 fun ParticipantAvatar(name: String, color: Int, modifier: Modifier = Modifier) {
-    Box(modifier.size(32.dp).background(Color(avatarColors[color.mod(avatarColors.size)]), CircleShape)
+    Box(modifier.size(32.dp).background(participantAvatarColors[color.mod(participantAvatarColors.size)].background, CircleShape)
         .semantics { contentDescription = name }, contentAlignment = Alignment.Center) {
         Text(name.trim().take(1).uppercase().ifEmpty { "?" }, color = Color.White)
     }

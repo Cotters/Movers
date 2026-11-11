@@ -23,13 +23,27 @@ internal class ProfileViewModel(
     val savingName = MutableStateFlow(false)
     val nameError = MutableStateFlow<String?>(null)
     fun saveName(name: String) {
-        if (savingName.value) return
+        if (savingName.value || savingColor.value) return
         savingName.value = true
         viewModelScope.launch {
             try { profiles.saveName(name); nameError.value = null }
             catch (e: CancellationException) { throw e }
             catch (e: Exception) { nameError.value = e.message ?: "Unable to save your name." }
             finally { savingName.value = false }
+        }
+    }
+
+    val savingColor = MutableStateFlow(false)
+    val colorError = MutableStateFlow<String?>(null)
+    fun saveColor(color: Int) {
+        if (savingName.value || savingColor.value) return
+        savingColor.value = true
+        colorError.value = null
+        viewModelScope.launch {
+            try { profiles.saveColor(color) }
+            catch (e: CancellationException) { throw e }
+            catch (_: Exception) { colorError.value = "Unable to save your colour. Try again." }
+            finally { savingColor.value = false }
         }
     }
 
