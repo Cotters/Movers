@@ -1,9 +1,6 @@
 package com.jcotters.watchlists.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,7 +38,6 @@ import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.navigation.Navigator
 import com.jcotters.presentation.MovieListRow
 import com.jcotters.presentation.MovieMembershipButton
-import com.jcotters.presentation.ParticipantAvatar
 import com.jcotters.presentation.formatActivityTime
 import com.jcotters.presentation.moviePosterTransitionModifier
 import com.jcotters.presentation.resources.Res
@@ -104,25 +101,27 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
             }
             if (!state.loading && state.error == null && state.content == null) Text("This list no longer exists.", Modifier.padding(24.dp))
             state.content?.let { content ->
-                Text("${content.movies.size} ${if (content.movies.size == 1) "movie" else "movies"}", Modifier.padding(16.dp))
-                content.watchlist.shared?.let { info ->
-                    Text("Created by ${info.creator.name} · Updated ${formatActivityTime(info.updatedAt)}",Modifier.padding(horizontal = 16.dp))
-                    Row(Modifier.padding(16.dp).clickable { navigator.navigate(SharedListKey(listId,SharedSection.Members)) },horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        info.members.take(5).forEach { ParticipantAvatar(it.name,it.color) }
-                        Text("${info.members.size} members")
-                    }
-                }
+                WatchlistSummary(
+                    movieCount = content.movies.size,
+                    sharedInfo = content.watchlist.shared,
+                    onMembers = { navigator.navigate(SharedListKey(listId, SharedSection.Members)) },
+                )
                 if (content.movies.isEmpty()) Text("No movies yet. Tap + to find films.", Modifier.padding(24.dp))
-                LazyColumn {
+                LazyColumn(Modifier.weight(1f).padding(horizontal = 8.dp)) {
                     items(content.movies, key = { it.id }) { movie ->
                         MovieListRow(movie, Modifier.height(180.dp).fillMaxWidth(),
                             posterModifier = moviePosterTransitionModifier(movie.id, stackId),
-                            onOpen = { navigator.navigate(MovieDetailsKey(movie.id, targetListId = listId)) }) {
-                            content.contributions[movie.id]?.let { contribution ->
-                                IconButton(onClick = { attribution = contribution }) {
-                                    ParticipantAvatar(contribution.actor.name,contribution.actor.color)
+                            onOpen = { navigator.navigate(MovieDetailsKey(movie.id, targetListId = listId)) },
+                            posterOverlay = {
+                                content.contributions[movie.id]?.let { contribution ->
+                                    FilmContributorButton(
+                                        contribution = contribution,
+                                        onClick = { attribution = contribution },
+                                        modifier = Modifier.align(Alignment.BottomEnd),
+                                    )
                                 }
-                            }
+                            },
+                        ) {
                             if (editing) {
                                 MovieMembershipButton(movieTitle = movie.title, isAdded = true,
                                     onClick = { viewModel.removeMovie(movie.id) }, enabled = !state.busy,

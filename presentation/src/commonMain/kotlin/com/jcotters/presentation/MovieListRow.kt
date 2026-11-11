@@ -1,11 +1,14 @@
 package com.jcotters.presentation
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -30,21 +33,27 @@ fun MovieListRow(
     posterModifier: Modifier = Modifier,
     onOpen: (() -> Unit)? = null,
     compact: Boolean = false,
+    posterOverlay: @Composable BoxScope.() -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
         modifier = if (onOpen == null) modifier else modifier.clickable(onClick = onOpen),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MoverImageView(
-            posterUrl = movie.posterUrl.orEmpty(),
-            sharedImageKey = moviePosterKey(movie.id),
-            contentDescription = "Movie poster for ${movie.title}",
-            modifier = posterModifier.then(
+        Box(
+            modifier = Modifier.then(
                 if (compact) Modifier.size(width = 56.dp, height = 100.dp)
                 else Modifier.fillMaxHeight().aspectRatio(9f / 16f),
             ).padding(vertical = 8.dp),
-        )
+        ) {
+            MoverImageView(
+                posterUrl = movie.posterUrl.orEmpty(),
+                sharedImageKey = moviePosterKey(movie.id),
+                contentDescription = "Movie poster for ${movie.title}",
+                modifier = posterModifier.fillMaxSize(),
+            )
+            posterOverlay()
+        }
         Column(Modifier.weight(1f).padding(8.dp)) {
             Text(movie.title, style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (compact && movie.releaseDate.isNotBlank()) Text(movie.releaseDate.take(4), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
