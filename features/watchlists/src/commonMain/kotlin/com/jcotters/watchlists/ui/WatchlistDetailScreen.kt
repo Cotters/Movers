@@ -102,6 +102,14 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                     Icon(painterResource(Res.drawable.more), "List options")
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Pick a film") },
+                        enabled = !state.busy && state.content?.movies?.any { it.id !in state.removing } == true,
+                        onClick = {
+                            menu = false
+                            viewModel.pickMovie()?.let { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) }
+                        },
+                    )
                     DropdownMenuItem(text = { Text("Import / export") }, onClick = { menu = false; navigator.navigate(ListTransferKey(listId)) })
                     DropdownMenuItem(text = { Text("Edit list") }, onClick = { menu = false; editing = true })
                     DropdownMenuItem(text = { Text("Rename list") }, onClick = { menu = false; viewModel.clearError(); renaming = true })

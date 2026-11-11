@@ -89,6 +89,13 @@ internal class WatchlistDetailViewModel(
     }
 
     fun rename(name: String) = write(renaming = true) { id -> repository.rename(id, name) }
+    fun pickMovie(): Int? {
+        val current = state.value
+        if (current.loading || current.busy) return null
+        val movies = current.content?.movies.orEmpty().filterNot { it.id in current.removing }
+        return pickWatchlistMovie(movies)?.id
+    }
+
     fun stageMovieRemoval(movieId: Int) {
         val id = listId ?: return
         val current = state.value
