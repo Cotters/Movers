@@ -15,6 +15,14 @@ Home is the infinite movie feed. Watchlists owns custom lists, list details/mana
 
 List/search/picker keys live in feature contracts and are registered by `:shared`. Each entry owns its ViewModel; the search query uses SavedStateHandle, while picker checkboxes come from persisted membership. The shared Nav 3 overlay scene strategy presents the bottom sheet on both platforms. Returning to a source retains its query, paging, scroll, and navigation state. A target list is context, not authorization.
 
+## Keyboard ownership
+
+Keep IME padding off the root navigation Scaffold so the bottom bar stays at the window bottom on Android and iOS (the open keyboard may cover it). Apply `imePadding()` to the destination-content Box after Scaffold padding is applied/consumed; this subtracts the already-reserved bar/safe area instead of leaving a second gap above the keyboard. Snackbar feedback lives in that same content layer. The bottom bar retains only its system-bottom/horizontal insets.
+
+On iOS, `ComposeUIViewController` uses `OnFocusBehavior.DoNothing`: shared content owns keyboard avoidance, so the host must not additionally pan the entire Compose view. This API/default was checked in installed Compose UI 1.12.2 sources. SwiftUI already ignores keyboard safe-area resizing. Android retains edge-to-edge and `adjustResize` for IME inset delivery. Startup name entry and Material dialogs/sheets retain their own inset handling. See [Android inset consumption](https://developer.android.com/develop/ui/compose/system/insets-ui).
+
+Physical acceptance: open/dismiss the keyboard in full-screen Search/import paste, then a sheet/dialog text field; verify the bar never floats above the keyboard, content/input/feedback remains reachable and no extra gap remains after dismissal. Repeat on Android/iPhone and portrait/landscape. No runtime result is inferred from source checks.
+
 ## List import/export
 
 Both actions live in each list's menu. Import uses an entry-scoped `FilmImportKey`/ViewModel with session-only progress and compact shared search components; export is a snapshot-based sheet in the list entry. [Import/export design](../features/list-import-export.md) owns matching, partial results, document exchange and activity semantics.

@@ -1,5 +1,6 @@
 package com.jcotters.movers
 
+import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import com.cotters.data.network.IosNetworkMonitor
 import com.cotters.data.network.NetworkMonitor
@@ -12,7 +13,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.koin.dsl.module
 
-fun MainViewController() = ComposeUIViewController {
+fun MainViewController() = ComposeUIViewController(configure = {
+    // Shared content handles IME insets; panning this view would also move bottom navigation.
+    onFocusBehavior = OnFocusBehavior.DoNothing
+}) {
     SharedApp()
 }
 

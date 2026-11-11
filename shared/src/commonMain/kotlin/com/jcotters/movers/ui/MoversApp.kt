@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -69,14 +70,14 @@ internal fun MoversNavigationShell(
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
     val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     Scaffold(
-        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbar) },
-        modifier = Modifier.fillMaxSize().imePadding(),
+        modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
             MoversBottomBar(selectedTab = state.selectedTab, onSelectTab = state::selectTab)
         },
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
+        // Only destination content avoids the keyboard; the bottom bar stays at the window edge.
+        Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
             key(state) {
                 SharedTransitionLayout {
                     CompositionLocalProvider(LocalMovieTransitionScope provides this, com.jcotters.presentation.LocalSnackbarHostState provides snackbar) {
@@ -91,6 +92,7 @@ internal fun MoversNavigationShell(
                 }
             }
             OfflineNotice(networkStatus, Modifier.align(Alignment.BottomCenter))
+            SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
         }
     }
 }

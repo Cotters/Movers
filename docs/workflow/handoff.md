@@ -1,8 +1,14 @@
 # Current handoff
 
-Updated 11 November 2026. Checkpoint: `1db6e4c` (`Improve bottom nav bar`) plus import/export changes. User staging exists; preserve it. No agent commit/push, device interaction or hosted deployment. Prior UI/release evidence is in [history](history/2026-11-11-pre-import-export.md).
+Updated 11 November 2026. Checkpoint: `0598608` (`Stop keyboard pushing nav bar up`), committed by the user during this task; current notes record its ownership/acceptance limits. Verify Git and preserve user edits/staging. No agent commit/push, device interaction or hosted deployment. Prior UI/release evidence is in [history](history/2026-11-11-pre-import-export.md).
 
-## Active feature
+## Keyboard/navigation follow-up
+
+- Current task is only the bottom-nav keyboard issue, confirmed by the user to affect **Android and iOS**. Root Scaffold no longer applies IME padding. Its destination-content Box applies it after consuming Scaffold/bar padding, preserving keyboard clearance without lifting the bar or double-counting the bottom gap. Snackbar feedback moved into that same content layer.
+- iOS host sets `OnFocusBehavior.DoNothing` to prevent a second whole-view pan. Default/API checked in installed Compose UI 1.12.2 sources; online API pages were unavailable. SwiftUI already ignores keyboard safe-area resizing. Android keeps edge-to-edge/adjustResize and the bar keeps its system insets. No navigation transitions/styling, tags or ratings changed.
+- Static source/inset-ownership and documentation/whitespace checks only. **No build, test or device run for this fix.** Physical Android/iPhone confirmation is pending: Search/import paste, sheet/dialog fields, open/dismiss keyboard, portrait/landscape, no bar lift or leftover gap, reachable input/snackbar feedback. [Keyboard ownership](navigation.md#keyboard-ownership) records the invariant. Finish this item before the next priority. A user commit alone is not runtime acceptance.
+
+## Import/export feature
 
 - Each personal/shared list has Import films and Export list. Import supports file/paste, CSV/TSV/semicolon/pipe/newline input, individual Letterboxd/IMDb CSVs and Movers JSON. First-use help is brief/skippable. Parsing/format/column preview precedes writes. Progress and reports are session-only; remaining entries can be saved as CSV. Source caps: 5 MiB / 10,000 entries.
 - **User steering supersedes the strict matching plan:** prefer explicit IDs, otherwise use the first valid search result. Retry without a supplied year when year-filtered results are empty. Unfound/failed/malformed rows need attention; conflicting explicit IDs still need selection. Find film shares the full Search field/result components in a compact sheet with poster, year and synopsis, with debounced lookup. Its selection still uses import attribution, not normal quick-add.
@@ -12,7 +18,7 @@ Updated 11 November 2026. Checkpoint: `1db6e4c` (`Improve bottom nav bar`) plus 
 
 ## Verification and limits
 
-- Affected existing host checks passed: **52 tests / 12 suites**, zero failures/errors/skips (Watchlists 2, movie internal 31, shared 19); all three test tasks executed. Android debug APK packaging passed. Command/log: affected `testAndroidHostTest` tasks plus `:app:assembleDebug`, `/private/tmp/movers-import-host.log`; 43 s, 87 executed / 274 up-to-date.
+- Prior import/export checks (not evidence for the keyboard fix): affected existing host checks passed: **52 tests / 12 suites**, zero failures/errors/skips (Watchlists 2, movie internal 31, shared 19); all three test tasks executed. Android debug APK packaging passed. Command/log: affected `testAndroidHostTest` tasks plus `:app:assembleDebug`, `/private/tmp/movers-import-host.log`; 43 s, 87 executed / 274 up-to-date.
 - `./scripts/verify-ios.sh` exits **0** after fixing native picker bindings/delegate separation. Unsigned physical-device SDK only; no install/launch. Log `/private/tmp/movers-import-ios.log`; Kotlin phase 36 s, 48 executed / 132 up-to-date. The native compile issues were diagnosed from exact compiler messages and installed bindings.
 - Final small refinements after those successful gates: IMDb 404 becomes not-found, invalid results are excluded, compact rows grow for large text, the existing API assertion covers year filtering, and shared duplicate checks always reach the server instead of trusting stale cached membership. These refinements have static review only. Automatic approval review rejected a repeated Gradle gate as routine iteration contrary to user policy; do not retry indirectly. Further build/test execution requires an explicit request or a genuinely new substantial need.
 - Disposable PostgreSQL audit passed: migration/deployment metadata, valid rows alongside rejection, duplicate no-ops, exact receipt replay, changed-payload refusal, no resurrection after removal, Added/Imported/Removed attribution and non-member refusal. Only synthetic local data; temporary server stopped. No new permanent test cases. This does not establish hosted deployment/Auth/Realtime or native UI acceptance.
