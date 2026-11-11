@@ -4,6 +4,7 @@ import com.jcotters.catalogue.catalogueDependencies
 import com.jcotters.details.detailsDependencies
 import com.jcotters.internal.movieDependencies
 import com.jcotters.movers.ui.AppViewModel
+import com.jcotters.styleguide.styleGuideDependencies
 import com.jcotters.profile.profileDependencies
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -18,6 +19,6 @@ private val sharedDependencies = module {
 
 internal fun initializeMovers(platformDependencies: Module) {
     startKoin {
-        modules(platformDependencies, movieDependencies, catalogueDependencies, detailsDependencies, profileDependencies, watchlistsDependencies, searchDependencies, sharedDependencies)
+        modules(platformDependencies, movieDependencies, catalogueDependencies, detailsDependencies, profileDependencies, watchlistsDependencies, searchDependencies, styleGuideDependencies, sharedDependencies)
     }
 }

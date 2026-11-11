@@ -4,6 +4,8 @@ Updated 11 November 2026. Current task: approved [development-only style guide](
 
 ## Style guide progress
 
+- Theme/basic controls implemented in the isolated design system: Inter v4.1, fixed light/dark colours, original icons and app-owned Unstyled 2.10.2 button/field wrappers, Foundation selections. Entry-scoped guide settings and per-section saveable demo inputs are local only. Live theme/corners/spacing and Reset affect the preview area; production bars retain their theme. Three raw font files total 1,248,684 bytes, not an APK/IPA delta. Basic controls are source-reviewed; overlays/film examples and integration checks follow.
+
 - Module boundaries and guarded Profile launcher/typed destination implemented. Android uses the installed application's debuggable flag; iOS uses Kotlin/Native's debug-binary flag. Release navigation guards restored guide entries while retaining serialization. Existing round-trip assertion updated; no new cases. Source/diff/docs checks only at this checkpoint.
 
 
