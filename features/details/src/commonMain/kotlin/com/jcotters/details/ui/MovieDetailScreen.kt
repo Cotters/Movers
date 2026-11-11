@@ -12,11 +12,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -122,7 +122,10 @@ fun MovieDetailScreen(
                             label = "Loaded genres",
                         ) { loadedGenres ->
                             if (loadedGenres.isNotEmpty()) {
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
                                     loadedGenres.forEach { genre ->
                                         Surface(
                                             shape = RoundedCornerShape(16.dp),
@@ -131,7 +134,8 @@ fun MovieDetailScreen(
                                             Text(
                                                 genre.name,
                                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                                style = MaterialTheme.typography.labelLarge
+                                                style = MaterialTheme.typography.labelLarge,
+                                                maxLines = 1,
                                             )
                                         }
                                     }
@@ -303,10 +307,16 @@ private fun MovieSummary(
                         DetailValue("runtime", runtime, loading, placeholderAlpha)
                     }
                 }
-                DetailValue(
-                    "rating", formatRating(movie), loading, placeholderAlpha,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                val score = movie?.voteAverage?.takeIf { it.isFinite() }?.coerceIn(0.0, 10.0)
+                val votes = movie?.voteCount
+                if (score != null && votes != null && votes > 0) {
+                    MovieRating(score, votes)
+                } else {
+                    DetailValue(
+                        "rating", formatRating(movie), loading, placeholderAlpha,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         }
     }
@@ -353,16 +363,16 @@ internal fun formatRuntime(minutes: Int): String = when {
 
 internal fun formatRating(movie: Movie?): String? = when {
     movie?.voteCount == 0 -> "Not yet rated"
-    movie?.voteAverage != null && movie.voteCount != null ->
-        "TMDB ${kotlin.math.round(requireNotNull(movie.voteAverage) * 10) / 10}/10 · ${movie.voteCount} votes"
-
     else -> null
 }
 
 private val previewMovie = Movie(
     id = 1, title = "Preview: The Movie", synopsis = "A preview to die for...", releaseDate = "2026-10-07",
     tagline = "Every frame tells a story.", runtimeMinutes = 125,
-    genres = listOf(MovieGenre(18, "Drama"), MovieGenre(12, "Adventure")),
+    genres = listOf(
+        MovieGenre(18, "Drama"), MovieGenre(12, "Adventure"),
+        MovieGenre(878, "Science Fiction"), MovieGenre(9648, "Mystery"),
+    ),
     voteAverage = 7.8, voteCount = 1234, status = "Released", originalLanguage = "en", detailsFetchedAt = 1,
 )
 

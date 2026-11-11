@@ -1,12 +1,18 @@
 # Current handoff
 
-Updated 11 November 2026. Checkpoint: `0598608` (`Stop keyboard pushing nav bar up`), committed by the user during this task; current notes record its ownership/acceptance limits. Verify Git and preserve user edits/staging. No agent commit/push, device interaction or hosted deployment. Prior UI/release evidence is in [history](history/2026-11-11-pre-import-export.md).
+Updated 11 November 2026. Source checkpoint before detail UI changes: `0b3ce34` (`Tweak search responsiveness`). Verify Git and preserve user edits/staging. No agent commit/push, device interaction or hosted deployment. Prior UI/release evidence is in [history](history/2026-11-11-pre-import-export.md).
+
+## Detail UI follow-up
+
+- User authorized scrolling genres, then five-star ratings. Genres now use one horizontally scrolling row of single-line chips, retaining loading/fade behavior. Existing detail previews include enough genres to overflow narrow screens.
+- Shared feature-local `MovieRating` draws five cached star paths with continuous fractional fills (TMDB score / 2), theme colors and RTL fill/order. Display keeps the explicit score out of 10 and TMDB vote count. Read-only accessibility announces one rating/count; votes sit underneath and stars/score can wrap for larger text. Unknown/loading and unrated states remain distinct. No dependency or platform changes.
+- Consulted current [Compose scrolling](https://developer.android.com/develop/ui/compose/touch-input/scroll/scroll-modifiers), [drawing guidance](https://developer.android.com/develop/ui/compose/graphics/draw/overview) and the suggested [ratingbar reference](https://github.com/a914-gowtham/compose-ratingbar); no library code copied. FlowRow alignment API checked against cached consumed CMP 1.12.2 sources. Static review only; no builds/tests/device runs. Physical Android/iPhone acceptance remains: swipe genres, vertical scrolling, partial/unrated/loading ratings, long titles/large text and light/dark contrast.
 
 ## Keyboard/navigation follow-up
 
-- Current task is only the bottom-nav keyboard issue, confirmed by the user to affect **Android and iOS**. Root Scaffold no longer applies IME padding. Its destination-content Box applies it after consuming Scaffold/bar padding, preserving keyboard clearance without lifting the bar or double-counting the bottom gap. Snackbar feedback moved into that same content layer.
-- iOS host sets `OnFocusBehavior.DoNothing` to prevent a second whole-view pan. Default/API checked in installed Compose UI 1.12.2 sources; online API pages were unavailable. SwiftUI already ignores keyboard safe-area resizing. Android keeps edge-to-edge/adjustResize and the bar keeps its system insets. No navigation transitions/styling, tags or ratings changed.
-- Static source/inset-ownership and documentation/whitespace checks only. **No build, test or device run for this fix.** Physical Android/iPhone confirmation is pending: Search/import paste, sheet/dialog fields, open/dismiss keyboard, portrait/landscape, no bar lift or leftover gap, reachable input/snackbar feedback. [Keyboard ownership](navigation.md#keyboard-ownership) records the invariant. Finish this item before the next priority. A user commit alone is not runtime acceptance.
+- Bottom-nav keyboard fix affects **Android and iOS**. Root Scaffold no longer applies IME padding. Its destination-content Box applies it after consuming Scaffold/bar padding, preserving keyboard clearance without lifting the bar or double-counting the bottom gap. Snackbar feedback moved into that same content layer.
+- iOS host sets `OnFocusBehavior.DoNothing` to prevent a second whole-view pan. Default/API checked in installed Compose UI 1.12.2 sources; online API pages were unavailable. SwiftUI already ignores keyboard safe-area resizing. Android keeps edge-to-edge/adjustResize and the bar keeps its system insets. Navigation transitions/styling unchanged.
+- Static source/inset-ownership and documentation/whitespace checks only. **No build, test or device run for this fix.** User moved on to tags/ratings; specific physical observations were not supplied. Physical Android/iPhone confirmation remains pending: Search/import paste, sheet/dialog fields, open/dismiss keyboard, portrait/landscape, no bar lift or leftover gap, reachable input/snackbar feedback. [Keyboard ownership](navigation.md#keyboard-ownership) records the invariant.
 
 ## Import/export feature
 
