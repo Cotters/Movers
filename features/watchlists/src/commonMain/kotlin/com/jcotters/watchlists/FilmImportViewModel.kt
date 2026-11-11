@@ -250,7 +250,7 @@ internal class FilmImportViewModel(private val lists: IWatchlistsRepository, pri
     fun closeResolution() { search?.cancel(); state.update { it.copy(resolving = null, searching = false) } }
     fun queryChanged(query: String) {
         state.update { it.copy(query = query) }
-        searchQuery(query, 350)
+        searchQuery(query, 300)
     }
     fun search() {
         searchQuery(state.value.query, 0)
