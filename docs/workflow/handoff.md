@@ -8,6 +8,8 @@ Updated 11 November 2026. Baseline: `60b3c27` (swipe actions). Current task: imp
 
 - **Edit toolbar complete:** editing exposes only the existing layout toggle and Done; navigation/add/menu actions return on Done. Entry-saved state and removal behavior are unchanged. Followed [TopAppBar slot ownership](https://developer.android.com/develop/ui/compose/components/app-bars). Reviewed both branches and diff; physical acceptance/builds deferred.
 
+- **Import keyboard complete:** value-based multiline input retains paste/newlines and adds Done, explicit focus/keyboard dismissal and background-tap dismissal; file/import actions dismiss before proceeding. Followed [text input](https://developer.android.com/develop/ui/compose/text/user-input) and [gesture consumption](https://developer.android.com/develop/ui/compose/touch-input/pointer-input/understand-gestures) guidance without migrating field APIs. Static review only; verify Done/background taps and text selection on physical Android/iOS.
+
 ## Swipe/Undo follow-up
 
 - [Agreed behavior and ownership](../features/swipe-actions.md): reveal explicit Add to list/Remove buttons on watchlist rows; Add only on Home. RTL-aware Foundation anchors; equivalent accessibility actions. Reuse the existing picker. Grids, + and Edit behavior stay unchanged; no full-swipe deletion or new dependency.

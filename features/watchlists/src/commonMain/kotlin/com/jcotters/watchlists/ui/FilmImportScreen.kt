@@ -1,5 +1,6 @@
 package com.jcotters.watchlists.ui
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -38,7 +41,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -79,6 +85,11 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
     }
     val scope = rememberCoroutineScope()
     val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val dismissKeyboard: () -> Unit = {
+        focusManager.clearFocus()
+        keyboard?.hide()
+    }
     val preference = rememberImportHelpPreference()
     var help by rememberSaveable { mutableStateOf(!preference.seen) }
     var allRows by rememberSaveable { mutableStateOf(false) }
@@ -94,7 +105,9 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
             }
         },
     )
-    Scaffold(topBar = {
+    Scaffold(modifier = Modifier.pointerInput(focusManager, keyboard) {
+        detectTapGestures(onTap = { dismissKeyboard() })
+    }, topBar = {
         TopAppBar(title = { Text("Import films") }, navigationIcon = {
             IconButton(onClick = { viewModel.pause(); navigator.goBack() }) { Icon(painterResource(Res.drawable.arrow_back), "Back") }
         }, actions = { TextButton(onClick = { help = !help }) { Text("Help") } })
@@ -118,7 +131,7 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
             if (!state.started) {
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Button(onClick = documents::open, enabled = !state.parsing) { Text("Choose file") }
+                        Button(onClick = { dismissKeyboard(); documents.open() }, enabled = !state.parsing) { Text("Choose file") }
                         state.filename?.let { Text(it, Modifier.padding(start = 12.dp).weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis) }
                     }
                 }
@@ -126,6 +139,8 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                     OutlinedTextField(
                         value = state.text, onValueChange = viewModel::sourceChanged,
                         label = { Text("Paste titles or CSV") }, modifier = Modifier.fillMaxWidth(), minLines = 4, maxLines = 7,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { dismissKeyboard() }),
                     )
                 } else item { TextButton(onClick = { viewModel.sourceChanged("") }) { Text("Paste instead") } }
                 item { ImportFormatControls(state, viewModel) }
@@ -140,7 +155,7 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                         }
                     }
                 }
-                item { Button(onClick = viewModel::start, enabled = !state.parsing && !state.unavailable && !state.parsed?.films.isNullOrEmpty()) { Text("Import") } }
+                item { Button(onClick = { dismissKeyboard(); viewModel.start() }, enabled = !state.parsing && !state.unavailable && !state.parsed?.films.isNullOrEmpty()) { Text("Import") } }
             } else {
                 val imported = state.rows.count { it.status == ImportRowState.Imported }
                 val skipped = state.rows.count { it.status == ImportRowState.Skipped }
