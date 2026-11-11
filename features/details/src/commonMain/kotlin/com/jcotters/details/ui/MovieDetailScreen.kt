@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,9 +59,11 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.MovieGenre
 import com.jcotters.details.navigation.MovieImageType
@@ -269,7 +272,7 @@ private fun MovieSummary(
             posterUrl = movie?.posterUrl.orEmpty(),
             contentDescription = movie?.let { "Movie poster for ${it.title}" } ?: "Movie poster",
             sharedImageKey = movieId?.let(::moviePosterKey),
-            modifier = posterModifier.size(width = posterWidth, height = posterHeight).then(
+            modifier = posterModifier.align(Alignment.Bottom).size(width = posterWidth, height = posterHeight).then(
                 if (onImageTapped != null && !movie?.posterUrl.isNullOrBlank()) {
                     Modifier.clickable(onClickLabel = "Expand poster", role = Role.Button) {
                         onImageTapped(MovieImageType.Poster)
@@ -285,9 +288,17 @@ private fun MovieSummary(
                 .animateContentSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),
         ) {
+            val titleStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
             DetailValue(
                 "title", movie?.title, loading, placeholderAlpha,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = titleStyle,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                autoSize = TextAutoSize.StepBased(
+                    minFontSize = 18.sp,
+                    maxFontSize = titleStyle.fontSize,
+                    stepSize = 1.sp,
+                ),
             )
             DetailValue("tagline", movie?.tagline, loading, placeholderAlpha)
             val releaseDate = movie?.releaseDate?.takeIf(String::isNotBlank)
@@ -330,6 +341,9 @@ private fun DetailValue(
     placeholderAlpha: State<Float>,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+    autoSize: TextAutoSize? = null,
 ) {
     val text = value?.takeIf { it.isNotBlank() }
     if (text == null && !loading) return
@@ -339,7 +353,14 @@ private fun DetailValue(
         label = "Loaded $label",
     ) { loadedText ->
         if (loadedText != null) {
-            Text(loadedText, modifier = modifier.fillMaxWidth(), style = style)
+            Text(
+                loadedText,
+                modifier = modifier.fillMaxWidth(),
+                style = style,
+                maxLines = maxLines,
+                overflow = overflow,
+                autoSize = autoSize,
+            )
         } else {
             DetailPlaceholder(label, placeholderAlpha)
         }

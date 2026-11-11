@@ -1,9 +1,6 @@
 package com.jcotters.catalogue
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -12,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -22,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,11 +48,11 @@ import androidx.paging.compose.itemKey
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.PreviewMovies
 import com.jcotters.features.catalogue.resources.Res
-import com.jcotters.features.catalogue.resources.arrow_up
 import com.jcotters.features.catalogue.resources.cached_movies_refresh_error
 import com.jcotters.presentation.AddToListButton
 import com.jcotters.presentation.MovieLayoutToggle
 import com.jcotters.presentation.MovieListRow
+import com.jcotters.presentation.ScrollToTopButton
 import com.jcotters.presentation.resources.search
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -99,25 +94,14 @@ fun MovieCatalogueScreen(
             }
         }) },
         floatingActionButton = {
-            AnimatedVisibility(
+            ScrollToTopButton(
                 visible = showScrollToTopFab,
-                enter = scaleIn(),
-                exit = scaleOut(),
-            ) {
-                FloatingActionButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            if (showGrid) gridState.animateScrollToItem(0) else listState.animateScrollToItem(0)
-                        }
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(Res.drawable.arrow_up),
-                        contentDescription = "Scroll to top button",
-                        modifier = Modifier.size(30.dp),
-                    )
-                }
-            }
+                onClick = {
+                    coroutineScope.launch {
+                        if (showGrid) gridState.animateScrollToItem(0) else listState.animateScrollToItem(0)
+                    }
+                },
+            )
         },
         modifier = modifier.fillMaxSize()
     ) { innerPadding ->

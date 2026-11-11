@@ -1,6 +1,7 @@
 package com.jcotters.watchlists.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -21,12 +22,16 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,6 +40,7 @@ import com.jcotters.contract.watchlists.domain.Watchlist
 import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.navigation.Navigator
 import com.jcotters.presentation.MovieLayoutToggle
+import com.jcotters.presentation.ScrollToTopButton
 import com.jcotters.presentation.formatActivityTime
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.add
@@ -44,6 +50,7 @@ import com.jcotters.search.navigation.MovieSearchKey
 import com.jcotters.watchlists.WatchlistDetailViewModel
 import com.jcotters.watchlists.navigation.SharedListKey
 import com.jcotters.watchlists.navigation.SharedSection
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -60,6 +67,13 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     var query by rememberSaveable(listId) { mutableStateOf("") }
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
+    val headerScrollState = rememberWatchlistHeaderScrollState(listState, gridState, showGrid)
+    val coroutineScope = rememberCoroutineScope()
+    val showScrollToTop by remember(listState, gridState, showGrid, headerScrollState) {
+        derivedStateOf {
+            (if (showGrid) gridState.canScrollBackward else listState.canScrollBackward) || !headerScrollState.visible
+        }
+    }
     var attribution by remember(listId) { mutableStateOf<FilmContribution?>(null) }
     var exportContent by remember(listId) { mutableStateOf<com.jcotters.contract.watchlists.domain.WatchlistContent?>(null) }
     LaunchedEffect(listId) { viewModel.load(listId) }
@@ -97,8 +111,18 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                     onClick = { menu = false; viewModel.clearError(); deleting = true })
             }
         })
+    }, floatingActionButton = {
+        ScrollToTopButton(
+            visible = state.content != null && showScrollToTop,
+            onClick = {
+                coroutineScope.launch {
+                    if (showGrid) gridState.animateScrollToItem(0) else listState.animateScrollToItem(0)
+                    headerScrollState.show()
+                }
+            },
+        )
     }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
+        Column(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
             if (state.loading || state.busy) LinearProgressIndicator()
             state.error?.let {
                 Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
@@ -112,11 +136,15 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                         terms.all { movie.title.contains(it, ignoreCase = true) }
                     }
                 }
+                LaunchedEffect(visibleMovies.isEmpty(), headerScrollState) {
+                    if (visibleMovies.isEmpty()) headerScrollState.show()
+                }
                 WatchlistSearchHeader(
-                    scrollState = if (showGrid) gridState else listState,
+                    scrollState = headerScrollState,
                     query = query,
                     onQueryChange = {
                         query = it
+                        headerScrollState.show()
                         listState.requestScrollToItem(0)
                         gridState.requestScrollToItem(0)
                     },
@@ -143,7 +171,8 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                     onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
                     onRemove = viewModel::removeMovie,
                     onContribution = { attribution = it },
-                    modifier = Modifier.weight(1f),
+                    bottomContentPadding = if (showScrollToTop) 88.dp else 24.dp,
+                    modifier = Modifier.weight(1f).clipToBounds().nestedScroll(headerScrollState),
                 )
             }
         }

@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
@@ -20,6 +19,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.jcotters.contract.watchlists.data.FilmContribution
 import com.jcotters.contract.watchlists.domain.WatchlistContent
@@ -27,6 +27,7 @@ import com.jcotters.presentation.MovieListRow
 import com.jcotters.presentation.MovieMembershipButton
 import com.jcotters.presentation.MoviePosterCard
 import com.jcotters.presentation.moviePosterTransitionModifier
+import androidx.compose.foundation.lazy.grid.items as gridItems
 
 @Composable
 internal fun WatchlistMovies(
@@ -42,6 +43,7 @@ internal fun WatchlistMovies(
     onRemove: (Int) -> Unit,
     onContribution: (FilmContribution) -> Unit,
     modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = 24.dp,
 ) {
     val removeButton: @Composable (Int, String) -> Unit = { id, title ->
         if (editing) {
@@ -59,7 +61,7 @@ internal fun WatchlistMovies(
             columns = GridCells.Adaptive(140.dp),
             state = gridState,
             modifier = modifier,
-            contentPadding = PaddingValues(8.dp),
+            contentPadding = PaddingValues(start = 8.dp, top = 8.dp, end = 8.dp, bottom = bottomContentPadding),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -82,7 +84,11 @@ internal fun WatchlistMovies(
             }
         }
     } else {
-        LazyColumn(state = listState, modifier = modifier.padding(horizontal = 8.dp)) {
+        LazyColumn(
+            state = listState,
+            modifier = modifier,
+            contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = bottomContentPadding),
+        ) {
             items(content.movies, key = { it.id }) { movie ->
                 MovieListRow(
                     movie = movie,
