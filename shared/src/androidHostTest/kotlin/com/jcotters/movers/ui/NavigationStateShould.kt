@@ -54,6 +54,7 @@ class NavigationStateShould {
         val serializer = PolymorphicSerializer(NavKey::class)
         listOf(CatalogueKey, ProfileKey, WatchlistsKey, MovieDetailsKey(14, "entry", "list"),
             MovieImageKey(14, MovieImageType.Poster, "entry"), MovieImageKey(14, MovieImageType.Backdrop, "entry"),
+            com.jcotters.watchlists.navigation.ListTransferKey("list"),
             com.jcotters.watchlists.navigation.FilmImportKey("list", "import"),
             WatchlistDetailKey("list"), AddToListsKey(14, "list", "picker"), MovieSearchKey("list", "search")).forEach { key ->
             assertEquals(key, json.decodeFromString(serializer, json.encodeToString(serializer, key)))

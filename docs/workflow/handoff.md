@@ -1,6 +1,6 @@
 # Current handoff
 
-Updated 11 November 2026. Baseline: `60b3c27` (swipe actions). Current task: implement and separately commit five small backlog items: encryption metadata, edit toolbar, import keyboard dismissal, avatar colour and unified import/export. UI refresh requires discussion and is skipped. No routine builds, new tests, device interaction, upload or backend deployment. Earlier release evidence is retained below.
+Updated 11 November 2026. Baseline: `60b3c27` (swipe actions). Current task: five small backlog items implemented in separate commits: encryption metadata, edit toolbar, import keyboard dismissal, avatar colour and unified import/export. UI refresh requires discussion and is skipped. No routine builds, new tests, device interaction, upload or backend deployment. Earlier release evidence is retained below and does not verify these later changes.
 
 ## Small backlog pass
 
@@ -11,6 +11,9 @@ Updated 11 November 2026. Baseline: `60b3c27` (swipe actions). Current task: imp
 - **Import keyboard complete:** value-based multiline input retains paste/newlines and adds Done, explicit focus/keyboard dismissal and background-tap dismissal; file/import actions dismiss before proceeding. Followed [text input](https://developer.android.com/develop/ui/compose/text/user-input) and [gesture consumption](https://developer.android.com/develop/ui/compose/touch-input/pointer-input/understand-gestures) guidance without migrating field APIs. Static review only; verify Done/background taps and text selection on physical Android/iOS.
 
 - **Avatar colour complete:** Profile selects from the existing stable eight-colour palette, with selected semantics/48 dp targets, saving/error feedback, serialized name/colour edits and the existing neutral identity update before Room persistence. No schema/provider change. Followed [selection accessibility](https://developer.android.com/develop/ui/compose/components/radio-button) and existing suspend Room query patterns. Updated the existing persistence test/fake for the new contract; no new cases or test run. Physical selection/restart/shared-avatar and offline-error checks pending.
+
+- **Unified transfer screen complete:** one Import / export menu item opens both options; export controls are inline and import retains its existing session screen. A focused observing ViewModel handles unavailable/error/retry states and excludes pending Undo removals. Typed `ListTransferKey`, serializer and Koin entry ownership follow [Nav3 state guidance](https://developer.android.com/guide/navigation/navigation-3/save-state) and [CMP ViewModel guidance](https://kotlinlang.org/docs/multiplatform/compose-viewmodel.html). Existing serialization assertion updated; no new cases. Static/diff/docs checks only; native file flows and builds remain deferred.
+- **Next:** physical Android/iPhone checks for the four UI changes (including colour persistence/failed shared saves and Import → Back → export), then remaining backlog. No routine builds/tests ran in this pass; no new dependencies, schema migrations, provider changes or deployments. Private Todo updated; UI refresh still needs prior discussion.
 
 ## Swipe/Undo follow-up
 

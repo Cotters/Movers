@@ -4,12 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,9 +27,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ExportListSheet(content: WatchlistContent, onDismiss: () -> Unit) {
+internal fun ExportListControls(content: WatchlistContent, modifier: Modifier = Modifier) {
     var format by rememberSaveable { mutableStateOf(ExportFormat.Csv) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -58,18 +53,14 @@ internal fun ExportListSheet(content: WatchlistContent, onDismiss: () -> Unit) {
             catch (_: Exception) { busy = false; message = "Couldn't export this list." }
         }
     }
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Export list", style = MaterialTheme.typography.titleLarge)
-            Text(content.watchlist.name)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ExportFormat.entries.forEach { option -> FilterChip(selected = format == option, onClick = { format = option }, enabled = !busy, label = { Text(option.label) }) }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { export(false) }, enabled = !busy) { Text("Save file") }
-                TextButton(onClick = { export(true) }, enabled = !busy) { Text("Share") }
-            }
-            message?.let { Text(it) }
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ExportFormat.entries.forEach { option -> FilterChip(selected = format == option, onClick = { format = option }, enabled = !busy, label = { Text(option.label) }) }
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { export(false) }, enabled = !busy) { Text("Save file") }
+            TextButton(onClick = { export(true) }, enabled = !busy) { Text("Share") }
+        }
+        message?.let { Text(it) }
     }
 }

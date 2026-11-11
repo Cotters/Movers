@@ -48,6 +48,7 @@ import com.jcotters.presentation.resources.arrow_back
 import com.jcotters.presentation.resources.more
 import com.jcotters.search.navigation.MovieSearchKey
 import com.jcotters.watchlists.WatchlistDetailViewModel
+import com.jcotters.watchlists.navigation.ListTransferKey
 import com.jcotters.watchlists.navigation.SharedListKey
 import com.jcotters.watchlists.navigation.AddToListsKey
 import com.jcotters.watchlists.navigation.SharedSection
@@ -76,7 +77,6 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
         }
     }
     var attribution by remember(listId) { mutableStateOf<FilmContribution?>(null) }
-    var exportContent by remember(listId) { mutableStateOf<com.jcotters.contract.watchlists.domain.WatchlistContent?>(null) }
     LaunchedEffect(listId) { viewModel.load(listId) }
     LaunchedEffect(state.deleted) { if (state.deleted) navigator.goBack() }
     LaunchedEffect(state.renamed) { if (state.renamed) { renaming = false; viewModel.consumeRenamed() } }
@@ -102,8 +102,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                     Icon(painterResource(Res.drawable.more), "List options")
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Import films") }, onClick = { menu = false; navigator.navigate(com.jcotters.watchlists.navigation.FilmImportKey(listId)) })
-                    DropdownMenuItem(text = { Text("Export list") }, onClick = { menu = false; exportContent = state.content })
+                    DropdownMenuItem(text = { Text("Import / export") }, onClick = { menu = false; navigator.navigate(ListTransferKey(listId)) })
                     DropdownMenuItem(text = { Text("Edit list") }, onClick = { menu = false; editing = true })
                     DropdownMenuItem(text = { Text("Rename list") }, onClick = { menu = false; viewModel.clearError(); renaming = true })
                     DropdownMenuItem(text = { Text(if (list?.shared != null) "Share link" else "Share list") }, onClick = { menu = false; navigator.navigate(SharedListKey(listId,SharedSection.Sharing)) })
@@ -185,7 +184,6 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
             }
         }
     }
-    exportContent?.let { ExportListSheet(it, onDismiss = { exportContent = null }) }
     if (renaming && list != null) ListNameDialog("Rename list", state.lists, list.name, list.id, state.busy, state.error,
         onDismiss = { renaming = false; viewModel.clearError() }, onSave = viewModel::rename)
     if (deleting && list != null) ListRemovalDialog(

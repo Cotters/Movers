@@ -17,6 +17,9 @@ data class SharedListKey(val listId: String, val section: SharedSection) : NavKe
 data class WatchlistDetailKey(val listId: String) : NavKey
 
 @Serializable
+data class ListTransferKey(val listId: String) : NavKey
+
+@Serializable
 data class FilmImportKey(val listId: String, val instanceId: String = Uuid.random().toString()) : NavKey
 
 @Serializable

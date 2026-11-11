@@ -11,4 +11,5 @@ val watchlistsDependencies = module {
     viewModelOf(::AddToListsViewModel)
     viewModelOf(::SharingViewModel)
     viewModelOf(::FilmImportViewModel)
+    viewModelOf(::ListTransferViewModel)
 }

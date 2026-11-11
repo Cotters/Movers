@@ -22,6 +22,7 @@ import com.jcotters.navigation.Navigator
 import com.jcotters.profile.navigation.ProfileKey
 import com.jcotters.search.navigation.MovieSearchKey
 import com.jcotters.watchlists.navigation.AddToListsKey
+import com.jcotters.watchlists.navigation.ListTransferKey
 import com.jcotters.watchlists.navigation.WatchlistDetailKey
 import com.jcotters.watchlists.navigation.WatchlistsKey
 import kotlinx.serialization.modules.polymorphic
@@ -138,6 +139,7 @@ internal val navigationSavedState = androidx.savedstate.serialization.SavedState
             subclass(MovieImageKey::class, MovieImageKey.serializer())
             subclass(WatchlistDetailKey::class, WatchlistDetailKey.serializer())
             subclass(com.jcotters.watchlists.navigation.FilmImportKey::class, com.jcotters.watchlists.navigation.FilmImportKey.serializer())
+            subclass(ListTransferKey::class, ListTransferKey.serializer())
             subclass(AddToListsKey::class, AddToListsKey.serializer())
             subclass(MovieSearchKey::class, MovieSearchKey.serializer())
         }
