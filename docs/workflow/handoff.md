@@ -6,6 +6,8 @@ Updated 11 November 2026. Baseline: `60b3c27` (swipe actions). Current task: imp
 
 - **Encryption metadata complete:** persist the previously confirmed exemption as Boolean `ITSAppUsesNonExemptEncryption=false` in Info.plist and XcodeGen. This matches [Apple's metadata guidance](https://developer.apple.com/documentation/bundleresources/information-property-list/itsappusesnonexemptencryption); reassess if cryptography changes. Plist syntax/value and spec consistency checked; no archive/upload needed for this source change.
 
+- **Edit toolbar complete:** editing exposes only the existing layout toggle and Done; navigation/add/menu actions return on Done. Entry-saved state and removal behavior are unchanged. Followed [TopAppBar slot ownership](https://developer.android.com/develop/ui/compose/components/app-bars). Reviewed both branches and diff; physical acceptance/builds deferred.
+
 ## Swipe/Undo follow-up
 
 - [Agreed behavior and ownership](../features/swipe-actions.md): reveal explicit Add to list/Remove buttons on watchlist rows; Add only on Home. RTL-aware Foundation anchors; equivalent accessibility actions. Reuse the existing picker. Grids, + and Edit behavior stay unchanged; no full-swipe deletion or new dependency.

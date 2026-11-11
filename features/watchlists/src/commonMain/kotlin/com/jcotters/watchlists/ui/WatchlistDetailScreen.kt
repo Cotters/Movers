@@ -83,33 +83,38 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     val list = state.content?.watchlist
     Scaffold(topBar = {
         TopAppBar(title = { Text(list?.name ?: "Watchlist", maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = {
-            IconButton(onClick = navigator::goBack) { Icon(painterResource(Res.drawable.arrow_back), "Back") }
+            if (!editing) {
+                IconButton(onClick = navigator::goBack) { Icon(painterResource(Res.drawable.arrow_back), "Back") }
+            }
         }, actions = {
-            if (editing) TextButton(onClick = { editing = false }, enabled = list != null && !state.busy) { Text("Done") }
             MovieLayoutToggle(showGrid = showGrid, onClick = {
                 val anchor = if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
                 if (showGrid) listState.requestScrollToItem(anchor) else gridState.requestScrollToItem(anchor)
                 showGrid = !showGrid
             })
-            IconButton(onClick = { navigator.navigate(MovieSearchKey(listId)) }, enabled = list != null && !state.busy) {
-                Icon(painterResource(Res.drawable.add), "Add movies")
-            }
-            IconButton(onClick = { menu = true }, enabled = list != null && !state.busy) {
-                Icon(painterResource(Res.drawable.more), "List options")
-            }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                DropdownMenuItem(text = { Text("Import films") }, onClick = { menu = false; navigator.navigate(com.jcotters.watchlists.navigation.FilmImportKey(listId)) })
-                DropdownMenuItem(text = { Text("Export list") }, onClick = { menu = false; exportContent = state.content })
-                DropdownMenuItem(text = { Text(if (editing) "Done editing" else "Edit list") }, onClick = { menu = false; editing = !editing })
-                DropdownMenuItem(text = { Text("Rename list") }, onClick = { menu = false; viewModel.clearError(); renaming = true })
-                DropdownMenuItem(text = { Text(if (list?.shared != null) "Share link" else "Share list") }, onClick = { menu = false; navigator.navigate(SharedListKey(listId,SharedSection.Sharing)) })
-                if (list?.shared != null) {
-                    DropdownMenuItem(text = { Text("Members") }, onClick = { menu = false; navigator.navigate(SharedListKey(listId,SharedSection.Members)) })
-                    DropdownMenuItem(text = { Text("Activity") }, onClick = { menu = false; navigator.navigate(SharedListKey(listId,SharedSection.Activity)) })
+            if (editing) {
+                TextButton(onClick = { editing = false }) { Text("Done") }
+            } else {
+                IconButton(onClick = { navigator.navigate(MovieSearchKey(listId)) }, enabled = list != null && !state.busy) {
+                    Icon(painterResource(Res.drawable.add), "Add movies")
                 }
-                HorizontalDivider()
-                DropdownMenuItem(text = { Text(if (list?.shared != null) "Leave list" else "Delete list", color = MaterialTheme.colorScheme.error) },
-                    onClick = { menu = false; viewModel.clearError(); deleting = true })
+                IconButton(onClick = { menu = true }, enabled = list != null && !state.busy) {
+                    Icon(painterResource(Res.drawable.more), "List options")
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(text = { Text("Import films") }, onClick = { menu = false; navigator.navigate(com.jcotters.watchlists.navigation.FilmImportKey(listId)) })
+                    DropdownMenuItem(text = { Text("Export list") }, onClick = { menu = false; exportContent = state.content })
+                    DropdownMenuItem(text = { Text("Edit list") }, onClick = { menu = false; editing = true })
+                    DropdownMenuItem(text = { Text("Rename list") }, onClick = { menu = false; viewModel.clearError(); renaming = true })
+                    DropdownMenuItem(text = { Text(if (list?.shared != null) "Share link" else "Share list") }, onClick = { menu = false; navigator.navigate(SharedListKey(listId,SharedSection.Sharing)) })
+                    if (list?.shared != null) {
+                        DropdownMenuItem(text = { Text("Members") }, onClick = { menu = false; navigator.navigate(SharedListKey(listId,SharedSection.Members)) })
+                        DropdownMenuItem(text = { Text("Activity") }, onClick = { menu = false; navigator.navigate(SharedListKey(listId,SharedSection.Activity)) })
+                    }
+                    HorizontalDivider()
+                    DropdownMenuItem(text = { Text(if (list?.shared != null) "Leave list" else "Delete list", color = MaterialTheme.colorScheme.error) },
+                        onClick = { menu = false; viewModel.clearError(); deleting = true })
+                }
             }
         })
     }, floatingActionButton = {
