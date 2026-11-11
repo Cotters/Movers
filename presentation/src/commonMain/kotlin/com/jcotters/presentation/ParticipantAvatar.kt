@@ -1,17 +1,10 @@
 package com.jcotters.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 
 data class ParticipantAvatarColor(val label: String, val background: Color)
 
@@ -29,10 +22,12 @@ val participantAvatarColors = listOf(
 
 @Composable
 fun ParticipantAvatar(name: String, color: Int, modifier: Modifier = Modifier) {
-    Box(modifier.size(32.dp).background(participantAvatarColors[color.mod(participantAvatarColors.size)].background, CircleShape)
-        .semantics { contentDescription = name }, contentAlignment = Alignment.Center) {
-        Text(name.trim().take(1).uppercase().ifEmpty { "?" }, color = Color.White)
-    }
+    com.jcotters.designsystem.MoversAvatar(
+        name = name,
+        modifier = modifier,
+        background = participantAvatarColors[color.mod(participantAvatarColors.size)].background,
+        contentColor = Color.White,
+    )
 }
 
 expect fun formatActivityTime(millis: Long): String

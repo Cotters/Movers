@@ -44,7 +44,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun MoversBottomBar(selectedTab: TopLevelDestination, onSelectTab: (TopLevelDestination) -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shadowElevation = 4.dp) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shadowElevation = 0.dp) {
         Row(
             modifier = Modifier.fillMaxWidth()
                 .windowInsetsPadding(NavigationBarDefaults.windowInsets)
@@ -87,7 +87,7 @@ internal fun MoversBottomBar(selectedTab: TopLevelDestination, onSelectTab: (Top
                     Box(
                         modifier = Modifier.size(44.dp)
                             .graphicsLayer { scaleX = scale; scaleY = scale }
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(com.jcotters.designsystem.MoversDesign.tokens.cornerRadius))
                             .background(tileColor),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -114,5 +114,5 @@ private val TopLevelDestination.iconRes: DrawableResource get() = when (this) {
 @Preview(widthDp = 360, heightDp = 56)
 @Composable
 private fun BottomBarPreview() {
-    MaterialTheme { MoversBottomBar(TopLevelDestination.Watchlists, onSelectTab = {}) }
+    com.jcotters.designsystem.MoversDesignTheme { MoversBottomBar(TopLevelDestination.Watchlists, onSelectTab = {}) }
 }

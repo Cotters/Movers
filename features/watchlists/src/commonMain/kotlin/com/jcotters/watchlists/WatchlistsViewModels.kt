@@ -1,5 +1,6 @@
 package com.jcotters.watchlists
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
@@ -8,9 +9,11 @@ import com.jcotters.contract.watchlists.domain.WatchlistContent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -60,15 +63,30 @@ internal data class WatchlistDetailState(
     val error: String? = null, val deleted: Boolean = false, val renamed: Boolean = false,
     val lists: List<Watchlist> = emptyList(),
     val removing: Set<Int> = emptySet(),
-)
+    val query: String = "",
+) {
+    val visibleMovies: List<com.jcotters.contract.detail.domain.models.Movie>
+        get() {
+            val movies = content?.movies.orEmpty()
+            val terms = query.trim().split(Regex("\\s+")).filter(String::isNotBlank)
+            return if (terms.isEmpty()) movies else movies.filter { movie ->
+                terms.all { movie.title.contains(it, ignoreCase = true) }
+            }
+        }
+}
 
 internal class WatchlistDetailViewModel(
     private val repository: IWatchlistsRepository,
     private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository,
     private val removals: WatchlistRemovalCoordinator,
+    private val savedState: SavedStateHandle,
 ) : ViewModel() {
     private val state = MutableStateFlow(WatchlistDetailState())
-    val uiState = state.asStateFlow()
+    val uiState = combine(state, savedState.getStateFlow("query", "")) { content, query ->
+        content.copy(query = query)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state.value.copy(query = savedState["query"] ?: ""))
+
+    fun changeQuery(query: String) { savedState["query"] = query }
     private var listId: String? = null
     private var observation: Job? = null
 

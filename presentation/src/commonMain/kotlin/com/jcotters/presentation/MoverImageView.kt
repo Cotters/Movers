@@ -10,12 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -52,8 +50,8 @@ fun MoverImageView(
     sharedImageKey: String? = null,
 ) {
     val imageModifier = modifier
-        .clip(RoundedCornerShape(8.dp))
-        .background(Color.LightGray.copy(alpha = 0.3f))
+        .clip(RoundedCornerShape(com.jcotters.designsystem.MoversDesign.tokens.cornerRadius))
+        .background(com.jcotters.designsystem.MoversDesign.tokens.colors.raised)
     if (LocalInspectionMode.current) {
         val description = contentDescription
         Box(imageModifier.semantics { this.contentDescription = description })

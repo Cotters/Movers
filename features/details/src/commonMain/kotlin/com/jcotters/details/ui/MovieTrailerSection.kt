@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -26,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jcotters.designsystem.MoversTextButton
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -46,14 +46,14 @@ internal fun MovieTrailerSection(movieId: Int) {
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!expanded) {
-            TextButton(onClick = { expanded = true; viewModel.load() }) { Text("Watch trailer") }
+            MoversTextButton(onClick = { expanded = true; viewModel.load() }) { Text("Watch trailer") }
         } else {
             val trailer = state.trailer
             when {
                 state.loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 state.error != null -> {
                     Text(checkNotNull(state.error), color = MaterialTheme.colorScheme.error)
-                    TextButton(onClick = viewModel::load) { Text("Retry") }
+                    MoversTextButton(onClick = viewModel::load) { Text("Retry") }
                 }
                 trailer != null -> {
                     Text(trailer.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -69,7 +69,7 @@ internal fun MovieTrailerSection(movieId: Int) {
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (trailer != null) {
-                    TextButton(onClick = {
+                    MoversTextButton(onClick = {
                         try {
                             uriHandler.openUri(trailer.watchUrl)
                             linkError = null
@@ -78,7 +78,7 @@ internal fun MovieTrailerSection(movieId: Int) {
                         }
                     }) { Text("Open in YouTube") }
                 }
-                TextButton(onClick = { expanded = false; linkError = null }) { Text("Close") }
+                MoversTextButton(onClick = { expanded = false; linkError = null }) { Text("Close") }
             }
             linkError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }

@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -32,6 +30,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
+import com.jcotters.designsystem.MoversTextButton
 
 /** Fits the full artwork, retaining its cached thumbnail during loading or a failed upgrade. */
 @Composable
@@ -97,9 +96,9 @@ fun ExpandedImageView(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text("Couldn't load full-size image.", color = Color.White)
-                TextButton(
+                MoversTextButton(
                     onClick = { loading = true; failed = false; retry++ },
-                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White),
+                    contentColor = Color.White,
                 ) { Text("Retry") }
             }
         }

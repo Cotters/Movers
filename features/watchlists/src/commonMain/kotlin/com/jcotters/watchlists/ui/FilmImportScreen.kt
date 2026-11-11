@@ -13,30 +13,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +39,17 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jcotters.designsystem.MoversButton
+import com.jcotters.designsystem.MoversCard
+import com.jcotters.designsystem.MoversCheckbox
+import com.jcotters.designsystem.MoversDropdownMenu
+import com.jcotters.designsystem.MoversDropdownMenuItem
+import com.jcotters.designsystem.MoversFilterChip
+import com.jcotters.designsystem.MoversIconButton
+import com.jcotters.designsystem.MoversModalSheet
+import com.jcotters.designsystem.MoversTextButton
+import com.jcotters.designsystem.MoversTextField
+import com.jcotters.designsystem.MoversTopBar
 import com.jcotters.navigation.Navigator
 import com.jcotters.presentation.MovieSearchField
 import com.jcotters.presentation.MovieSearchResult
@@ -59,15 +58,9 @@ import com.jcotters.presentation.resources.arrow_back
 import com.jcotters.watchlists.FilmImportState
 import com.jcotters.watchlists.FilmImportViewModel
 import com.jcotters.watchlists.ImportRowState
-import com.jcotters.watchlists.documents.DocumentResult
 import com.jcotters.watchlists.documents.InputFormat
-import com.jcotters.watchlists.documents.ListDocuments
 import com.jcotters.watchlists.documents.rememberDocumentActions
 import com.jcotters.watchlists.documents.rememberImportHelpPreference
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -83,7 +76,6 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer); viewModel.active(false) }
     }
-    val scope = rememberCoroutineScope()
     val keyboard = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val dismissKeyboard: () -> Unit = {
@@ -92,57 +84,54 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
     }
     val preference = rememberImportHelpPreference()
     var help by rememberSaveable { mutableStateOf(!preference.seen) }
-    var allRows by rememberSaveable { mutableStateOf(false) }
-    var documentMessage by remember { mutableStateOf<String?>(null) }
     val documents = rememberDocumentActions(
         onPicked = { viewModel.pickedFile(it.name, it.bytes) },
-        onResult = { result ->
-            documentMessage = when (result) {
-                DocumentResult.Saved -> "File saved."
-                DocumentResult.Shared -> "Share sheet opened."
-                DocumentResult.Cancelled -> null
-                is DocumentResult.Failed -> result.message
-            }
-        },
+        onResult = viewModel::documentResult,
     )
+    LaunchedEffect(state.remainingDocument) {
+        state.remainingDocument?.let { document ->
+            viewModel.remainingDocumentDispatched()
+            documents.save(document)
+        }
+    }
     Scaffold(modifier = Modifier.pointerInput(focusManager, keyboard) {
         detectTapGestures(onTap = { dismissKeyboard() })
     }, topBar = {
-        TopAppBar(title = { Text("Import films") }, navigationIcon = {
-            IconButton(onClick = { viewModel.pause(); navigator.goBack() }) { Icon(painterResource(Res.drawable.arrow_back), "Back") }
-        }, actions = { TextButton(onClick = { help = !help }) { Text("Help") } })
+        MoversTopBar(title = { Text("Import films") }, navigationIcon = {
+            MoversIconButton(onClick = { viewModel.pause(); navigator.goBack() }) { Icon(painterResource(Res.drawable.arrow_back), "Back") }
+        }, actions = { MoversTextButton(onClick = { help = !help }) { Text("Help") } })
     }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item { Text(state.listName, style = MaterialTheme.typography.titleMedium) }
             if (help) item {
-                Card {
+                MoversCard {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Choose a file or paste titles. We'll add matches and flag anything not found.")
                         Row(
                            horizontalArrangement = Arrangement.End,
                         ) {
-                            TextButton(onClick = { preference.dismiss(); help = false }) { Text("Got it") }
+                            MoversTextButton(onClick = { preference.dismiss(); help = false }) { Text("Got it") }
                         }
                     }
                 }
             }
             state.error?.let { error -> item { Text(error, color = MaterialTheme.colorScheme.error) } }
-            documentMessage?.let { message -> item { Text(message) } }
+            state.documentMessage?.let { message -> item { Text(message) } }
             if (!state.started) {
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Button(onClick = { dismissKeyboard(); documents.open() }, enabled = !state.parsing) { Text("Choose file") }
+                        MoversButton(onClick = { dismissKeyboard(); documents.open() }, enabled = !state.parsing) { Text("Choose file") }
                         state.filename?.let { Text(it, Modifier.padding(start = 12.dp).weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis) }
                     }
                 }
                 if (state.filename == null) item {
-                    OutlinedTextField(
+                    MoversTextField(
                         value = state.text, onValueChange = viewModel::sourceChanged,
                         label = { Text("Paste titles or CSV") }, modifier = Modifier.fillMaxWidth(), minLines = 4, maxLines = 7,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { dismissKeyboard() }),
                     )
-                } else item { TextButton(onClick = { viewModel.sourceChanged("") }) { Text("Paste instead") } }
+                } else item { MoversTextButton(onClick = { viewModel.sourceChanged("") }) { Text("Paste instead") } }
                 item { ImportFormatControls(state, viewModel) }
                 if (state.parsing) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
                 state.parsed?.let { parsed ->
@@ -155,64 +144,44 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                         }
                     }
                 }
-                item { Button(onClick = { dismissKeyboard(); viewModel.start() }, enabled = !state.parsing && !state.unavailable && !state.parsed?.films.isNullOrEmpty()) { Text("Import") } }
+                item { MoversButton(onClick = { dismissKeyboard(); viewModel.start() }, enabled = !state.parsing && !state.unavailable && !state.parsed?.films.isNullOrEmpty()) { Text("Import") } }
             } else {
-                val imported = state.rows.count { it.status == ImportRowState.Imported }
-                val skipped = state.rows.count { it.status == ImportRowState.Skipped }
-                val remaining = state.rows.count { it.remaining }
-                item { Text("$imported imported · $skipped skipped · $remaining ${if (state.running) "remaining" else "need attention"}", style = MaterialTheme.typography.titleSmall) }
+                item { Text("${state.importedCount} imported · ${state.skippedCount} skipped · ${state.remainingCount} ${if (state.running) "remaining" else "need attention"}", style = MaterialTheme.typography.titleSmall) }
                 if (state.running) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (state.running) TextButton(onClick = viewModel::pause) { Text("Stop") }
-                        else if (!state.unavailable && state.rows.any { it.status in setOf(ImportRowState.Ready, ImportRowState.LookingUp, ImportRowState.Resolved, ImportRowState.Pending, ImportRowState.Failed) }) {
-                            Button(onClick = viewModel::start) { Text(if (state.error != null) "Retry failed" else "Resume") }
+                        if (state.running) MoversTextButton(onClick = viewModel::pause) { Text("Stop") }
+                        else if (state.canResume) {
+                            MoversButton(onClick = viewModel::start) { Text(if (state.error != null) "Retry failed" else "Resume") }
                         }
-                        if (remaining > 0) TextButton(onClick = {
-                            scope.launch {
-                                try {
-                                    val rows = state.rows.filter { it.remaining }.map { it.input to (it.issue ?: "Not processed") }
-                                    val document = withContext(Dispatchers.Default) { ListDocuments.remaining(rows) }
-                                    documents.save(document)
-                                } catch (e: CancellationException) { throw e }
-                                catch (_: Exception) { documentMessage = "Couldn't save remaining films." }
-                            }
-                        }, enabled = !state.running) { Text("Save remaining") }
+                        if (state.remainingCount > 0) MoversTextButton(onClick = viewModel::saveRemaining,
+                            enabled = !state.running && !state.savingRemaining) { Text("Save remaining") }
                     }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = !allRows, onClick = { allRows = false }, label = { Text("Needs attention") })
-                        FilterChip(selected = allRows, onClick = { allRows = true }, label = { Text("All") })
+                        MoversFilterChip(selected = !state.showAllRows, onClick = { viewModel.showAllRows(false) }, label = { Text("Needs attention") })
+                        MoversFilterChip(selected = state.showAllRows, onClick = { viewModel.showAllRows(true) }, label = { Text("All") })
                     }
                 }
-                items(state.rows.filter { allRows || it.remaining }, key = { it.id }) { row ->
+                items(state.visibleRows, key = { it.id }) { row ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text((row.movie?.title ?: row.input.reference.title.ifBlank { row.input.original }).take(200), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text(row.issue ?: when (row.status) {
-                                ImportRowState.Ready -> "Not processed"
-                                ImportRowState.LookingUp -> "Finding film…"
-                                ImportRowState.Resolved -> "Ready to import"
-                                ImportRowState.Pending -> "Waiting for confirmation"
-                                ImportRowState.Imported -> "Imported"
-                                ImportRowState.Skipped -> "Skipped"
-                                ImportRowState.Review -> "Needs attention"
-                                ImportRowState.Failed -> "Couldn't add film"
-                            }, style = MaterialTheme.typography.bodySmall,
+                            Text(row.displayTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(row.statusLabel, style = MaterialTheme.typography.bodySmall,
                                 color = if (row.remaining && !state.running) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        if (row.remaining && row.status != ImportRowState.Pending) TextButton(
+                        if (row.remaining && row.status != ImportRowState.Pending) MoversTextButton(
                             onClick = { viewModel.openResolution(row.id) },
-                            enabled = !state.running && state.rows.none { it.status == ImportRowState.Pending } && !state.unavailable,
+                            enabled = state.canResolve,
                         ) { Text("Find film") }
                     }
                 }
-                if (!state.running) item { Button(onClick = navigator::goBack) { Text("Done") } }
+                if (!state.running) item { MoversButton(onClick = navigator::goBack) { Text("Done") } }
             }
         }
     }
-    if (state.resolving != null) ModalBottomSheet(onDismissRequest = viewModel::closeResolution) {
+    if (state.resolving != null) MoversModalSheet(onDismissRequest = viewModel::closeResolution) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Find film", style = MaterialTheme.typography.titleLarge)
             MovieSearchField(state.query, viewModel::queryChanged, onSearch = viewModel::search)
@@ -222,7 +191,7 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
             LazyColumn(Modifier.heightIn(max = 400.dp)) {
                 items(state.candidates, key = { it.id }) { movie ->
                     MovieSearchResult(movie, compact = true) {
-                        TextButton(onClick = { keyboard?.hide(); viewModel.select(movie) }) { Text("Import") }
+                        MoversTextButton(onClick = { keyboard?.hide(); viewModel.select(movie) }) { Text("Import") }
                     }
                 }
             }
@@ -236,16 +205,17 @@ private fun ImportFormatControls(state: FilmImportState, viewModel: FilmImportVi
     var columns by rememberSaveable { mutableStateOf(false) }
     Column {
         Row {
-            TextButton(onClick = { menu = true }) { Text("Format: ${state.format.label}") }
-            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                InputFormat.entries.forEach { format -> DropdownMenuItem(text = { Text(format.label) }, onClick = { menu = false; viewModel.formatChanged(format) }) }
+            MoversDropdownMenu(expanded = menu, onExpandedChange = { menu = it }, anchor = {
+                MoversTextButton(onClick = { menu = !menu }) { Text("Format: ${state.format.label}") }
+            }) {
+                InputFormat.entries.forEach { format -> MoversDropdownMenuItem(text = { Text(format.label) }, onClick = { menu = false; viewModel.formatChanged(format) }) }
             }
-            if (state.parsed?.headings?.isNotEmpty() == true) TextButton(onClick = { columns = !columns }) { Text("Columns") }
+            if (state.parsed?.headings?.isNotEmpty() == true) MoversTextButton(onClick = { columns = !columns }) { Text("Columns") }
         }
         val parsed = state.parsed
         if (columns && parsed != null && parsed.headings.isNotEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(state.headerOverride ?: parsed.hasHeader, onCheckedChange = viewModel::headerChanged)
+                MoversCheckbox(state.headerOverride ?: parsed.hasHeader, onCheckedChange = viewModel::headerChanged)
                 Text("Header row")
             }
             val mapping = state.mappingOverride ?: parsed.mapping
@@ -261,10 +231,11 @@ private fun ImportFormatControls(state: FilmImportState, viewModel: FilmImportVi
 private fun ColumnPicker(label: String, headings: List<String>, selected: Int?, onSelect: (Int?) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Row {
-        TextButton(onClick = { expanded = true }) { Text("$label: ${selected?.let { headings.getOrNull(it) } ?: "None"}") }
-        DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(text = { Text("None") }, onClick = { expanded = false; onSelect(null) })
-            headings.forEachIndexed { index, heading -> DropdownMenuItem(text = { Text(heading) }, onClick = { expanded = false; onSelect(index) }) }
+        MoversDropdownMenu(expanded, onExpandedChange = { expanded = it }, anchor = {
+            MoversTextButton(onClick = { expanded = !expanded }) { Text("$label: ${selected?.let { headings.getOrNull(it) } ?: "None"}") }
+        }) {
+            MoversDropdownMenuItem(text = { Text("None") }, onClick = { expanded = false; onSelect(null) })
+            headings.forEachIndexed { index, heading -> MoversDropdownMenuItem(text = { Text(heading) }, onClick = { expanded = false; onSelect(index) }) }
         }
     }
 }

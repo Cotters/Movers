@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,6 +23,7 @@ import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jcotters.designsystem.MoversIconButton
 import com.jcotters.details.navigation.MovieImageType
 import com.jcotters.presentation.ExpandedImageView
 import com.jcotters.presentation.LocalMovieTransitionScope
@@ -71,7 +70,7 @@ internal fun MovieImageScreen(
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
                 .padding(12.dp),
         ) {
-            IconButton(
+            MoversIconButton(
                 onClick = onClose,
                 modifier = Modifier.size(48.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.6f)),
             ) {
@@ -84,7 +83,7 @@ internal fun MovieImageScreen(
 @Preview(widthDp = 360, heightDp = 800)
 @Composable
 private fun MovieImagePreview() {
-    MaterialTheme {
+    com.jcotters.designsystem.MoversDesignTheme {
         MovieImageScreen(
             state = MovieImageViewState(isLoading = false, title = "Preview: The Movie", imageUrl = "preview"),
             imageType = MovieImageType.Poster,

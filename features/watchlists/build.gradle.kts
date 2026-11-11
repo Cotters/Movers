@@ -6,6 +6,7 @@ kotlin {
     android { namespace = "com.jcotters.features.watchlists" }
     sourceSets.androidMain.dependencies { implementation(libs.androidx.activity.compose) }
     sourceSets.commonMain.dependencies {
+        implementation(project(":designsystem"))
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlin.serialization.json)
         implementation(libs.multiplatform.lifecycle.compose)

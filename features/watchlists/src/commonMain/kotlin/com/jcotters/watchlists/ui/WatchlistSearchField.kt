@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +27,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.jcotters.designsystem.MoversIconButton
+import com.jcotters.designsystem.MoversTextField
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.close
 import com.jcotters.presentation.resources.search
@@ -70,7 +70,7 @@ internal fun WatchlistSearchHeader(
 @Composable
 internal fun WatchlistSearchField(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
     val keyboard = LocalSoftwareKeyboardController.current
-    OutlinedTextField(
+    MoversTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text("Search this list") },
@@ -81,7 +81,7 @@ internal fun WatchlistSearchField(value: String, onValueChange: (String) -> Unit
         leadingIcon = { Icon(painterResource(Res.drawable.search), contentDescription = null) },
         trailingIcon = if (value.isNotEmpty()) {
             {
-                IconButton(onClick = { onValueChange("") }) {
+                MoversIconButton(onClick = { onValueChange("") }) {
                     Icon(painterResource(Res.drawable.close), contentDescription = "Clear search")
                 }
             }

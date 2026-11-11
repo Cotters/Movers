@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -31,13 +29,12 @@ internal fun OfflineNotice(status: NetworkStatus, modifier: Modifier = Modifier)
         exit = fadeOut(),
         modifier = modifier,
     ) {
-        Snackbar(
+        com.jcotters.designsystem.MoversNotice(
+            message = stringResource(Res.string.offline_message),
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.ime))
                 .padding(horizontal = 12.dp, vertical = 8.dp)
                 .semantics { liveRegion = LiveRegionMode.Polite },
-        ) {
-            Text(stringResource(Res.string.offline_message))
-        }
+        )
     }
 }

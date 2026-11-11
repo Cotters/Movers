@@ -11,10 +11,14 @@ import com.jcotters.contract.watchlists.data.MovieLookupException
 import com.jcotters.contract.watchlists.data.SharedFilm
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
 import com.jcotters.watchlists.documents.ColumnMapping
+import com.jcotters.watchlists.documents.DocumentResult
+import com.jcotters.watchlists.documents.ExportDocument
 import com.jcotters.watchlists.documents.InputFormat
 import com.jcotters.watchlists.documents.ListDocuments
 import com.jcotters.watchlists.documents.ParsedFilm
 import com.jcotters.watchlists.documents.ParsedInput
+import com.jcotters.watchlists.documents.message
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,7 +31,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.uuid.Uuid
 
 internal enum class ImportRowState { Ready, LookingUp, Resolved, Pending, Imported, Skipped, Review, Failed }
 internal data class ImportRow(
@@ -39,6 +42,17 @@ internal data class ImportRow(
     val issue: String? = input.issue,
 ) {
     val remaining get() = status !in setOf(ImportRowState.Imported, ImportRowState.Skipped)
+    val displayTitle get() = (movie?.title ?: input.reference.title.ifBlank { input.original }).take(200)
+    val statusLabel get() = issue ?: when (status) {
+        ImportRowState.Ready -> "Not processed"
+        ImportRowState.LookingUp -> "Finding film…"
+        ImportRowState.Resolved -> "Ready to import"
+        ImportRowState.Pending -> "Waiting for confirmation"
+        ImportRowState.Imported -> "Imported"
+        ImportRowState.Skipped -> "Skipped"
+        ImportRowState.Review -> "Needs attention"
+        ImportRowState.Failed -> "Couldn't add film"
+    }
 }
 internal data class FilmImportState(
     val listName: String = "",
@@ -61,7 +75,20 @@ internal data class FilmImportState(
     val candidates: List<Movie> = emptyList(),
     val searching: Boolean = false,
     val searchError: String? = null,
-)
+    val showAllRows: Boolean = false,
+    val remainingDocument: ExportDocument? = null,
+    val savingRemaining: Boolean = false,
+    val documentMessage: String? = null,
+) {
+    val importedCount get() = rows.count { it.status == ImportRowState.Imported }
+    val skippedCount get() = rows.count { it.status == ImportRowState.Skipped }
+    val remainingCount get() = rows.count { it.remaining }
+    val visibleRows get() = if (showAllRows) rows else rows.filter { it.remaining }
+    val canResume get() = !unavailable && rows.any {
+        it.status in setOf(ImportRowState.Ready, ImportRowState.LookingUp, ImportRowState.Resolved, ImportRowState.Pending, ImportRowState.Failed)
+    }
+    val canResolve get() = !running && !unavailable && rows.none { it.status == ImportRowState.Pending }
+}
 
 internal class FilmImportViewModel(private val lists: IWatchlistsRepository, private val resolver: MovieImportResolver) : ViewModel() {
     private val state = MutableStateFlow(FilmImportState())
@@ -75,6 +102,29 @@ internal class FilmImportViewModel(private val lists: IWatchlistsRepository, pri
     private val matches = mutableMapOf<FilmReference, FilmResolution>()
     private data class Batch(val requestId: String, val films: List<SharedFilm>, val rows: List<Int>)
     private var pending: Batch? = null
+
+    fun showAllRows(show: Boolean) { state.update { it.copy(showAllRows = show) } }
+    fun remainingDocumentDispatched() { state.update { it.copy(remainingDocument = null) } }
+    fun documentResult(result: DocumentResult) {
+        state.update { it.copy(savingRemaining = false, documentMessage = result.message) }
+    }
+
+    fun saveRemaining() {
+        val current = state.value
+        if (current.running || current.savingRemaining) return
+        val remaining = current.rows.filter { it.remaining }.map { it.input to (it.issue ?: "Not processed") }
+        state.update { it.copy(savingRemaining = true, documentMessage = null) }
+        viewModelScope.launch {
+            try {
+                val document = withContext(Dispatchers.Default) { ListDocuments.remaining(remaining) }
+                state.update { it.copy(remainingDocument = document) }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                state.update { it.copy(savingRemaining = false, documentMessage = "Couldn't save remaining films.") }
+            }
+        }
+    }
 
     fun load(id: String) {
         if (listId != null) return

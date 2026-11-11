@@ -17,6 +17,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":designsystem"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
             implementation(libs.koin.compose.viewmodel)

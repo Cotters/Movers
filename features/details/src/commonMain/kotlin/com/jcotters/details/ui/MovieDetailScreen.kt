@@ -36,12 +36,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableFloatStateOf
@@ -66,6 +64,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.MovieGenre
+import com.jcotters.designsystem.MoversIconButton
+import com.jcotters.designsystem.MoversTextButton
 import com.jcotters.details.navigation.MovieImageType
 import com.jcotters.presentation.MoverImageView
 import com.jcotters.presentation.movieBackdropKey
@@ -172,13 +172,13 @@ fun MovieDetailScreen(
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        TextButton(onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) }, enabled = !loading) {
+                        MoversTextButton(onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) }, enabled = !loading) {
                             Text("Retry")
                         }
                     }
                 } else if (movie == null && !loading) {
                     Text("Movie details are unavailable.")
-                    TextButton(onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) }) { Text("Retry") }
+                    MoversTextButton(onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) }) { Text("Retry") }
                 }
             }
         }
@@ -243,7 +243,7 @@ private fun MovieHeader(
 
 @Composable
 private fun HeaderButton(icon: DrawableResource, description: String, onClick: () -> Unit) {
-    IconButton(
+    MoversIconButton(
         onClick = onClick,
         modifier = Modifier.size(48.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.5f)),
     ) {
@@ -446,7 +446,7 @@ private fun WidePreview() {
 
 @Composable
 private fun DetailPreview(state: MovieDetailViewState) {
-    MaterialTheme {
+    com.jcotters.designsystem.MoversDesignTheme {
         MovieDetailScreen(onViewEvent = {}, viewState = state, onBack = {}, onAddToList = {})
     }
 }

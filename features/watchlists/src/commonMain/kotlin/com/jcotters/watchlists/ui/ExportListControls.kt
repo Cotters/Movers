@@ -2,65 +2,48 @@ package com.jcotters.watchlists.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.jcotters.contract.watchlists.domain.WatchlistContent
+import com.jcotters.designsystem.MoversButton
+import com.jcotters.designsystem.MoversFilterChip
+import com.jcotters.designsystem.MoversTextButton
+import com.jcotters.watchlists.ListTransferState
 import com.jcotters.watchlists.documents.DocumentResult
 import com.jcotters.watchlists.documents.ExportFormat
-import com.jcotters.watchlists.documents.ListDocuments
 import com.jcotters.watchlists.documents.rememberDocumentActions
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
-internal fun ExportListControls(content: WatchlistContent, modifier: Modifier = Modifier) {
-    var format by rememberSaveable { mutableStateOf(ExportFormat.Csv) }
-    var busy by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
-    val actions = rememberDocumentActions(onPicked = {}, onResult = { result ->
-        busy = false
-        message = when (result) {
-            DocumentResult.Saved -> "File saved."
-            DocumentResult.Shared -> "Share sheet opened."
-            DocumentResult.Cancelled -> null
-            is DocumentResult.Failed -> result.message
-        }
-    })
-    fun export(share: Boolean) {
-        if (busy) return
-        busy = true; message = null
-        scope.launch {
-            try {
-                val document = withContext(Dispatchers.Default) { ListDocuments.export(content.watchlist.name, content.movies, format) }
-                if (share) actions.share(document) else actions.save(document)
-            } catch (e: CancellationException) { throw e }
-            catch (_: Exception) { busy = false; message = "Couldn't export this list." }
+internal fun ExportListControls(
+    state: ListTransferState,
+    onFormat: (ExportFormat) -> Unit,
+    onExport: (Boolean) -> Unit,
+    onDispatched: () -> Unit,
+    onResult: (DocumentResult) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val actions = rememberDocumentActions(onPicked = {}, onResult = onResult)
+    LaunchedEffect(state.document) {
+        state.document?.let { document ->
+            onDispatched()
+            if (state.shareDocument) actions.share(document) else actions.save(document)
         }
     }
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ExportFormat.entries.forEach { option -> FilterChip(selected = format == option, onClick = { format = option }, enabled = !busy, label = { Text(option.label) }) }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            ExportFormat.entries.forEach { option ->
+                MoversFilterChip(selected = state.format == option, onClick = { onFormat(option) },
+                    enabled = !state.exporting, label = { Text(option.label) })
+            }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { export(false) }, enabled = !busy) { Text("Save file") }
-            TextButton(onClick = { export(true) }, enabled = !busy) { Text("Share") }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            MoversButton(onClick = { onExport(false) }, enabled = !state.exporting) { Text("Save file") }
+            MoversTextButton(onClick = { onExport(true) }, enabled = !state.exporting) { Text("Share") }
         }
-        message?.let { Text(it) }
+        state.exportMessage?.let { Text(it) }
     }
 }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,6 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.jcotters.contract.watchlists.data.FilmContribution
 import com.jcotters.contract.watchlists.data.SharedListInfo
+import com.jcotters.designsystem.MoversIconButton
 import com.jcotters.presentation.ParticipantAvatar
 
 @Composable
@@ -71,7 +71,7 @@ internal fun FilmContributorButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    IconButton(
+    MoversIconButton(
         onClick = onClick,
         modifier = modifier.semantics {
             contentDescription = "${if (contribution.imported) "Imported" else "Added"} by ${contribution.actor.name}"

@@ -4,7 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jcotters.designsystem.MoversButton
 import com.jcotters.profile.domain.Profile
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +36,7 @@ fun ProfileScreen(
 ) {
     var editing by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     var name by androidx.compose.runtime.saveable.rememberSaveable(viewState.profile?.displayName) { androidx.compose.runtime.mutableStateOf(viewState.profile?.displayName.orEmpty()) }
-    Scaffold { innerPadding ->
+    Scaffold(topBar = { com.jcotters.designsystem.MoversTopBar(title = { Text("Profile") }) }) { innerPadding ->
         if (viewState.isLoading) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         } else {
@@ -51,12 +53,12 @@ fun ProfileScreen(
             )
         }
     }
-    if (editing) androidx.compose.material3.AlertDialog(onDismissRequest = { if (!savingName) editing = false },
+    if (editing) com.jcotters.designsystem.MoversAlertDialog(onDismissRequest = { if (!savingName) editing = false },
         title = { Text("Your name") }, text = { Column {
-            androidx.compose.material3.OutlinedTextField(value = name,onValueChange = { name = it },enabled = !savingName,singleLine = true)
+            com.jcotters.designsystem.MoversTextField(value = name,onValueChange = { name = it },enabled = !savingName,singleLine = true)
             nameError?.let { Text(it,color = MaterialTheme.colorScheme.error) }
-        } }, confirmButton = { androidx.compose.material3.TextButton(onClick = { onSaveName(name) }, enabled = !savingName && name.isNotBlank()) { Text(if (savingName) "Saving…" else "Save") } },
-        dismissButton = { androidx.compose.material3.TextButton(onClick = { editing = false },enabled = !savingName) { Text("Close") } })
+        } }, confirmButton = { com.jcotters.designsystem.MoversTextButton(onClick = { onSaveName(name) }, enabled = !savingName && name.isNotBlank()) { Text(if (savingName) "Saving…" else "Save") } },
+        dismissButton = { com.jcotters.designsystem.MoversTextButton(onClick = { editing = false },enabled = !savingName) { Text("Close") } })
 }
 
 @Composable
@@ -73,14 +75,14 @@ fun ProfileView(
 ) {
     Column(
         modifier = modifier
-            .padding(horizontal = 8.dp),
+            .verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         viewState.profile?.let {
             androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp),verticalAlignment = Alignment.CenterVertically) {
                 com.jcotters.presentation.ParticipantAvatar(it.displayName,it.color)
-                ProfileDetailsView(it)
-                androidx.compose.material3.TextButton(onClick = onEditName, enabled = !savingName && !savingColor) { Text("Edit name") }
+                ProfileDetailsView(it, Modifier.weight(1f))
+                com.jcotters.designsystem.MoversTextButton(onClick = onEditName, enabled = !savingName && !savingColor) { Text("Edit name") }
             }
             Text("Avatar colour", style = MaterialTheme.typography.titleSmall)
             AvatarColorPicker(selected = it.color, enabled = !savingName && !savingColor, onSelect = onSaveColor)
@@ -90,12 +92,12 @@ fun ProfileView(
 
         onOpenStyleGuide?.let { open ->
             Text("Developer tools", style = MaterialTheme.typography.titleSmall)
-            androidx.compose.material3.TextButton(onClick = open) { Text("Style guide") }
+            com.jcotters.designsystem.MoversTextButton(onClick = open) { Text("Style guide") }
         }
 
         viewState.errorMessage?.let { message ->
             Text(message)
-            Button(onClick = onRetry) { Text("Retry") }
+            MoversButton(onClick = onRetry) { Text("Retry") }
         }
     }
 }
@@ -103,10 +105,13 @@ fun ProfileView(
 @Composable
 fun ProfileDetailsView(
     profile: Profile,
+    modifier: Modifier = Modifier,
 ) {
-    Column {
+    Column(modifier) {
         Text(
             text = profile.displayName,
+            maxLines = 2,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             style = MaterialTheme.typography.headlineLarge,
         )
     }
@@ -115,7 +120,7 @@ fun ProfileDetailsView(
 @Preview
 @Composable
 private fun ProfilePreview() {
-    MaterialTheme {
+    com.jcotters.designsystem.MoversDesignTheme {
         ProfileScreen(
             viewState = ProfileViewState(
                 isLoading = false,

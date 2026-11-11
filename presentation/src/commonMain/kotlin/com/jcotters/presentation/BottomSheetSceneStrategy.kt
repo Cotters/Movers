@@ -1,14 +1,13 @@
 package com.jcotters.presentation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.scene.OverlayScene
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.scene.SceneStrategyScope
+import com.jcotters.designsystem.MoversModalSheet
 
 class BottomSheetSceneStrategy<T : Any> : SceneStrategy<T> {
     override fun SceneStrategyScope<T>.calculateScene(entries: List<NavEntry<T>>): Scene<T>? {
@@ -33,7 +32,7 @@ private class BottomSheetScene<T : Any>(
 
     @OptIn(ExperimentalMaterial3Api::class)
     override val content: @Composable () -> Unit = {
-        ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        MoversModalSheet(onDismissRequest = onDismiss) {
             entry.Content()
         }
     }

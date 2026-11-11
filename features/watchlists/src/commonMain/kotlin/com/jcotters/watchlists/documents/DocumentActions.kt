@@ -23,3 +23,11 @@ internal interface ImportHelpPreference {
 }
 @Composable
 internal expect fun rememberImportHelpPreference(): ImportHelpPreference
+
+internal val DocumentResult.message: String?
+    get() = when (this) {
+        DocumentResult.Saved -> "File saved."
+        DocumentResult.Shared -> "Share sheet opened."
+        DocumentResult.Cancelled -> null
+        is DocumentResult.Failed -> message
+    }

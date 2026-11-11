@@ -9,13 +9,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.jcotters.designsystem.MoversIconButton
+import com.jcotters.designsystem.MoversTextButton
+import com.jcotters.designsystem.MoversTopBar
 import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.navigation.Navigator
 import com.jcotters.presentation.AddToListButton
@@ -62,8 +62,8 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
     val target = actions.lists.firstOrNull { it.id == listId }
     val missing = listId != null && !actions.loadingLists && actions.error == null && target == null
     Scaffold(topBar = {
-        TopAppBar(title = { Text(target?.let { "Add to ${it.name}" } ?: "Search movies") }, navigationIcon = {
-            IconButton(onClick = navigator::goBack) { Icon(painterResource(Res.drawable.arrow_back), "Back") }
+        MoversTopBar(title = { Text(target?.let { "Add to ${it.name}" } ?: "Search movies") }, navigationIcon = {
+            MoversIconButton(onClick = navigator::goBack) { Icon(painterResource(Res.drawable.arrow_back), "Back") }
         })
     }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
@@ -78,7 +78,7 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
             )
             actions.error?.let {
                 Text(it, Modifier.padding(12.dp), color = MaterialTheme.colorScheme.error)
-                TextButton(onClick = { viewModel.clearError(); viewModel.retryLists() }) { Text("Dismiss") }
+                MoversTextButton(onClick = { viewModel.clearError(); viewModel.retryLists() }) { Text("Dismiss") }
             }
             when {
                 missing -> Text("This list no longer exists.", Modifier.padding(16.dp))
@@ -87,7 +87,7 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                 movies.loadState.refresh is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 movies.loadState.refresh is LoadState.Error && movies.itemCount == 0 -> {
                     Text((movies.loadState.refresh as LoadState.Error).error.message ?: "Unable to search.", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
-                    TextButton(onClick = movies::retry) { Text("Retry") }
+                    MoversTextButton(onClick = movies::retry) { Text("Retry") }
                 }
                 movies.itemCount == 0 -> Text("No movies found.", Modifier.padding(16.dp))
                 else -> LazyColumn(state = scroll) {
@@ -116,7 +116,7 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                             is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
                             is LoadState.Error -> Column(Modifier.padding(16.dp)) {
                                 Text(append.error.message ?: "Unable to load more movies.", color = MaterialTheme.colorScheme.error)
-                                TextButton(onClick = movies::retry) { Text("Retry") }
+                                MoversTextButton(onClick = movies::retry) { Text("Retry") }
                             }
                             else -> Unit
                         }

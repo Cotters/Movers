@@ -13,18 +13,13 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -46,6 +41,10 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.PreviewMovies
+import com.jcotters.designsystem.MoversButton
+import com.jcotters.designsystem.MoversCard
+import com.jcotters.designsystem.MoversIconButton
+import com.jcotters.designsystem.MoversTopBar
 import com.jcotters.features.catalogue.resources.Res
 import com.jcotters.features.catalogue.resources.cached_movies_refresh_error
 import com.jcotters.presentation.AddToListButton
@@ -82,14 +81,14 @@ fun MovieCatalogueScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Movers") }, actions = {
+        topBar = { MoversTopBar(title = { Text("Movers") }, actions = {
             MovieLayoutToggle(showGrid = showGrid, onClick = {
                 // Both layouts use the same item order, including full-width status rows.
                 val anchor = if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
                 if (showGrid) listState.requestScrollToItem(anchor) else gridState.requestScrollToItem(anchor)
                 showGrid = !showGrid
             })
-            if (onSearch != null) IconButton(onClick = onSearch) {
+            if (onSearch != null) MoversIconButton(onClick = onSearch) {
                 Icon(painterResource(com.jcotters.presentation.resources.Res.drawable.search), "Search movies")
             }
         }) },
@@ -220,11 +219,9 @@ fun ErrorItem(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    MoversCard(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
+        containerColor = MaterialTheme.colorScheme.errorContainer
     ) {
         Column(
             modifier = Modifier
@@ -236,7 +233,7 @@ fun ErrorItem(
                 text = message,
                 color = MaterialTheme.colorScheme.onErrorContainer
             )
-            Button(
+            MoversButton(
                 onClick = onRetry,
                 modifier = Modifier.padding(top = 8.dp)
             ) {
@@ -253,9 +250,11 @@ private fun MovieCatalogueScreenPreview() {
     val pagingData = PagingData.from(PreviewMovies.movies)
     val lazyPagingItems = flowOf(pagingData)
         .collectAsLazyPagingItems()
+    com.jcotters.designsystem.MoversDesignTheme {
     MovieCatalogueScreen(
         movies = lazyPagingItems,
         posterModifier = { _ -> Modifier },
         onMovieTapped = { _ -> },
     )
+    }
 }

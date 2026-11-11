@@ -59,7 +59,7 @@ fun MoversApp(installers: Set<EntryProviderInstaller>) {
         }
         StartupState.Failed -> androidx.compose.foundation.layout.Column {
             Text("Unable to open local app data.")
-            androidx.compose.material3.Button(onClick = viewModel::initializeProfile) { Text("Retry") }
+            com.jcotters.designsystem.MoversButton(onClick = viewModel::initializeProfile) { Text("Retry") }
         }
     }
 }
@@ -118,7 +118,15 @@ internal fun MoversNavigationShell(
                 }
             }
             OfflineNotice(networkStatus, Modifier.align(Alignment.BottomCenter))
-            SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
+            SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter)) { message ->
+                com.jcotters.designsystem.MoversNotice(
+                    message = message.visuals.message,
+                    modifier = Modifier.padding(12.dp),
+                    actionLabel = message.visuals.actionLabel,
+                    onAction = message::performAction,
+                    onDismiss = message::dismiss,
+                )
+            }
         }
     }
 }

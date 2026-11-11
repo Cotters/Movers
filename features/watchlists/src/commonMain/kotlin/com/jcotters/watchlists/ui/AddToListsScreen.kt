@@ -10,11 +10,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jcotters.designsystem.MoversCheckbox
+import com.jcotters.designsystem.MoversTextButton
 import com.jcotters.navigation.Navigator
 import com.jcotters.watchlists.AddToListsViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -50,14 +50,14 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
     Column(Modifier.fillMaxWidth().heightIn(max = 680.dp).padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Add to list", style = MaterialTheme.typography.headlineSmall)
-            TextButton(onClick = navigator::goBack, enabled = !state.busy) { Text("Close") }
+            MoversTextButton(onClick = navigator::goBack, enabled = !state.busy) { Text("Close") }
         }
         Text(state.title, style = MaterialTheme.typography.titleMedium)
         if (state.loading || state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (!state.loading && state.error == null && state.lists.isEmpty()) Text("Create your first list to save this movie.")
         state.error?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
-            TextButton(onClick = {
+            MoversTextButton(onClick = {
                 viewModel.clearError()
                 if (state.readFailed) viewModel.load(movieId)
             }) { Text(if (state.readFailed) "Retry" else "Dismiss") }
@@ -75,7 +75,7 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
                     ).padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Checkbox(checked = existing, onCheckedChange = null, enabled = enabled)
+                    MoversCheckbox(checked = existing, onCheckedChange = null, enabled = enabled)
                     Column(Modifier.padding(start = 12.dp)) {
                         Text(list.name)
                         list.shared?.let { shared -> Text("Shared · ${shared.members.size} members",style = MaterialTheme.typography.bodySmall) }
@@ -87,11 +87,11 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
         if (creating) {
             ListNameFields(name, { name = it }, state.lists, error = state.error, enabled = !state.busy)
             Row {
-                TextButton(onClick = { viewModel.create(name) }, enabled = !state.busy && name.isNotBlank()) { Text("Create") }
-                TextButton(onClick = { creating = false; viewModel.clearError() }, enabled = !state.busy) { Text("Cancel") }
+                MoversTextButton(onClick = { viewModel.create(name) }, enabled = !state.busy && name.isNotBlank()) { Text("Create") }
+                MoversTextButton(onClick = { creating = false; viewModel.clearError() }, enabled = !state.busy) { Text("Cancel") }
             }
         } else {
-            TextButton(onClick = { viewModel.clearError(); creating = true }, enabled = !state.busy && !state.loading && !state.readFailed) { Text("Create new list") }
+            MoversTextButton(onClick = { viewModel.clearError(); creating = true }, enabled = !state.busy && !state.loading && !state.readFailed) { Text("Create new list") }
         }
     }
 }
