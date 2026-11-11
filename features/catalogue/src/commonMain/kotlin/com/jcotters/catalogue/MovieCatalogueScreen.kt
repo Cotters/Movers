@@ -2,7 +2,6 @@ package com.jcotters.catalogue
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,6 +51,7 @@ import com.jcotters.features.catalogue.resources.cached_movies_refresh_error
 import com.jcotters.presentation.AddToListButton
 import com.jcotters.presentation.MovieLayoutToggle
 import com.jcotters.presentation.MovieListRow
+import com.jcotters.presentation.MovieSwipeActions
 import com.jcotters.presentation.ScrollToTopButton
 import com.jcotters.presentation.resources.search
 import kotlinx.coroutines.flow.flowOf
@@ -165,17 +165,23 @@ private fun PopularMoviesContent(
                 key = movies.itemKey(Movie::id),
             ) { index ->
                 val movie = movies[index] ?: return@items
-                MovieListRow(
-                    movie = movie,
-                    modifier = Modifier
-                        .height(180.dp)
-                        .fillParentMaxWidth()
-                        .clickable { onMovieTapped(movie.id) },
-                    posterModifier = posterModifier(movie),
-                ) {
-                    if (onAddToList != null) AddToListButton(onClick = { onAddToList(movie.id) })
+                MovieSwipeActions(
+                    movieTitle = movie.title,
+                    onOpen = { onMovieTapped(movie.id) },
+                    onAddToList = onAddToList?.let { add -> { add(movie.id) } },
+                ) { swipeModifier, openMovie ->
+                    Column(swipeModifier) {
+                        MovieListRow(
+                            movie = movie,
+                            modifier = Modifier.height(180.dp).fillMaxWidth(),
+                            posterModifier = posterModifier(movie),
+                            onOpen = openMovie,
+                        ) {
+                            if (onAddToList != null) AddToListButton(onClick = { onAddToList(movie.id) })
+                        }
+                        HorizontalDivider()
+                    }
                 }
-                HorizontalDivider()
             }
             item(key = "append-state") {
                 CatalogueAppendState(movies.loadState.append, movies::retry)

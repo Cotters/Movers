@@ -36,6 +36,7 @@ import com.cotters.data.network.NetworkStatus
 import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.presentation.BottomSheetSceneStrategy
 import com.jcotters.presentation.LocalMovieTransitionScope
+import com.jcotters.watchlists.ui.WatchlistUndoMessages
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -53,7 +54,7 @@ fun MoversApp(installers: Set<EntryProviderInstaller>) {
         }
         StartupState.Ready -> {
             SharedListSynchronization()
-            MoversNavigationShell(networkStatus, installers)
+            MoversNavigationShell(networkStatus, installers, snackbarEffects = { WatchlistUndoMessages() })
         }
         StartupState.Failed -> androidx.compose.foundation.layout.Column {
             Text("Unable to open local app data.")
@@ -68,6 +69,7 @@ internal fun MoversNavigationShell(
     networkStatus: NetworkStatus,
     installers: Set<EntryProviderInstaller>,
     state: NavigationState = rememberNavigationState(),
+    snackbarEffects: @Composable () -> Unit = {},
 ) {
     val navigator = remember(state) { AppNavigator(state) }
     val invitation by com.jcotters.contract.watchlists.domain.InvitationInbox.invitation.collectAsStateWithLifecycle()
@@ -94,6 +96,7 @@ internal fun MoversNavigationShell(
             key(state) {
                 SharedTransitionLayout {
                     CompositionLocalProvider(LocalMovieTransitionScope provides this, com.jcotters.presentation.LocalSnackbarHostState provides snackbar) {
+                        snackbarEffects()
                         val entries = state.decoratedEntries(installers, navigator)
                         NavDisplay(
                             sceneStrategies = listOf(bottomSheetStrategy),

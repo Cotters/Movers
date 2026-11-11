@@ -52,7 +52,7 @@ For archive readiness, run `./scripts/verify-ios.sh --archive` as a separate che
 
 The app record now exists as **Movers: Shared Watchlists**, with bundle ID and SKU `com.jcotters.movers`. The latest Xcode log records successful creation (HTTP 201), and ASC CLI independently confirms it. A repeated SKU warning during another creation attempt is not a reason to change the bundle ID: reuse the existing record. See Apple's [app-record setup](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/) and [bundle-ID/SKU requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/).
 
-Android and iOS marketing versions are **0.1.0**, with numeric build counter **2**. Keep the counter monotonic for later uploads. `APP_DISPLAY_NAME` in `iosApp/Configuration.xcconfig` supplies the iOS display name; plist and XcodeGen reference it. Plist version fields reference `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`, preventing stale literal values in archives. The internal product name remains Movers.
+Android and iOS marketing versions are **0.2.0**, with numeric build counter **3**. Keep the counter monotonic for later uploads. `APP_DISPLAY_NAME` in `iosApp/Configuration.xcconfig` supplies the iOS display name; plist and XcodeGen reference it. Plist version fields reference `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`, preventing stale literal values in archives. The internal product name remains Movers.
 
 Both normal Xcode Organizer upload and ASC CLI upload are supported. The verified CLI pipeline is:
 
@@ -66,6 +66,8 @@ asc builds upload --app com.jcotters.movers   --ipa PATH_TO_SIGNED_IPA --checksu
 ```
 
 Discover flags through the installed command's `--help`; this flow was verified with ASC CLI 5.1. The CLI's separate Apple web-login path returned HTTP 404 fetching its auth-service key, but that did not prevent signed export or API upload. Do not request repeated web logins for an existing app's upload. Confirm `VALID` processing with `asc builds list` before declaring success; an upload is separate from review submission, tester distribution and store publication.
+
+For TestFlight, inspect build beta details after processing. Version 0.2.0 (3) needed its existing exempt-encryption declaration applied with `asc builds update --build-id BUILD_ID --uses-non-exempt-encryption=false`; reassess if the app's cryptography changes. Then use `asc publish testflight --app APP_ID --build-id BUILD_ID --group EXTERNAL_GROUP_ID --submit --confirm --wait` for an authorized external beta release. Verify group linkage and beta-review state separately: `WAITING_FOR_REVIEW` is pending Apple approval, not external availability. Internal groups with all-build access automatically receive eligible builds; Apple rejects explicit build assignment to these groups. Preserve existing audiences/public-link settings. Normal App Store review/publication remains a separate action. See [Apple's beta distribution guidance](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-testers-to-builds) and [encryption declaration guidance](https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations).
 
 For Organizer, create a fresh signed archive with Product → Archive, then choose Distribute App → App Store Connect → Upload. Use the existing record. If the failed creation flow remains open, close it and begin distribution again, checking the selected account/team.
 

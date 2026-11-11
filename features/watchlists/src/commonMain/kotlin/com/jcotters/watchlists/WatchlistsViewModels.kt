@@ -62,7 +62,11 @@ internal data class WatchlistDetailState(
     val removing: Set<Int> = emptySet(),
 )
 
-internal class WatchlistDetailViewModel(private val repository: IWatchlistsRepository, private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository) : ViewModel() {
+internal class WatchlistDetailViewModel(
+    private val repository: IWatchlistsRepository,
+    private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository,
+    private val removals: WatchlistRemovalCoordinator,
+) : ViewModel() {
     private val state = MutableStateFlow(WatchlistDetailState())
     val uiState = state.asStateFlow()
     private var listId: String? = null
@@ -74,7 +78,10 @@ internal class WatchlistDetailViewModel(private val repository: IWatchlistsRepos
         listId = id
         state.update { it.copy(loading = true, error = null) }
         observation = viewModelScope.launch {
-            combine(repository.observeWatchlist(id), repository.observeWatchlists()) { content, lists -> content to lists }.catch { error ->
+            combine(repository.observeWatchlist(id), repository.observeWatchlists(), removals.removals) { content, lists, pending ->
+                val hidden = pending.hiddenMovieIds(id)
+                content?.copy(movies = content.movies.filterNot { it.id in hidden }) to lists
+            }.catch { error ->
                 if (error is CancellationException || error !is Exception) throw error
                 state.update { it.copy(loading = false, error = "Unable to read this list.") }
             }.collect { (content, lists) -> state.update { it.copy(content = content, lists = lists, loading = false) } }
@@ -82,6 +89,13 @@ internal class WatchlistDetailViewModel(private val repository: IWatchlistsRepos
     }
 
     fun rename(name: String) = write(renaming = true) { id -> repository.rename(id, name) }
+    fun stageMovieRemoval(movieId: Int) {
+        val id = listId ?: return
+        val current = state.value
+        if (current.busy || movieId in current.removing) return
+        val movie = current.content?.movies?.firstOrNull { it.id == movieId } ?: return
+        removals.stage(id, movie)
+    }
     fun removeMovie(movieId: Int) {
         val id = listId ?: return
         if (state.value.busy || movieId in state.value.removing) return

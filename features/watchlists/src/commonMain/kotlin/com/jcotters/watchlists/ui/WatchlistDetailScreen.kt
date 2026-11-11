@@ -49,6 +49,7 @@ import com.jcotters.presentation.resources.more
 import com.jcotters.search.navigation.MovieSearchKey
 import com.jcotters.watchlists.WatchlistDetailViewModel
 import com.jcotters.watchlists.navigation.SharedListKey
+import com.jcotters.watchlists.navigation.AddToListsKey
 import com.jcotters.watchlists.navigation.SharedSection
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -170,6 +171,8 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                     removing = state.removing,
                     onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
                     onRemove = viewModel::removeMovie,
+                    onSwipeRemove = viewModel::stageMovieRemoval,
+                    onAddToLists = { navigator.navigate(AddToListsKey(it, listId)) },
                     onContribution = { attribution = it },
                     bottomContentPadding = if (showScrollToTop) 88.dp else 24.dp,
                     modifier = Modifier.weight(1f).clipToBounds().nestedScroll(headerScrollState),

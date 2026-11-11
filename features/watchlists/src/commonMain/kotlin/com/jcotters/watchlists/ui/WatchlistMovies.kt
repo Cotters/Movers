@@ -2,6 +2,7 @@ package com.jcotters.watchlists.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import com.jcotters.contract.watchlists.domain.WatchlistContent
 import com.jcotters.presentation.MovieListRow
 import com.jcotters.presentation.MovieMembershipButton
 import com.jcotters.presentation.MoviePosterCard
+import com.jcotters.presentation.MovieSwipeActions
 import com.jcotters.presentation.moviePosterTransitionModifier
 import androidx.compose.foundation.lazy.grid.items as gridItems
 
@@ -41,6 +43,8 @@ internal fun WatchlistMovies(
     removing: Set<Int>,
     onOpen: (Int) -> Unit,
     onRemove: (Int) -> Unit,
+    onSwipeRemove: (Int) -> Unit,
+    onAddToLists: (Int) -> Unit,
     onContribution: (FilmContribution) -> Unit,
     modifier: Modifier = Modifier,
     bottomContentPadding: Dp = 24.dp,
@@ -90,14 +94,25 @@ internal fun WatchlistMovies(
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = bottomContentPadding),
         ) {
             items(content.movies, key = { it.id }) { movie ->
-                MovieListRow(
-                    movie = movie,
-                    modifier = Modifier.height(180.dp).fillMaxWidth(),
-                    posterModifier = moviePosterTransitionModifier(movie.id, stackId),
+                MovieSwipeActions(
+                    movieTitle = movie.title,
                     onOpen = { onOpen(movie.id) },
-                    posterOverlay = { ContributorBadge(content.contributions[movie.id], onContribution) },
-                ) { removeButton(movie.id, movie.title) }
-                HorizontalDivider()
+                    onAddToList = { onAddToLists(movie.id) },
+                    onRemove = { onSwipeRemove(movie.id) },
+                    enabled = enabled && movie.id !in removing,
+                    modifier = Modifier.animateItem(),
+                ) { swipeModifier, openMovie ->
+                    Column(swipeModifier) {
+                        MovieListRow(
+                            movie = movie,
+                            modifier = Modifier.height(180.dp).fillMaxWidth(),
+                            posterModifier = moviePosterTransitionModifier(movie.id, stackId),
+                            onOpen = openMovie,
+                            posterOverlay = { ContributorBadge(content.contributions[movie.id], onContribution) },
+                        ) { removeButton(movie.id, movie.title) }
+                        HorizontalDivider()
+                    }
+                }
             }
         }
     }
