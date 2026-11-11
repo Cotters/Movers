@@ -1,7 +1,13 @@
 package com.jcotters.movers.ui
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -21,7 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.defaultPopTransitionSpec
+import androidx.navigation3.ui.defaultPredictivePopTransitionSpec
+import androidx.navigation3.ui.defaultTransitionSpec
 import com.cotters.data.network.NetworkStatus
 import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.presentation.BottomSheetSceneStrategy
@@ -69,6 +79,9 @@ internal fun MoversNavigationShell(
     }
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
     val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
+    val forwardTransition = remember { defaultTransitionSpec<NavKey>() }
+    val backTransition = remember { defaultPopTransitionSpec<NavKey>() }
+    val predictiveBackTransition = remember { defaultPredictivePopTransitionSpec<NavKey>() }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets(0.dp),
@@ -87,6 +100,15 @@ internal fun MoversNavigationShell(
                             entries = entries,
                             onBack = navigator::goBack,
                             modifier = Modifier.fillMaxSize(),
+                            transitionSpec = {
+                                if (changesTab()) tabFade() else forwardTransition()
+                            },
+                            popTransitionSpec = {
+                                if (changesTab()) tabFade() else backTransition()
+                            },
+                            predictivePopTransitionSpec = { edge ->
+                                if (changesTab()) tabFade() else predictiveBackTransition(edge)
+                            },
                         )
                     }
                 }
@@ -96,3 +118,11 @@ internal fun MoversNavigationShell(
         }
     }
 }
+
+private fun AnimatedContentTransitionScope<Scene<NavKey>>.changesTab(): Boolean {
+    val from = initialState.entries.lastOrNull()?.metadata?.get(NavigationTabMetadata)
+    val to = targetState.entries.lastOrNull()?.metadata?.get(NavigationTabMetadata)
+    return from != null && to != null && from != to
+}
+
+private fun tabFade(): ContentTransform = fadeIn(tween(220)) togetherWith fadeOut(tween(220))

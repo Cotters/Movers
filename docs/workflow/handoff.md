@@ -1,6 +1,12 @@
 # Current handoff
 
-Updated 11 November 2026. Source checkpoint before detail UI changes: `0b3ce34` (`Tweak search responsiveness`). Verify Git and preserve user edits/staging. No agent commit/push, device interaction or hosted deployment. Prior UI/release evidence is in [history](history/2026-11-11-pre-import-export.md).
+Updated 11 November 2026. Starting checkpoint: `8b96f8a` (`Improve movie detail view rating and tags`). User authorized the remaining UI/style items in order, with a separate succinct commit for each; UI refresh is explicitly excluded. No push, device interaction or hosted deployment. Verify Git and preserve user edits/staging. Prior UI/release evidence is in [history](history/2026-11-11-pre-import-export.md).
+
+## UI/style sequence
+
+- Tab transitions: scene-entry metadata identifies the owning tab. Forward, Back and predictive-Back transitions cross-fade only when tabs differ; within-tab navigation retains the consumed Nav3 platform defaults. Retained stacks, entry decorators and feature metadata stay intact. Checked APIs in cached multiplatform Nav3 1.1.1/runtime sources and current [animation guidance](https://developer.android.com/guide/navigation/navigation-3/animate-destinations).
+- Static source/diff/docs review only; no builds/tests/device runs for this sequence. Physical acceptance: switching root/nested tabs fades, nested push/pop and artwork expansion still work, reselection and Back retain their existing behavior.
+- Next: catalogue responsive grid/list toggle (before Search), then shared-list spacing/avatars. Keep UI refresh deferred.
 
 ## Detail UI follow-up
 

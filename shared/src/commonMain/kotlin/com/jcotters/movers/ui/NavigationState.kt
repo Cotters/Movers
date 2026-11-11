@@ -28,6 +28,8 @@ import kotlinx.serialization.modules.polymorphic
 
 internal enum class TopLevelDestination { Home, Watchlists, Profile }
 
+internal const val NavigationTabMetadata = "movers.navigation.tab"
+
 @Composable
 internal fun rememberNavigationState(): NavigationState {
     val selected = rememberSaveable { mutableStateOf(TopLevelDestination.Home.name) }
@@ -77,10 +79,19 @@ internal class NavigationState(
     ): List<NavEntry<NavKey>> {
         val entriesByTab = TopLevelDestination.entries.associateWith { tab ->
             key(tab) {
-                val provider = remember(installers, navigator, tab) {
-                    entryProvider<NavKey> {
+                val provider: (NavKey) -> NavEntry<NavKey> = remember(installers, navigator, tab) {
+                    val featureProvider = entryProvider<NavKey> {
                         installers.forEach { installer -> installer(navigator, tab.name) }
                     }
+                    val taggedProvider: (NavKey) -> NavEntry<NavKey> = { key ->
+                        val entry = featureProvider(key)
+                        NavEntry(
+                            key = key,
+                            contentKey = entry.contentKey,
+                            metadata = entry.metadata + (NavigationTabMetadata to tab),
+                        ) { entry.Content() }
+                    }
+                    taggedProvider
                 }
                 rememberDecoratedNavEntries(
                     backStack = backStacks.getValue(tab),

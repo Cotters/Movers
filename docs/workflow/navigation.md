@@ -6,6 +6,7 @@ Home is the infinite movie feed. Watchlists owns custom lists, list details/mana
 
 - Bottom navigation is icon-only: 56 dp control height plus one system-bottom/horizontal inset, down from Material 3's default 80 dp control area. Each tab retains its localized accessibility label, selectable Tab role/state and a full-width 56 dp touch area. A 44 dp rounded accent tile marks selection; icons/tile colors and press feedback animate. The outline icon set is shared on Android/iOS. Do not remove system safe-area padding to shorten the bar.
 - Switching tabs preserves their histories and root scroll state.
+- Tab changes cross-fade for 220 ms on both platforms, including return to Home through Back. Scene entries carry their owning tab; transitions within one tab retain Nav3's platform defaults, including predictive Back. Do not infer tab changes from stack size or root destination type: a tab can retain nested screens.
 - Reselecting the active tab pops it to its root.
 - Back pops feature destinations; Back at a non-Home root selects Home's retained history. Android Back at Home root exits through the platform.
 - Detail entries for the same movie in different stacks own different ViewModel stores. Repeated taps on the current movie do not duplicate its entry.
