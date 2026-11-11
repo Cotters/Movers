@@ -26,6 +26,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jcotters.contract.watchlists.data.FilmActivity
@@ -128,6 +134,9 @@ private fun SharedListActivity(
     onOpenMovie: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val darkSurface = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val addedColor = if (darkSurface) Color(0xFFA9D5B3) else Color(0xFF396649)
+    val removedColor = if (darkSurface) Color(0xFFF2B8BD) else Color(0xFF98464F)
     Column(modifier) {
         TextButton(onClick = onRefresh, enabled = !busy) { Text("Refresh activity") }
         LazyColumn(Modifier.weight(1f)) {
@@ -137,7 +146,18 @@ private fun SharedListActivity(
                     val action = if (!event.added) "removed" else if (event.imported) "imported" else "added"
                     ListItem(
                         leadingContent = { ParticipantAvatar(event.actor.name, event.actor.color) },
-                        headlineContent = { Text("${event.actor.name} $action ${event.film.title}") },
+                        headlineContent = {
+                            Text(buildAnnotatedString {
+                                append("${event.actor.name} ")
+                                withStyle(SpanStyle(color = if (event.added) addedColor else removedColor)) {
+                                    append(action)
+                                }
+                                append(" ")
+                                withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                    append(event.film.title)
+                                }
+                            })
+                        },
                         supportingContent = { Text(formatActivityTime(event.at)) },
                         modifier = Modifier.clickable { onOpenMovie(event.film.id) },
                     )
