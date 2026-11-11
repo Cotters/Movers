@@ -1,6 +1,13 @@
 # Current handoff
 
-Updated 11 November 2026. Starting checkpoint: `8b96f8a` (`Improve movie detail view rating and tags`). User authorized the remaining UI/style items in order, with a separate succinct commit for each; UI refresh is explicitly excluded. No push, device interaction or hosted deployment. Verify Git and preserve user edits/staging. Prior UI/release evidence is in [history](history/2026-11-11-pre-import-export.md).
+Updated 11 November 2026. Starting checkpoint: `cb41818` (`Streamline shared list layout`). User authorized watchlist grid/list toggles, then shared-list filtering, in two separate commits. UI refresh remains excluded. No push, device interaction or hosted deployment. Verify Git and preserve user edits/staging. Prior UI/release evidence is in [history](history/2026-11-11-pre-import-export.md).
+
+## Watchlist layout/filter follow-up
+
+- Watchlist details (personal/shared) now have a saved entry-local grid/list toggle before Add movies, defaulting to list. Switching transfers the visible item index. Adaptive poster grids retain attribution badges, details/artwork transitions and edit-only removal with pending-write guards.
+- Poster cards, toggle controls and the existing vector icons now live in presentation and are reused by Home/watchlists; feature-specific actions use poster-overlay slots. No feature-to-feature implementation dependency or new library. Reviewed current [lazy layout](https://developer.android.com/develop/ui/compose/lists) and [saved UI state](https://developer.android.com/develop/ui/compose/state-saving) guidance.
+- Static source/XML/whitespace/docs checks only; no builds/tests/device runs. Physical acceptance pending: both list types, toggle while scrolled, retained mode on detail/tab return, contributor taps, grid removal only in Edit mode, narrow/large-text headers and artwork transitions. Existing test assertions unchanged; no new test cases.
+- Next commit: search at the top of shared lists, filtering only their existing films.
 
 ## UI/style sequence
 

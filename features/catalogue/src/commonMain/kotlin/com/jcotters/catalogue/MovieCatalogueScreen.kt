@@ -55,9 +55,8 @@ import com.jcotters.contract.detail.domain.models.PreviewMovies
 import com.jcotters.features.catalogue.resources.Res
 import com.jcotters.features.catalogue.resources.arrow_up
 import com.jcotters.features.catalogue.resources.cached_movies_refresh_error
-import com.jcotters.features.catalogue.resources.grid_view
-import com.jcotters.features.catalogue.resources.list_view
 import com.jcotters.presentation.AddToListButton
+import com.jcotters.presentation.MovieLayoutToggle
 import com.jcotters.presentation.MovieListRow
 import com.jcotters.presentation.resources.search
 import kotlinx.coroutines.flow.flowOf
@@ -89,17 +88,12 @@ fun MovieCatalogueScreen(
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Movers") }, actions = {
-            IconButton(onClick = {
+            MovieLayoutToggle(showGrid = showGrid, onClick = {
                 // Both layouts use the same item order, including full-width status rows.
                 val anchor = if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
                 if (showGrid) listState.requestScrollToItem(anchor) else gridState.requestScrollToItem(anchor)
                 showGrid = !showGrid
-            }) {
-                Icon(
-                    painterResource(if (showGrid) Res.drawable.list_view else Res.drawable.grid_view),
-                    if (showGrid) "Show list" else "Show grid",
-                )
-            }
+            })
             if (onSearch != null) IconButton(onClick = onSearch) {
                 Icon(painterResource(com.jcotters.presentation.resources.Res.drawable.search), "Search movies")
             }
