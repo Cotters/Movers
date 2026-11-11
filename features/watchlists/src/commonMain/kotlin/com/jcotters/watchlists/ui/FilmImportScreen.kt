@@ -105,9 +105,10 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                 Card {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Choose a file or paste titles. We'll add matches and flag anything not found.")
-                        Row {
+                        Row(
+                           horizontalArrangement = Arrangement.End,
+                        ) {
                             TextButton(onClick = { preference.dismiss(); help = false }) { Text("Got it") }
-                            TextButton(onClick = { preference.dismiss(); help = false }) { Text("Skip") }
                         }
                     }
                 }

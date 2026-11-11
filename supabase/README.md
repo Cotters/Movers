@@ -4,11 +4,11 @@ Movers works with local lists without backend configuration. Sharing requires yo
 
 ## Import/export update
 
-Existing projects must apply `20261110155745_film_import_batches.sql` before shared-list imports work. It adds the authenticated `movers_import` RPC and replayable per-film outcomes without changing ordinary command signatures. Run the normal `deploy` then `verify` commands below in your token-enabled terminal. App builds do not deploy the backend. Personal imports and exports work without this backend update. See [import/export design](../docs/features/list-import-export.md).
+Existing projects must apply `20261110155745_film_import_batches.sql` before shared-list imports work. It adds the authenticated `movers_import` RPC and replayable per-film outcomes without changing ordinary command signatures. Run `deploy` below; it includes verification. App builds do not deploy the backend. Personal imports and exports work without this backend update. See [import/export design](../docs/features/list-import-export.md).
 
-## Run from a token-enabled zsh terminal
+## Run from your terminal
 
-The helper uses the `SUPABASE_ACCESS_TOKEN` exported in your terminal. It refuses to fall back to the CLI's saved account. Python 3, curl, and Supabase CLI 2.81.3 or newer are required for remote commands. On macOS the helper uses `/usr/bin/curl` and system certificate trust, so an unconfigured Python CA bundle does not block HTTPS. Both ignored app configs must contain matching project URLs/publishable keys. The standard `https://PROJECT_REF.supabase.co` URL selects the target; credentials are never printed or embedded in command arguments.
+The helper uses `SUPABASE_ACCESS_TOKEN` when set; otherwise remote commands ask for your **Movers account personal access token** with hidden input. Get one from [Supabase account access tokens](https://supabase.com/dashboard/account/tokens). No shell configuration is required. It refuses to fall back to the CLI's saved account. Python 3, curl, and Supabase CLI 2.81.3 or newer are required for remote commands. On macOS the helper uses `/usr/bin/curl` and system certificate trust, so an unconfigured Python CA bundle does not block HTTPS. Both ignored app configs must contain matching project URLs/publishable keys. The standard `https://PROJECT_REF.supabase.co` URL selects the target; credentials are never printed or embedded in command arguments.
 
 ```sh
 ./scripts/supabase-setup.sh check
@@ -26,15 +26,7 @@ HTTP credentials are passed to curl through stdin, not process arguments or file
 
 CLI linking happens in a private temporary directory, cleaned up on exit; existing project links and saved account login remain unchanged. If asked for a database password, enter it locally (or leave blank to skip link-time validation). CLI push may require database connectivity/password; never paste those credentials into chat. Security advisors fail on errors; review any warnings separately. If deployment partially completes, retry `deploy`: CLI migration history prevents reapplying completed migrations, and enabling anonymous signup is idempotent.
 
-If the token is not yet exported, enter the **Movers account personal access token** locally using zsh's hidden input:
-
-```zsh
-read -rs "SUPABASE_ACCESS_TOKEN?Movers access token: "
-printf '\n'
-export SUPABASE_ACCESS_TOKEN
-```
-
-Do not put personal access tokens in app configs or tracked files. Closing that terminal or unsetting the variable restores the CLI's saved account behavior. An agent's shell does not inherit exports from your terminal. Helpers can run from another current directory using their absolute path. Share only sanitized output if a command fails.
+Prompted tokens are used only for that run and its CLI subprocesses; they are not saved to disk, shell configuration or the CLI's account login. `check` and `--help` never ask. Automation must supply `SUPABASE_ACCESS_TOKEN`; without an interactive terminal the helper fails rather than reading an echoed credential. If hidden input is unavailable, it also fails safely. Do not put personal access tokens in app configs or tracked files. An agent's shell does not inherit exports from your terminal. Helpers can run from another current directory using their absolute path. Share only sanitized output if a command fails.
 
 The helper changes Auth using the documented [Management API](https://supabase.com/docs/reference/api/v1-update-auth-service-config); migrations and advisors use the [CLI](https://supabase.com/docs/reference/cli/introduction). If access is denied, check that the token's account/permissions cover this project; do not switch the CLI's global account as a workaround.
 

@@ -1,6 +1,7 @@
-"""Run from a token-enabled terminal; HTTP credentials travel through stdin."""
+"""Use an environment token or hidden prompt; HTTP credentials travel through stdin."""
 
 import argparse
+import getpass
 import json
 import os
 from pathlib import Path
@@ -10,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.parse
+import warnings
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -125,24 +127,41 @@ def run_cli(workdir, *arguments):
     subprocess.run(["supabase", "--workdir", str(workdir), *arguments], check=True)
 
 
+def access_token():
+    token = os.environ.get("SUPABASE_ACCESS_TOKEN", "")
+    if not token:
+        if not sys.stdin.isatty():
+            raise SetupError("No access token. Run in an interactive terminal for a hidden prompt, or set SUPABASE_ACCESS_TOKEN for automation.")
+        try:
+            with warnings.catch_warnings():
+                # Never let getpass fall back to echoing a credential on stdin.
+                warnings.simplefilter("error", getpass.GetPassWarning)
+                token = getpass.getpass("Movers Supabase access token (hidden): ")
+        except (getpass.GetPassWarning, EOFError, OSError):
+            raise SetupError("Cannot read the token securely. Use an interactive terminal or set SUPABASE_ACCESS_TOKEN.") from None
+    if not token:
+        raise SetupError("No access token entered. No remote changes were made.")
+    if token != token.strip() or any(char.isspace() for char in token):
+        raise SetupError("The access token contains whitespace. Enter it again without spaces or newlines.")
+    # Only this process and its CLI children receive it; no login or disk storage.
+    os.environ["SUPABASE_ACCESS_TOKEN"] = token
+    return token
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Movers backend setup using your terminal's Supabase access token.")
+    parser = argparse.ArgumentParser(description="Movers backend setup. Uses SUPABASE_ACCESS_TOKEN or prompts securely when missing.")
     parser.add_argument("command", nargs="?", default="inspect", choices=["check", "inspect", "deploy", "verify"])
     command = parser.parse_args().command
     ref, key = configuration()
     print("Android/iOS configs match; URL and publishable-key formats are valid.", flush=True)
     if command == "check":
         return
-    token = os.environ.get("SUPABASE_ACCESS_TOKEN", "").strip()
-    if not token:
-        raise SetupError("SUPABASE_ACCESS_TOKEN is not exported in this terminal. Refusing to use the CLI's saved account.")
-    if token != os.environ["SUPABASE_ACCESS_TOKEN"] or any(char.isspace() for char in token):
-        raise SetupError("The access token contains whitespace. Export it again using the hidden-input command in the setup guide.")
     if not shutil.which("supabase"):
         raise SetupError("Install the Supabase CLI before running remote setup.")
     migrations = sorted((ROOT / "supabase/migrations").glob("*.sql"))
     if not migrations:
         raise SetupError("No versioned migrations found; refusing remote setup.")
+    token = access_token()
     # GET validates token access to precisely the project selected by both app configs.
     settings = auth_config(ref, token)
     check_client_key(ref, key)
