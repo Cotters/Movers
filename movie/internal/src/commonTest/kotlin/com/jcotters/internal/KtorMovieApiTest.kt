@@ -22,10 +22,11 @@ class KtorMovieApiTest {
             assertEquals("L'été & the city", request.url.parameters["query"])
             assertEquals("2", request.url.parameters["page"])
             assertEquals("false", request.url.parameters["include_adult"])
+            assertEquals("2026", request.url.parameters["primary_release_year"])
             assertEquals("Bearer test-token", request.headers[HttpHeaders.Authorization])
             respond("""{"page":2,"total_pages":2,"results":[]}""", headers = headersOf(HttpHeaders.ContentType, "application/json"))
         }) { configureMovieApi("test-token") }
-        try { assertEquals(2, KtorMovieApi(client).searchMovies("L'été & the city", 2).page) } finally { client.close() }
+        try { assertEquals(2, KtorMovieApi(client).searchMovies("L'été & the city", 2, 2026).page) } finally { client.close() }
     }
 
     @Test

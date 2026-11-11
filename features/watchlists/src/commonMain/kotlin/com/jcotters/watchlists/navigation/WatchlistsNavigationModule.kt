@@ -12,6 +12,7 @@ object WatchlistsNavigationModule {
         entry<SharedListKey> { key -> com.jcotters.watchlists.ui.SharedListRoute(key.listId,key.section,navigator) }
         entry<WatchlistsKey> { WatchlistsRoute(navigator) }
         entry<WatchlistDetailKey> { key -> WatchlistDetailRoute(key.listId, navigator, stackId) }
+        entry<FilmImportKey> { key -> com.jcotters.watchlists.ui.FilmImportRoute(key.listId, navigator) }
         entry<AddToListsKey>(metadata = BottomSheetSceneStrategy.metadata) { key ->
             AddToListsRoute(key.movieId, key.initialListId, navigator)
         }

@@ -6,6 +6,8 @@ import com.cotters.data.network.NetworkMonitor
 import com.cotters.data.network.NetworkStatus
 import com.jcotters.contract.watchlists.data.ActivityPage
 import com.jcotters.contract.watchlists.data.FilmActivity
+import com.jcotters.contract.watchlists.data.ImportBatchResult
+import com.jcotters.contract.watchlists.data.ImportUnavailableException
 import com.jcotters.contract.watchlists.data.InvitePreview
 import com.jcotters.contract.watchlists.data.SharedAccessDeniedException
 import com.jcotters.contract.watchlists.data.SharedCommand
@@ -119,6 +121,23 @@ internal class SharedWatchlistsRepository(
         mutex.withLock { val owner = participant(); reconcile(owner); command(owner, value) }
     }
 
+    suspend fun importMovies(requestId: String, listId: String, films: List<SharedFilm>, local: suspend () -> ImportBatchResult): ImportBatchResult =
+        mutex.withLock {
+            if (cache.get(listId) == null) {
+                check(cache.operations().none { it.listId == listId }) { "This list is being shared. Reconnect and retry." }
+                return@withLock local()
+            }
+            val owner = participant()
+            // Reconcile other commands, but preserve this batch's original receipt/outcome.
+            cache.operations().filter { it.id != requestId }.forEach { execute(it) }
+            val command = SharedCommand.ImportFilms(listId, films)
+            val payload = json.encodeToString<SharedCommand>(command)
+            val operation = cache.operations().firstOrNull { it.id == requestId }?.also {
+                check(it.participantId == owner && it.payload == payload) { "Import request changed. Reopen the import." }
+            } ?: DbSharedOperation(requestId, listId, owner, payload).also { cache.insert(it) }
+            checkNotNull(execute(operation))
+        }
+
     /** The same mutex prevents a local write racing publication of its original contents. */
     suspend fun write(listIds: Set<String>, local: suspend () -> Unit, shared: suspend (String) -> SharedCommand) {
         mutex.withLock {
@@ -165,17 +184,28 @@ internal class SharedWatchlistsRepository(
             execute(operation)
         }
     }
-    private suspend fun execute(operation: DbSharedOperation) {
+    private suspend fun execute(operation: DbSharedOperation): ImportBatchResult? {
         val command = json.decodeFromString<SharedCommand>(operation.payload)
         try {
-            remote.execute(operation.id, command)
+            val importResult = if (command is SharedCommand.ImportFilms) remote.executeImport(operation.id, command).also { result ->
+                check(result.outcomes.map { it.movieId }.toSet() == command.films.map { it.id }.toSet() && result.outcomes.size == command.films.size) {
+                    "Import confirmation is incomplete. Retry when connected."
+                }
+            } else {
+                remote.execute(operation.id, command)
+                null
+            }
             if (command is SharedCommand.Leave) purge(command.listId) else fetch(command.listId, operation.participantId)
             cache.complete(operation.id)
+            return importResult
         } catch (e: SharedAccessDeniedException) {
             if (cache.get(command.listId) != null) purge(command.listId)
             cache.complete(operation.id)
             throw e
         } catch (e: IllegalArgumentException) {
+            cache.complete(operation.id)
+            throw e
+        } catch (e: ImportUnavailableException) {
             cache.complete(operation.id)
             throw e
         }

@@ -3,19 +3,15 @@ package com.jcotters.search
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -38,8 +33,9 @@ import androidx.paging.compose.itemKey
 import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.navigation.Navigator
 import com.jcotters.presentation.AddToListButton
-import com.jcotters.presentation.MovieListRow
 import com.jcotters.presentation.MovieMembershipButton
+import com.jcotters.presentation.MovieSearchField
+import com.jcotters.presentation.MovieSearchResult
 import com.jcotters.presentation.moviePosterTransitionModifier
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.arrow_back
@@ -71,15 +67,14 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
         })
     }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            OutlinedTextField(
-                value = query, onValueChange = { value ->
+            MovieSearchField(
+                value = query,
+                onValueChange = { value ->
                     if (value.trim() != query.trim()) scope.launch { scroll.scrollToItem(0) }
                     viewModel.changeQuery(value)
-                }, label = { Text("Search films") },
-                singleLine = true, modifier = Modifier.fillMaxWidth().padding(12.dp).focusRequester(focus),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { viewModel.submit(); keyboard?.hide() }),
-                trailingIcon = { if (query.isNotEmpty()) TextButton(onClick = { viewModel.changeQuery("") }) { Text("Clear") } },
+                },
+                onSearch = { viewModel.submit(); keyboard?.hide() },
+                modifier = Modifier.padding(12.dp).focusRequester(focus),
             )
             actions.error?.let {
                 Text(it, Modifier.padding(12.dp), color = MaterialTheme.colorScheme.error)
@@ -98,7 +93,7 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                 else -> LazyColumn(state = scroll) {
                     items(movies.itemCount, key = movies.itemKey { it.id }) { index ->
                         val movie = movies[index] ?: return@items
-                        MovieListRow(movie, Modifier.fillMaxWidth().height(180.dp),
+                        MovieSearchResult(movie,
                             posterModifier = moviePosterTransitionModifier(movie.id, stackId),
                             onOpen = { keyboard?.hide(); navigator.navigate(MovieDetailsKey(movie.id, targetListId = listId)) }) {
                             if (listId == null) {

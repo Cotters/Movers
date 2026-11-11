@@ -48,7 +48,7 @@ interface WatchlistDao {
     suspend fun countLists(ids: List<String>): Int
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertMovie(entry: DbWatchlistMovie)
+    suspend fun insertMovie(entry: DbWatchlistMovie): Long
 
     @Query("DELETE FROM watchlist_movies WHERE watchlistId = :listId AND movieId = :movieId")
     suspend fun removeMovie(listId: String, movieId: Int)

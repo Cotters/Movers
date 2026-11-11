@@ -4,8 +4,10 @@ plugins {
 
 kotlin {
     android { namespace = "com.jcotters.features.watchlists" }
+    sourceSets.androidMain.dependencies { implementation(libs.androidx.activity.compose) }
     sourceSets.commonMain.dependencies {
         implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.kotlin.serialization.json)
         implementation(libs.multiplatform.lifecycle.compose)
         implementation(libs.koin.compose.viewmodel)
         implementation(project(":movie:contract"))

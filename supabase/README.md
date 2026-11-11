@@ -2,6 +2,10 @@
 
 Movers works with local lists without backend configuration. Sharing requires your own Supabase project; no project is provisioned automatically. See the [feature design](../docs/features/shared-watchlists.md) and [public-source guidance](../docs/workflow/open-source.md).
 
+## Import/export update
+
+Existing projects must apply `20261110155745_film_import_batches.sql` before shared-list imports work. It adds the authenticated `movers_import` RPC and replayable per-film outcomes without changing ordinary command signatures. Run the normal `deploy` then `verify` commands below in your token-enabled terminal. App builds do not deploy the backend. Personal imports and exports work without this backend update. See [import/export design](../docs/features/list-import-export.md).
+
 ## Run from a token-enabled zsh terminal
 
 The helper uses the `SUPABASE_ACCESS_TOKEN` exported in your terminal. It refuses to fall back to the CLI's saved account. Python 3, curl, and Supabase CLI 2.81.3 or newer are required for remote commands. On macOS the helper uses `/usr/bin/curl` and system certificate trust, so an unconfigured Python CA bundle does not block HTTPS. Both ignored app configs must contain matching project URLs/publishable keys. The standard `https://PROJECT_REF.supabase.co` URL selects the target; credentials are never printed or embedded in command arguments.

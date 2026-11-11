@@ -31,6 +31,10 @@ internal class WatchlistsRepository(private val database: WatchlistDatabase, pri
         database.addMovieToLists(movieId, listIds, clock.millis())
     }
     override suspend fun removeMovie(listId: String, movieId: Int) = write("Unable to remove this movie from the list.") { database.removeMovie(listId, movieId) }
+    override suspend fun importMovies(requestId: String, listId: String, films: List<com.jcotters.contract.watchlists.data.SharedFilm>) = write("Unable to import these films. Retry when connected.") {
+        require(films.size in 1..50 && films.all { it.id > 0 }) { "Choose up to 50 valid films per batch." }
+        database.importMovies(requestId, listId, films.distinctBy { it.id }, clock.millis())
+    }
 
     private fun validateName(name: String): String = name.trim().also { require(it.isNotBlank()) { "Enter a list name." } }
 
@@ -45,6 +49,7 @@ internal class WatchlistsRepository(private val database: WatchlistDatabase, pri
     } catch (error: Exception) {
         Result.failure(if (error is com.jcotters.contract.watchlists.data.SharedConnectionException ||
             error is com.jcotters.contract.watchlists.data.SharedAccessDeniedException ||
+            error is com.jcotters.contract.watchlists.data.ImportUnavailableException ||
             error is com.jcotters.contract.watchlists.data.SharingUnavailableException) error else IllegalStateException(message, error))
     }
 }

@@ -126,6 +126,7 @@ internal val navigationSavedState = androidx.savedstate.serialization.SavedState
             subclass(MovieDetailsKey::class, MovieDetailsKey.serializer())
             subclass(MovieImageKey::class, MovieImageKey.serializer())
             subclass(WatchlistDetailKey::class, WatchlistDetailKey.serializer())
+            subclass(com.jcotters.watchlists.navigation.FilmImportKey::class, com.jcotters.watchlists.navigation.FilmImportKey.serializer())
             subclass(AddToListsKey::class, AddToListsKey.serializer())
             subclass(MovieSearchKey::class, MovieSearchKey.serializer())
         }

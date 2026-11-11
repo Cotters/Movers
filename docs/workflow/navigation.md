@@ -15,6 +15,10 @@ Home is the infinite movie feed. Watchlists owns custom lists, list details/mana
 
 List/search/picker keys live in feature contracts and are registered by `:shared`. Each entry owns its ViewModel; the search query uses SavedStateHandle, while picker checkboxes come from persisted membership. The shared Nav 3 overlay scene strategy presents the bottom sheet on both platforms. Returning to a source retains its query, paging, scroll, and navigation state. A target list is context, not authorization.
 
+## List import/export
+
+Both actions live in each list's menu. Import uses an entry-scoped `FilmImportKey`/ViewModel with session-only progress and compact shared search components; export is a snapshot-based sheet in the list entry. [Import/export design](../features/list-import-export.md) owns matching, partial results, document exchange and activity semantics.
+
 ## Expanded movie artwork
 
 Tapping an available detail poster or backdrop opens `MovieImageKey` in the current tab. Close/platform Back returns to the retained detail; the bottom bar stays visible. The entry owns a Koin ViewModel observing the cached movie, without another detail refresh. Keys persist only movie/type/source-entry identity; `:shared` explicitly registers their serializer. Expansion identities include tab, source detail entry and poster/backdrop kind, separate from the catalogue/poster transition.

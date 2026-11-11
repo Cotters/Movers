@@ -2,6 +2,9 @@ package com.jcotters.internal.watchlists
 
 import androidx.room.immediateTransaction
 import androidx.room.useWriterConnection
+import com.jcotters.contract.watchlists.data.FilmImportOutcome
+import com.jcotters.contract.watchlists.data.ImportBatchResult
+import com.jcotters.contract.watchlists.data.ImportDisposition
 import com.jcotters.contract.watchlists.data.WatchlistContentRecord
 import com.jcotters.contract.watchlists.data.WatchlistDatabase
 import com.jcotters.contract.watchlists.data.WatchlistRecord
@@ -54,4 +57,19 @@ internal class RoomWatchlistDatabase(private val database: MoversDatabase, priva
     }
 
     override suspend fun removeMovie(listId: String, movieId: Int) = dao.removeMovie(listId, movieId)
+
+    override suspend fun importMovies(requestId: String, listId: String, films: List<com.jcotters.contract.watchlists.data.SharedFilm>, addedAt: Long): ImportBatchResult =
+        database.useWriterConnection { connection ->
+            connection.immediateTransaction {
+                if (dao.get(listId) == null) throw WatchlistNotFoundException()
+                ImportBatchResult(films.map { it.id }.distinct().map { id ->
+                    val disposition = if (database.movieDao().getMovieById(id) == null) {
+                        ImportDisposition.Rejected
+                    } else if (dao.insertMovie(DbWatchlistMovie(listId, id, addedAt)) == -1L) {
+                        ImportDisposition.AlreadyPresent
+                    } else ImportDisposition.Imported
+                    FilmImportOutcome(id, disposition)
+                })
+            }
+        }
 }

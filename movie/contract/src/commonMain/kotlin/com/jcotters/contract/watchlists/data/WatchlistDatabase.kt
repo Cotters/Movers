@@ -17,4 +17,5 @@ interface WatchlistDatabase {
     suspend fun delete(id: String)
     suspend fun addMovieToLists(movieId: Int, listIds: Set<String>, addedAt: Long)
     suspend fun removeMovie(listId: String, movieId: Int)
+    suspend fun importMovies(requestId: String, listId: String, films: List<SharedFilm>, addedAt: Long): ImportBatchResult
 }

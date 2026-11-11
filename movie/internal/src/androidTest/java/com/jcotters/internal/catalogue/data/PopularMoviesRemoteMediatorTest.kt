@@ -12,10 +12,10 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.jcotters.contract.time.AppClock
 import com.jcotters.database.MoversDatabase
-import com.jcotters.database.watchlists.DbWatchlist
-import com.jcotters.database.watchlists.DbWatchlistMovie
 import com.jcotters.database.movies.DbMovie
 import com.jcotters.database.movies.MovieCatalogue
+import com.jcotters.database.watchlists.DbWatchlist
+import com.jcotters.database.watchlists.DbWatchlistMovie
 import com.jcotters.internal.MovieApi
 import com.jcotters.internal.catalogue.data.models.CatalogueMovieDto
 import com.jcotters.internal.catalogue.data.models.CataloguePageResponse
@@ -107,6 +107,7 @@ assertEquals(1L, entryCount)
         }
 
         override suspend fun getMovieById(movieId: Int): MovieDto = error("Not used in catalogue tests")
-        override suspend fun searchMovies(query: String, page: Int): CataloguePageResponse = error("Not used in catalogue tests")
+        override suspend fun searchMovies(query: String, page: Int, year: Int?): CataloguePageResponse = error("Not used in catalogue tests")
+        override suspend fun findMovie(imdbId: String): com.jcotters.internal.ExternalMovieResponse = error("Not used in catalogue tests")
     }
 }

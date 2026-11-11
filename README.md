@@ -5,6 +5,8 @@ An Android and iOS movie app using [TheMovieDB](https://www.themoviedb.org/), Ko
 
 Build a watchlist locally for yourself or publish to a database and collaborate with friends.
 
+Import films from CSV/text or pasted titles, review anything not found, and export any list as CSV, text or JSON. See [import/export](docs/features/list-import-export.md) for supported formats and the required shared-import backend update.
+
 Configure your own instance using [Supabase setup](supabase/README.md); the [design](docs/features/shared-watchlists.md) explains permissions, offline behavior, device identity and replaceable adapters.
 
 ## Technologies

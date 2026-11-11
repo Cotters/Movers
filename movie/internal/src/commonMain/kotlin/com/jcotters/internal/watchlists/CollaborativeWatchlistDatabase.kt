@@ -34,6 +34,10 @@ internal class CollaborativeWatchlistDatabase(
         { local.addMovieToLists(movieId,listIds,addedAt) }, { SharedCommand.SetFilm(it, film(movieId), true) })
     override suspend fun removeMovie(listId: String, movieId: Int) = sharing.write(setOf(listId),
         { local.removeMovie(listId,movieId) }, { SharedCommand.SetFilm(it, film(movieId), false) })
+    override suspend fun importMovies(requestId: String, listId: String, films: List<SharedFilm>, addedAt: Long) =
+        sharing.importMovies(requestId, listId, films) {
+            local.importMovies(requestId, listId, films, addedAt)
+        }
     private suspend fun film(id: Int): SharedFilm {
         val movie = database.movieDao().getMovieById(id) ?: error("Movie is unavailable. Search again.")
         return SharedFilm(id,movie.title,movie.synopsis,movie.releaseDate,movie.posterUrl)

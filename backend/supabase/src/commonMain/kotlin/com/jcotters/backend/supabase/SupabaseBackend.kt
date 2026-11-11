@@ -1,6 +1,8 @@
 package com.jcotters.backend.supabase
 
 import com.jcotters.contract.watchlists.data.ActivityPage
+import com.jcotters.contract.watchlists.data.ImportBatchResult
+import com.jcotters.contract.watchlists.data.ImportUnavailableException
 import com.jcotters.contract.watchlists.data.InvitePreview
 import com.jcotters.contract.watchlists.data.SharedAccessDeniedException
 import com.jcotters.contract.watchlists.data.SharedCommand
@@ -109,6 +111,10 @@ class SupabaseBackend internal constructor(url: String, key: String, store: Secu
     override suspend fun execute(requestId: String, command: SharedCommand) {
         rpc("movers_command", buildJsonObject { put("p_request", requestId); put("p_command", json.encodeToJsonElement(command)) })
     }
+    override suspend fun executeImport(requestId: String, command: SharedCommand.ImportFilms): ImportBatchResult =
+        json.decodeFromJsonElement(rpc("movers_import", buildJsonObject {
+            put("p_request", requestId); put("p_command", json.encodeToJsonElement<SharedCommand>(command))
+        }))
     override suspend fun preview(token: String): InvitePreview = json.decodeFromJsonElement(rpc("movers_preview", buildJsonObject { put("p_token", token) }))
     override suspend fun createInvite(listId: String): String = rpc("movers_invite", params(listId)).jsonPrimitive.content
     override suspend fun activity(listId: String, before: Long?): ActivityPage = json.decodeFromJsonElement(rpc("movers_activity", buildJsonObject {
@@ -131,6 +137,7 @@ class SupabaseBackend internal constructor(url: String, key: String, store: Secu
         if (data.isBlank()) JsonNull else json.parseToJsonElement(data)
     } catch (e: CancellationException) { throw e } catch (e: io.github.jan.supabase.postgrest.exception.PostgrestRestException) {
         when (e.code) {
+            "PGRST202" -> if (name == "movers_import") throw ImportUnavailableException() else throw IllegalStateException("This backend needs updating.")
             "42501" -> throw SharedAccessDeniedException()
             "22023", "23514", "23502", "23505", "22P02", "22001" -> throw IllegalArgumentException("This change or invitation is invalid. Check the name or request a new invitation.")
             else -> throw IllegalStateException("Unable to save this shared change. Retry when connected.")

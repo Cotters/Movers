@@ -28,6 +28,7 @@ sealed interface SharedCommand {
     val listId: String
     @Serializable @kotlinx.serialization.SerialName("Publish") data class Publish(override val listId: String, val name: String, val films: List<SharedFilm>) : SharedCommand
     @Serializable @kotlinx.serialization.SerialName("SetFilm") data class SetFilm(override val listId: String, val film: SharedFilm, val present: Boolean) : SharedCommand
+    @Serializable @kotlinx.serialization.SerialName("ImportFilms") data class ImportFilms(override val listId: String, val films: List<SharedFilm>) : SharedCommand
     @Serializable @kotlinx.serialization.SerialName("Rename") data class Rename(override val listId: String, val name: String) : SharedCommand
     @Serializable @kotlinx.serialization.SerialName("Join") data class Join(override val listId: String, val token: String) : SharedCommand
     @Serializable @kotlinx.serialization.SerialName("Leave") data class Leave(override val listId: String) : SharedCommand
@@ -39,6 +40,7 @@ interface SharedWatchlistRemote {
     suspend fun snapshot(listId: String): SharedSnapshot
     suspend fun listIds(): List<String>
     suspend fun execute(requestId: String, command: SharedCommand)
+    suspend fun executeImport(requestId: String, command: SharedCommand.ImportFilms): ImportBatchResult
     suspend fun preview(token: String): InvitePreview
     suspend fun createInvite(listId: String): String
     suspend fun activity(listId: String, before: Long? = null): ActivityPage

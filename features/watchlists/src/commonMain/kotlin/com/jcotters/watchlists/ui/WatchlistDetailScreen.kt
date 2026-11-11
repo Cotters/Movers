@@ -64,6 +64,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     var deleting by rememberSaveable { mutableStateOf(false) }
     var editing by rememberSaveable(listId) { mutableStateOf(false) }
     var attribution by remember(listId) { mutableStateOf<FilmContribution?>(null) }
+    var exportContent by remember(listId) { mutableStateOf<com.jcotters.contract.watchlists.domain.WatchlistContent?>(null) }
     LaunchedEffect(listId) { viewModel.load(listId) }
     LaunchedEffect(state.deleted) { if (state.deleted) navigator.goBack() }
     LaunchedEffect(state.renamed) { if (state.renamed) { renaming = false; viewModel.consumeRenamed() } }
@@ -80,6 +81,8 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                 Icon(painterResource(Res.drawable.more), "List options")
             }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenuItem(text = { Text("Import films") }, onClick = { menu = false; navigator.navigate(com.jcotters.watchlists.navigation.FilmImportKey(listId)) })
+                DropdownMenuItem(text = { Text("Export list") }, onClick = { menu = false; exportContent = state.content })
                 DropdownMenuItem(text = { Text(if (editing) "Done editing" else "Edit list") }, onClick = { menu = false; editing = !editing })
                 DropdownMenuItem(text = { Text("Rename list") }, onClick = { menu = false; viewModel.clearError(); renaming = true })
                 DropdownMenuItem(text = { Text(if (list?.shared != null) "Share link" else "Share list") }, onClick = { menu = false; navigator.navigate(SharedListKey(listId,SharedSection.Sharing)) })
@@ -132,6 +135,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
             }
         }
     }
+    exportContent?.let { ExportListSheet(it, onDismiss = { exportContent = null }) }
     if (renaming && list != null) ListNameDialog("Rename list", state.lists, list.name, list.id, state.busy, state.error,
         onDismiss = { renaming = false; viewModel.clearError() }, onSave = viewModel::rename)
     if (deleting && list != null) ListRemovalDialog(
@@ -180,7 +184,7 @@ private fun FilmAttributionDialog(contribution: FilmContribution, onDismiss: () 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(contribution.actor.name) },
-        text = { Text("${if (contribution.imported) "Imported when shared" else "Added"} · ${formatActivityTime(contribution.addedAt)}") },
+        text = { Text("${if (contribution.imported) "Imported" else "Added"} · ${formatActivityTime(contribution.addedAt)}") },
         confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
     )
 }

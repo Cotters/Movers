@@ -25,7 +25,7 @@ begin
     end if;
     foreach v_signature in array array[
         'public.movers_profile(text,integer)', 'public.movers_snapshot(uuid)',
-        'public.movers_preview(text)', 'public.movers_command(uuid,jsonb)',
+        'public.movers_preview(text)', 'public.movers_command(uuid,jsonb)', 'public.movers_import(uuid,jsonb)',
         'public.movers_invite(uuid)', 'public.movers_activity(uuid,bigint)', 'public.movers_list_ids()'
     ] loop
         v_function := to_regprocedure(v_signature);

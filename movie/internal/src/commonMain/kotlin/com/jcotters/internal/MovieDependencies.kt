@@ -20,6 +20,9 @@ val movieDependencies = module {
     single<AppClock> { AppClock.System }
     single<MovieApi> { KtorMovieApi(get()) }
     single { MovieMapper() }
+    single<com.jcotters.contract.watchlists.data.MovieImportResolver> {
+        com.jcotters.internal.watchlists.TmdbMovieImportResolver(get(), get<MoversDatabase>().movieDao(), get(), get())
+    }
     single { RoomWatchlistDatabase(get(), get()) }
     single { com.jcotters.internal.watchlists.SharedWatchlistsRepository(get(), getOrNull<com.jcotters.contract.watchlists.data.SharedWatchlistRemote>() ?: com.jcotters.internal.watchlists.UnavailableSharing,
         getOrNull<com.jcotters.profile.domain.ParticipantIdentity>() ?: com.jcotters.internal.watchlists.UnavailableSharing, get(), get()) }

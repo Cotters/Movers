@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -28,6 +29,7 @@ fun MovieListRow(
     modifier: Modifier = Modifier,
     posterModifier: Modifier = Modifier,
     onOpen: (() -> Unit)? = null,
+    compact: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
@@ -38,11 +40,15 @@ fun MovieListRow(
             posterUrl = movie.posterUrl.orEmpty(),
             sharedImageKey = moviePosterKey(movie.id),
             contentDescription = "Movie poster for ${movie.title}",
-            modifier = posterModifier.fillMaxHeight().aspectRatio(9f / 16f).padding(vertical = 8.dp),
+            modifier = posterModifier.then(
+                if (compact) Modifier.size(width = 56.dp, height = 100.dp)
+                else Modifier.fillMaxHeight().aspectRatio(9f / 16f),
+            ).padding(vertical = 8.dp),
         )
         Column(Modifier.weight(1f).padding(8.dp)) {
-            Text(movie.title, style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(movie.synopsis, style = MaterialTheme.typography.bodyMedium, maxLines = 4, overflow = TextOverflow.Ellipsis)
+            Text(movie.title, style = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (compact && movie.releaseDate.isNotBlank()) Text(movie.releaseDate.take(4), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(movie.synopsis, style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium, maxLines = if (compact) 2 else 4, overflow = TextOverflow.Ellipsis)
         }
         trailingContent()
     }

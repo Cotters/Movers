@@ -25,4 +25,5 @@ interface IWatchlistsRepository {
     suspend fun delete(id: String): Result<Unit>
     suspend fun addMovieToLists(movieId: Int, listIds: Set<String>): Result<Unit>
     suspend fun removeMovie(listId: String, movieId: Int): Result<Unit>
+    suspend fun importMovies(requestId: String, listId: String, films: List<com.jcotters.contract.watchlists.data.SharedFilm>): Result<com.jcotters.contract.watchlists.data.ImportBatchResult>
 }

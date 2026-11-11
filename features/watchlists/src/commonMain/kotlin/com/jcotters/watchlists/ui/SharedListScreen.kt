@@ -134,7 +134,7 @@ private fun SharedListActivity(
             events.groupBy { formatActivityDay(it.at) }.forEach { (day, dayEvents) ->
                 item(key = "day-$day") { Text(day, Modifier.padding(16.dp), style = MaterialTheme.typography.titleSmall) }
                 items(dayEvents, key = { it.id }) { event ->
-                    val action = if (event.imported) "imported" else if (event.added) "added" else "removed"
+                    val action = if (!event.added) "removed" else if (event.imported) "imported" else "added"
                     ListItem(
                         leadingContent = { ParticipantAvatar(event.actor.name, event.actor.color) },
                         headlineContent = { Text("${event.actor.name} $action ${event.film.title}") },
