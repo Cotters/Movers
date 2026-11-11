@@ -6,7 +6,8 @@ Updated 11 November 2026. Starting checkpoint: `8b96f8a` (`Improve movie detail 
 
 - Tab transitions: scene-entry metadata identifies the owning tab. Forward, Back and predictive-Back transitions cross-fade only when tabs differ; within-tab navigation retains the consumed Nav3 platform defaults. Retained stacks, entry decorators and feature metadata stay intact. Checked APIs in cached multiplatform Nav3 1.1.1/runtime sources and current [animation guidance](https://developer.android.com/guide/navigation/navigation-3/animate-destinations).
 - Static source/diff/docs review only; no builds/tests/device runs for this sequence. Physical acceptance: switching root/nested tabs fades, nested push/pop and artwork expansion still work, reselection and Back retain their existing behavior.
-- Next: catalogue responsive grid/list toggle (before Search), then shared-list spacing/avatars. Keep UI refresh deferred.
+- Catalogue: saved entry-local grid/list toggle immediately before Search; list remains the default. Adaptive 140 dp minimum poster cells retain quick-add and artwork transitions. Both layouts use the same paging collection, stable movie keys and full-width heading/error/footer order; toggling transfers the first visible item index. Pull refresh, retry and scroll-to-top work in either layout. Existing host/device assertions remain unchanged; not executed. Cached CMP 1.12.2 confirms grid sticky headers and requestScrollToItem; current [lazy layout guidance](https://developer.android.com/develop/ui/compose/lists) informed the implementation. New icon XML/source reviewed statically, not packaged/rendered.
+- Next: shared-list spacing/avatars. Keep UI refresh deferred. Physical catalogue acceptance: toggle while scrolled, return from details/quick-add, rotate, restore state and check append/refresh failure paths in both modes.
 
 ## Detail UI follow-up
 

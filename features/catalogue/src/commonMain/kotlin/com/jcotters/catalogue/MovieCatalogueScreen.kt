@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -23,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,8 +36,11 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,14 +55,15 @@ import com.jcotters.contract.detail.domain.models.PreviewMovies
 import com.jcotters.features.catalogue.resources.Res
 import com.jcotters.features.catalogue.resources.arrow_up
 import com.jcotters.features.catalogue.resources.cached_movies_refresh_error
+import com.jcotters.features.catalogue.resources.grid_view
+import com.jcotters.features.catalogue.resources.list_view
+import com.jcotters.presentation.AddToListButton
+import com.jcotters.presentation.MovieListRow
+import com.jcotters.presentation.resources.search
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import com.jcotters.presentation.AddToListButton
-import com.jcotters.presentation.MovieListRow
-import com.jcotters.presentation.resources.search
-import androidx.compose.material3.IconButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -71,13 +78,28 @@ fun MovieCatalogueScreen(
     val coroutineScope = rememberCoroutineScope()
     val pullToRefreshState = rememberPullToRefreshState()
     val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
+    var showGrid by rememberSaveable { mutableStateOf(false) }
 
     val showScrollToTopFab by remember {
-        derivedStateOf { listState.firstVisibleItemIndex > 15 }
+        derivedStateOf {
+            (if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex) > 15
+        }
     }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Movers") }, actions = {
+            IconButton(onClick = {
+                // Both layouts use the same item order, including full-width status rows.
+                val anchor = if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
+                if (showGrid) listState.requestScrollToItem(anchor) else gridState.requestScrollToItem(anchor)
+                showGrid = !showGrid
+            }) {
+                Icon(
+                    painterResource(if (showGrid) Res.drawable.list_view else Res.drawable.grid_view),
+                    if (showGrid) "Show list" else "Show grid",
+                )
+            }
             if (onSearch != null) IconButton(onClick = onSearch) {
                 Icon(painterResource(com.jcotters.presentation.resources.Res.drawable.search), "Search movies")
             }
@@ -91,7 +113,7 @@ fun MovieCatalogueScreen(
                 FloatingActionButton(
                     onClick = {
                         coroutineScope.launch {
-                            listState.animateScrollToItem(index = 0)
+                            if (showGrid) gridState.animateScrollToItem(0) else listState.animateScrollToItem(0)
                         }
                     },
                 ) {
@@ -109,11 +131,13 @@ fun MovieCatalogueScreen(
             isRefreshing = movies.loadState.refresh is LoadState.Loading,
             onRefresh = movies::refresh,
             state = pullToRefreshState,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
         ) {
-            PopularMoviesList(
+            PopularMoviesContent(
                 modifier = Modifier,
                 listState = listState,
+                gridState = gridState,
+                showGrid = showGrid,
                 movies = movies,
                 onMovieTapped = onMovieTapped,
                 posterModifier = posterModifier,
@@ -125,16 +149,17 @@ fun MovieCatalogueScreen(
 
 @Composable
 @OptIn(ExperimentalSharedTransitionApi::class)
-private fun PopularMoviesList(
+private fun PopularMoviesContent(
     modifier: Modifier,
     listState: LazyListState,
+    gridState: LazyGridState,
+    showGrid: Boolean,
     movies: LazyPagingItems<Movie>,
     onMovieTapped: (Int) -> Unit,
     posterModifier: @Composable (Movie) -> Modifier,
     onAddToList: ((Int) -> Unit)?,
 ) {
     val refreshState = movies.loadState.refresh
-    val appendState = movies.loadState.append
 
     when {
         refreshState is LoadState.Error && movies.itemCount == 0 -> {
@@ -145,25 +170,16 @@ private fun PopularMoviesList(
             )
         }
 
+        showGrid -> PopularMoviesGrid(movies, gridState, onMovieTapped, posterModifier, onAddToList, modifier)
+
         else -> LazyColumn(
             state = listState,
-            modifier = modifier.padding(horizontal = 8.dp),
+            modifier = modifier.fillMaxSize().padding(horizontal = 8.dp),
         ) {
-            stickyHeader {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
-                ) {
-                    Text(text = "Popular Movies", style = MaterialTheme.typography.titleLarge)
-                }
-            }
+            stickyHeader(key = "heading") { CatalogueHeading() }
             if (refreshState is LoadState.Error) {
                 item(key = "refresh-error") {
-                    ErrorItem(
-                        message = stringResource(Res.string.cached_movies_refresh_error),
-                        onRetry = movies::retry,
-                    )
+                    CatalogueRefreshError(movies::retry)
                 }
             }
             items(
@@ -183,30 +199,34 @@ private fun PopularMoviesList(
                 }
                 HorizontalDivider()
             }
-            item {
-                when (appendState) {
-                    is LoadState.Loading -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LinearProgressIndicator()
-                        }
-                    }
-
-                    is LoadState.Error -> {
-                        ErrorItem(
-                            message = appendState.error.message ?: "Failed to load more",
-                            onRetry = movies::retry
-                        )
-                    }
-
-                    else -> {}
-                }
+            item(key = "append-state") {
+                CatalogueAppendState(movies.loadState.append, movies::retry)
             }
         }
+    }
+}
+
+@Composable
+internal fun CatalogueHeading() {
+    Box(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+        Text("Popular Movies", style = MaterialTheme.typography.titleLarge)
+    }
+}
+
+@Composable
+internal fun CatalogueRefreshError(onRetry: () -> Unit) {
+    ErrorItem(stringResource(Res.string.cached_movies_refresh_error), onRetry)
+}
+
+@Composable
+internal fun CatalogueAppendState(state: LoadState, onRetry: () -> Unit) {
+    when (state) {
+        is LoadState.Loading -> Box(
+            Modifier.fillMaxWidth().padding(16.dp),
+            contentAlignment = Alignment.Center,
+        ) { LinearProgressIndicator() }
+        is LoadState.Error -> ErrorItem(state.error.message ?: "Failed to load more", onRetry)
+        else -> Unit
     }
 }
 
