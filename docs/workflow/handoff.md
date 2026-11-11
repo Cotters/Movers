@@ -1,6 +1,11 @@
 # Current handoff
 
-Updated 11 November 2026. Baseline: `7ad8b50` (first five small Todo items). User authorized the next few clear backlog actions, implemented in separate commits: random list picks, skippable feature tour and movie trailers. UI refresh explicitly requires discussion and is skipped; watched status still needs product design. No emulator/simulator/connected tests, new test cases, backend deployments or releases. Focused host/native checks were justified for the new platform player integration; ordinary iteration still has no routine build gate. [Earlier work and release evidence](history/2026-11-11-before-next-features.md) does not verify these new changes.
+Updated 11 November 2026. Current task: approved [development-only style guide](../design/style-guide.md), implemented in four coherent commits: gated navigation/modules, theme/basic controls, overlays/film examples, then validation/docs. One curated Movers style; small maintained Unstyled dependencies, app-owned styling. Production redesign and Haze are deferred until the guide is reviewed. No emulator/simulator/connected tests, new test cases, deployments or releases. Earlier feature/release evidence below does not validate this new work.
+
+## Style guide progress
+
+- Module boundaries and guarded Profile launcher/typed destination implemented. Android uses the installed application's debuggable flag; iOS uses Kotlin/Native's debug-binary flag. Release navigation guards restored guide entries while retaining serialization. Existing round-trip assertion updated; no new cases. Source/diff/docs checks only at this checkpoint.
+
 
 ## Next feature pass
 

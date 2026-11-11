@@ -34,6 +34,8 @@ kotlin {
             implementation(project(":features:watchlists:contract"))
             implementation(project(":features:search"))
             implementation(project(":features:search:contract"))
+            implementation(project(":features:styleguide"))
+            implementation(project(":features:styleguide:contract"))
             implementation(project(":profile"))
             implementation(project(":profile:contract"))
             implementation(project(":navigation:contract"))

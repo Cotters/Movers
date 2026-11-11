@@ -45,3 +45,7 @@ include(":shared")
 include(":backend:supabase")
 include(":features:search")
 include(":features:search:contract")
+
+include(":designsystem")
+include(":features:styleguide")
+include(":features:styleguide:contract")

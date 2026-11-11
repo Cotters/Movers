@@ -21,6 +21,7 @@ import com.jcotters.navigation.EntryProviderInstaller
 import com.jcotters.navigation.Navigator
 import com.jcotters.profile.navigation.ProfileKey
 import com.jcotters.search.navigation.MovieSearchKey
+import com.jcotters.styleguide.navigation.StyleGuideKey
 import com.jcotters.watchlists.navigation.AddToListsKey
 import com.jcotters.watchlists.navigation.ListTransferKey
 import com.jcotters.watchlists.navigation.WatchlistDetailKey
@@ -135,6 +136,7 @@ internal val navigationSavedState = androidx.savedstate.serialization.SavedState
             subclass(com.jcotters.watchlists.navigation.JoinWatchlistKey::class, com.jcotters.watchlists.navigation.JoinWatchlistKey.serializer())
             subclass(com.jcotters.watchlists.navigation.SharedListKey::class, com.jcotters.watchlists.navigation.SharedListKey.serializer())
             subclass(ProfileKey::class, ProfileKey.serializer())
+            subclass(StyleGuideKey::class, StyleGuideKey.serializer())
             subclass(MovieDetailsKey::class, MovieDetailsKey.serializer())
             subclass(MovieImageKey::class, MovieImageKey.serializer())
             subclass(WatchlistDetailKey::class, WatchlistDetailKey.serializer())

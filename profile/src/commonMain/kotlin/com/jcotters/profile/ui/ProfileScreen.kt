@@ -30,6 +30,7 @@ fun ProfileScreen(
     onSaveColor: (Int) -> Unit = {},
     savingColor: Boolean = false,
     colorError: String? = null,
+    onOpenStyleGuide: (() -> Unit)? = null,
 ) {
     var editing by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
     var name by androidx.compose.runtime.saveable.rememberSaveable(viewState.profile?.displayName) { androidx.compose.runtime.mutableStateOf(viewState.profile?.displayName.orEmpty()) }
@@ -40,6 +41,7 @@ fun ProfileScreen(
             ProfileView(
                 modifier = Modifier.padding(innerPadding),
                 viewState = viewState,
+                onOpenStyleGuide = onOpenStyleGuide,
                 onRetry = onRetry,
                 onEditName = { editing = true },
                 onSaveColor = onSaveColor,
@@ -67,6 +69,7 @@ fun ProfileView(
     savingColor: Boolean = false,
     colorError: String? = null,
     savingName: Boolean = false,
+    onOpenStyleGuide: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -83,6 +86,11 @@ fun ProfileView(
             AvatarColorPicker(selected = it.color, enabled = !savingName && !savingColor, onSelect = onSaveColor)
             if (savingColor) LinearProgressIndicator(Modifier.fillMaxWidth())
             colorError?.let { message -> Text(message, color = MaterialTheme.colorScheme.error) }
+        }
+
+        onOpenStyleGuide?.let { open ->
+            Text("Developer tools", style = MaterialTheme.typography.titleSmall)
+            androidx.compose.material3.TextButton(onClick = open) { Text("Style guide") }
         }
 
         viewState.errorMessage?.let { message ->
