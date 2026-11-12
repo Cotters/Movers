@@ -6,6 +6,8 @@ Use source/diff/static checks during iteration; do not run routine builds or com
 
 ## Verification by change
 
+Every coding task also follows the [pre-commit formatting/static/source review](code-review.md), including rechecks after fixes. The formatter and `review-code.sh` do not invoke Gradle. Their success is separate from compiler-backed lint/tests and physical acceptance; unavailable IDE checks must be reported explicitly.
+
 | Change | Iteration | Final evidence |
 | --- | --- | --- |
 | Documentation/instructions only | Check the changed wording against current source/policy. | `./scripts/verify-docs.sh` and `git diff --check`; no app rebuild. |
