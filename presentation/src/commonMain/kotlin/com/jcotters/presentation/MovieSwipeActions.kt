@@ -23,6 +23,7 @@ fun MovieSwipeActions(
 ) {
     val addAction = onAddToList?.let { add ->
         MoversSwipeAction("Add to list", "Add $movieTitle to lists", add,
+            allowsFullSwipe = true,
             icon = { Icon(painterResource(Res.drawable.add_to_list), contentDescription = null, tint = it) })
     }
     val removeAction = onRemove?.let { remove ->

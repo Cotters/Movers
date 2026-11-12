@@ -2,12 +2,7 @@ package com.jcotters.designsystem
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
-import androidx.compose.foundation.gestures.AnchoredDraggableState
-import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,12 +12,17 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 
 data class MoversSwipeAction(
     val label: String,
@@ -44,11 +43,12 @@ data class MoversSwipeAction(
     val icon: @Composable (Color) -> Unit,
     val destructive: Boolean = false,
     val enabled: Boolean = true,
-)
+    val allowsFullSwipe: Boolean = false,
+) {
+    internal val canFullSwipe: Boolean get() = allowsFullSwipe && enabled && !destructive
+}
 
-private enum class SwipeReveal { Closed, Start, End }
-
-/** Reveals explicit actions; a swipe never performs a destructive operation. */
+/** Short swipes reveal buttons; opted-in, non-destructive actions also support full swipes. */
 @Composable
 fun MoversSwipeActions(
     onOpen: () -> Unit,
@@ -64,57 +64,70 @@ fun MoversSwipeActions(
     }
     val direction = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1f else 1f
     val actionWidth = 88.dp
-    val widthPx = with(LocalDensity.current) { actionWidth.toPx() }
-    val hasStart = startAction != null
-    val hasEnd = endAction != null
-    val state = remember(widthPx, direction, hasStart, hasEnd) {
-        AnchoredDraggableState(SwipeReveal.Closed, DraggableAnchors {
-            SwipeReveal.Closed at 0f
-            if (hasStart) SwipeReveal.Start at widthPx * direction
-            if (hasEnd) SwipeReveal.End at -widthPx * direction
-        })
-    }
+    val density = LocalDensity.current
+    val widthPx = with(density) { actionWidth.toPx() }
+    val velocityThreshold = with(density) { 125.dp.toPx() }
+    val state = remember(widthPx, direction) { SwipeActionsState(widthPx, direction) }
     val scope = rememberCoroutineScope()
-    fun perform(action: () -> Unit) {
-        scope.launch {
-            state.animateTo(SwipeReveal.Closed)
-            action()
-        }
+    val currentStart = rememberUpdatedState(startAction)
+    val currentEnd = rememberUpdatedState(endAction)
+    val revealingStart by remember(state, direction) { derivedStateOf { state.offset * direction >= 0 } }
+    val armedAction by remember(state, startAction, endAction) {
+        derivedStateOf { state.fullSwipeAction(startAction, endAction) }
     }
-    LaunchedEffect(enabled) {
-        if (!enabled) state.animateTo(SwipeReveal.Closed)
+    LaunchedEffect(enabled, state) {
+        if (!enabled) state.close(scope)
     }
-    Box(modifier.fillMaxWidth().clipToBounds()) {
+    val dragGesture = Modifier.pointerInput(state, enabled, velocityThreshold) {
+        if (!enabled) return@pointerInput
+        detectHorizontalDragGestures(
+            onDragStart = { state.startDrag() },
+            onDragEnd = { state.finishDrag(scope, currentStart.value, currentEnd.value, velocityThreshold) },
+            onDragCancel = { state.close(scope) },
+            onHorizontalDrag = state::dragBy,
+        )
+    }
+    Box(modifier.fillMaxWidth().clipToBounds().onSizeChanged {
+        state.updateAnchors(it.width, startAction, endAction)
+    }.then(dragGesture)) {
         // These buttons are represented by custom actions on the foreground's semantics.
         val colors = MoversDesign.tokens.colors
-        listOf(startAction to Alignment.CenterStart, endAction to Alignment.CenterEnd).forEach { (action, alignment) ->
-            if (action != null) SwipeAction(
+        val action = if (revealingStart) startAction else endAction
+        if (action != null) {
+            SwipeAction(
                 action = action,
-                background = if (action.destructive) colors.dangerSurface else colors.raised,
-                color = if (!action.enabled) colors.muted else if (action.destructive) colors.danger else colors.accent,
-                onClick = { perform(action.onClick) },
+                background = when {
+                    action === armedAction -> colors.accent
+                    action.destructive -> colors.dangerSurface
+                    else -> colors.raised
+                },
+                color = when {
+                    !action.enabled -> colors.muted
+                    action === armedAction -> colors.onAccent
+                    action.destructive -> colors.danger
+                    else -> colors.accent
+                },
+                onClick = { state.close(scope, action.onClick) },
                 enabled = enabled && action.enabled,
                 modifier = Modifier.matchParentSize(),
-                alignment = alignment,
+                alignment = if (revealingStart) Alignment.CenterStart else Alignment.CenterEnd,
                 actionWidth = actionWidth,
             )
         }
-        val foreground = Modifier.offset { IntOffset(state.requireOffset().roundToInt(), 0) }
-            .anchoredDraggable(
-                state = state,
-                reverseDirection = false,
-                orientation = Orientation.Horizontal,
-                enabled = enabled,
-                flingBehavior = AnchoredDraggableDefaults.flingBehavior(state),
-            )
+        val foreground = Modifier.offset { IntOffset(state.offset.roundToInt(), 0) }
             .background(colors.background)
             .semantics(mergeDescendants = true) {
                 customActions = if (!enabled) emptyList() else listOfNotNull(startAction, endAction)
                     .filter { it.enabled }
-                    .map { action -> CustomAccessibilityAction(action.accessibilityLabel) { perform(action.onClick); true } }
+                    .map { action ->
+                        CustomAccessibilityAction(action.accessibilityLabel) {
+                            state.close(scope, action.onClick)
+                            true
+                        }
+                    }
             }
         content(foreground) {
-            if (abs(state.requireOffset()) > 0.5f) perform {} else onOpen()
+            if (abs(state.offset) > 0.5f) state.close(scope) else onOpen()
         }
     }
 }
@@ -130,9 +143,9 @@ private fun SwipeAction(
     actionWidth: Dp,
     modifier: Modifier,
 ) {
-    Box(modifier, contentAlignment = alignment) {
+    Box(modifier.background(background), contentAlignment = alignment) {
         Column(
-            Modifier.width(actionWidth).fillMaxHeight().background(background)
+            Modifier.width(actionWidth).fillMaxHeight()
                 .clickable(enabled = enabled, onClick = onClick).clearAndSetSemantics {},
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),

@@ -117,6 +117,7 @@ private fun LazyListScope.watchlistRows(
                 accessibilityLabel = "${if (pinned) "Unpin" else "Pin"} ${list.name}",
                 onClick = { onPin(list.id, !pinned) },
                 enabled = canPin,
+                allowsFullSwipe = true,
                 icon = { MoversIcon(if (pinned) MoversSymbol.PinOff else MoversSymbol.Pin, tint = it) },
             ),
             enabled = state.preferencesReady && !state.busy && list.id !in state.pinning,
