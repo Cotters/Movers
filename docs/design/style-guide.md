@@ -33,6 +33,14 @@ Selected **Compose Unstyled 2.10.2** modules supply button/field/menu/dialog/she
 
 **Haze is deferred**, including its dependency. Add a small effects gallery later, measure on physical devices and account for native-player/older-Android fallbacks before production adoption. The approved style is now adopted in the app; Haze remains a separate later change.
 
+## Layout rules
+
+- Film rows follow text height with a minimum poster size; the poster fills that height. Keep row sizing in the shared component rather than adding fixed heights in feeds/search. Image children use match-parent sizing so remote image dimensions do not determine row height; see [Compose intrinsic measurements](https://developer.android.com/develop/ui/compose/layouts/intrinsic-measurements).
+- Grid cards round only their posters. Use `imageCornerRadius` (8 dp by default) for poster/backdrop clipping; `cornerRadius` remains 16 dp for controls. Do not clip the title/year region or wrap the image in a second control-radius clip.
+- Swipe foregrounds match the screen background, including gutters. Coloured surfaces belong to intentional panels/overlays rather than accidental padded row rectangles.
+- Search uses one inline-hint control with a persistent accessible label. Keep 48 dp action targets; do not add vertical field padding around those targets. The gallery uses the production search component.
+- Sheets own their outer padding once. Add-to-list rows reuse the labelled checkbox control with concise metadata. Quick membership and avatar-colour saves use guarded controls and error feedback without progress bars/spinners; initial screen loading and longer-running work remain separate.
+
 ## State ownership and validation
 
 Keep reusable UI in `:designsystem`, domain-aware movie adapters in `:presentation`, and actions/derived state in feature ViewModels or focused state models. Components accept values, slots and callbacks, with no repositories or service lookup. List query restoration/filtering, import summaries and export serialization belong to feature models; native file dialogs, focus, scrolling and popup visibility belong to Compose. Dialogs have one scrolling owner; sheet bodies with a LazyColumn must stay bounded. Menus limit their scroll viewport to the safe window height.
