@@ -26,6 +26,7 @@ fun MovieListRow(
     compact: Boolean = false,
     posterWidth: Dp? = null,
     posterOverlay: @Composable BoxScope.() -> Unit = {},
+    metadataAccessory: (@Composable () -> Unit)? = null,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     com.jcotters.designsystem.MoversFilmRow(
@@ -35,6 +36,7 @@ fun MovieListRow(
         onOpen = onOpen,
         compact = compact,
         posterWidth = posterWidth,
+        metadataAccessory = metadataAccessory,
         modifier = modifier.padding(vertical = 8.dp),
         poster = { imageModifier ->
             Box(imageModifier) {

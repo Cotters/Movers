@@ -4,7 +4,7 @@ Updated 12 November 2026. Source checkpoint `91bed7e`. Completed separate Todos:
 
 ## Current iteration
 
-Feed poster sizing follow-up: Home list posters are 33% wider (127.68 dp) and watchlist film posters 20% wider (115.2 dp), relative to the prior 96 dp. Explicit widths retain a 2:3 aspect ratio and bottom alignment when text is taller. Grid/search/suggestion sizing is unchanged. Source/diff/docs checks only; no build or test run for this ordinary iteration. The verification below predates this sizing change; physical review remains pending.
+Feed poster sizing follow-up: Home list posters are 33% wider (127.68 dp) and watchlist film posters 20% wider (115.2 dp), relative to the prior 96 dp. Explicit widths retain a 2:3 aspect ratio and bottom alignment when text is taller. Grid/search/suggestion sizing is unchanged. Watchlist contributor avatars now use a reusable metadata accessory slot beside the year in list/grid layouts, retaining their attribution tap action; they no longer cover posters. Source/diff/docs checks only; no build or test run for this ordinary iteration. The verification below predates this sizing change; physical review remains pending.
 
 ## Implemented
 

@@ -58,6 +58,7 @@ fun MoversFilmCard(
     modifier: Modifier = Modifier,
     onAdd: (() -> Unit)? = null,
     posterOverlay: @Composable BoxScope.() -> Unit = {},
+    metadataAccessory: (@Composable () -> Unit)? = null,
 ) {
     val tokens = MoversDesign.tokens
     Column(modifier.then(filmAction(title, onOpen)), verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
@@ -71,7 +72,7 @@ fun MoversFilmCard(
             }
         }
         MoversText(title, style = tokens.type.label, maxLines = 2)
-        if (year.isNotBlank()) MoversText(year, style = tokens.type.caption, color = tokens.colors.muted)
+        FilmMetadata(year, metadataAccessory)
     }
 }
 
@@ -86,6 +87,7 @@ fun MoversFilmRow(
     onAdd: (() -> Unit)? = null,
     compact: Boolean = false,
     posterWidth: Dp? = null,
+    metadataAccessory: (@Composable () -> Unit)? = null,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     val tokens = MoversDesign.tokens
@@ -106,11 +108,27 @@ fun MoversFilmRow(
             verticalArrangement = Arrangement.spacedBy(tokens.spacing),
         ) {
             MoversText(title, style = tokens.type.label, maxLines = 2)
-            if (metadata.isNotBlank()) MoversText(metadata, style = tokens.type.caption, color = tokens.colors.muted)
+            FilmMetadata(metadata, metadataAccessory)
             if (synopsis.isNotBlank()) MoversText(synopsis, style = tokens.type.caption, maxLines = if (compact) 2 else 4)
         }
         onAdd?.let { MoversIconButton(MoversSymbol.Add, "Add $title to list", it) }
         trailingContent()
+    }
+}
+
+@Composable
+private fun FilmMetadata(value: String, accessory: (@Composable () -> Unit)?) {
+    if (value.isBlank() && accessory == null) return
+    val tokens = MoversDesign.tokens
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(tokens.spacing),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.weight(1f)) {
+            if (value.isNotBlank()) MoversText(value, style = tokens.type.caption, color = tokens.colors.muted)
+        }
+        accessory?.invoke()
     }
 }
 

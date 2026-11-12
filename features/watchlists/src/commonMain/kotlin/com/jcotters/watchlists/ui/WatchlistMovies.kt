@@ -1,7 +1,6 @@
 package com.jcotters.watchlists.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,6 +53,11 @@ internal fun WatchlistMovies(
     listFooter: LazyListScope.() -> Unit = {},
     gridFooter: LazyGridScope.() -> Unit = {},
 ) {
+    val contributor: (Int) -> (@Composable () -> Unit)? = { movieId ->
+        content.contributions[movieId]?.let { contribution ->
+            { FilmContributorButton(contribution, onClick = { onContribution(contribution) }) }
+        }
+    }
     val removeButton: @Composable (Int, String) -> Unit = { id, title ->
         if (editing) {
             MovieMembershipButton(
@@ -82,8 +86,8 @@ internal fun WatchlistMovies(
                     movie = movie,
                     onOpen = { onOpen(movie.id) },
                     posterModifier = moviePosterTransitionModifier(movie.id, stackId),
+                    metadataAccessory = contributor(movie.id),
                     posterOverlay = {
-                        ContributorBadge(content.contributions[movie.id], onContribution)
                         if (editing) {
                             Surface(
                                 modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
@@ -121,7 +125,7 @@ internal fun WatchlistMovies(
                             modifier = Modifier.fillMaxWidth(),
                             posterModifier = moviePosterTransitionModifier(movie.id, stackId),
                             onOpen = openMovie,
-                            posterOverlay = { ContributorBadge(content.contributions[movie.id], onContribution) },
+                            metadataAccessory = contributor(movie.id),
                         ) { removeButton(movie.id, movie.title) }
                         HorizontalDivider()
                     }
@@ -129,16 +133,5 @@ internal fun WatchlistMovies(
             }
             listFooter()
         }
-    }
-}
-
-@Composable
-private fun BoxScope.ContributorBadge(contribution: FilmContribution?, onClick: (FilmContribution) -> Unit) {
-    if (contribution != null) {
-        FilmContributorButton(
-            contribution = contribution,
-            onClick = { onClick(contribution) },
-            modifier = Modifier.align(Alignment.BottomEnd),
-        )
     }
 }

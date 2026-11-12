@@ -12,6 +12,7 @@ fun MoviePosterCard(
     modifier: Modifier = Modifier,
     posterModifier: Modifier = Modifier,
     posterOverlay: @Composable BoxScope.() -> Unit = {},
+    metadataAccessory: (@Composable () -> Unit)? = null,
 ) {
     com.jcotters.designsystem.MoversFilmCard(
         title = movie.title,
@@ -27,5 +28,6 @@ fun MoviePosterCard(
             )
         },
         posterOverlay = posterOverlay,
+        metadataAccessory = metadataAccessory,
     )
 }
