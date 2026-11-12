@@ -28,6 +28,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.jcotters.contract.watchlists.data.FilmContribution
 import com.jcotters.contract.watchlists.domain.Watchlist
 import com.jcotters.designsystem.MoversAlertDialog
@@ -60,6 +61,7 @@ import org.koin.compose.viewmodel.koinViewModel
 internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId: String) {
     val viewModel: WatchlistDetailViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val suggestions = viewModel.suggestions.collectAsLazyPagingItems()
     var menu by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
@@ -78,9 +80,15 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     LaunchedEffect(listId) { viewModel.load(listId) }
     LaunchedEffect(state.deleted) { if (state.deleted) navigator.goBack() }
     LaunchedEffect(state.renamed) { if (state.renamed) { renaming = false; viewModel.consumeRenamed() } }
-    LaunchedEffect(state.sort) {
-        listState.requestScrollToItem(0)
-        gridState.requestScrollToItem(0)
+    var previousSort by remember { mutableStateOf<com.jcotters.watchlists.preferences.WatchlistSort?>(null) }
+    LaunchedEffect(state.sort, state.preferencesReady) {
+        if (state.preferencesReady) {
+            if (previousSort != null && previousSort != state.sort) {
+                listState.requestScrollToItem(0)
+                gridState.requestScrollToItem(0)
+            }
+            previousSort = state.sort
+        }
     }
     val list = state.content?.watchlist
     Scaffold(topBar = {
@@ -175,8 +183,6 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                         )
                     },
                 )
-                if (content.movies.isEmpty()) Text("No movies yet. Tap + to find films.", Modifier.padding(24.dp))
-                else if (visibleMovies.isEmpty()) Text("No matching films.", Modifier.padding(24.dp))
                 WatchlistMovies(
                     content = content.copy(movies = visibleMovies),
                     showGrid = showGrid,
@@ -193,6 +199,19 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                     onContribution = { attribution = it },
                     bottomContentPadding = if (showScrollToTop) 88.dp else 24.dp,
                     modifier = Modifier.weight(1f).clipToBounds().nestedScroll(headerScrollState),
+                    emptyMessage = if (visibleMovies.isNotEmpty()) null
+                        else if (state.query.isNotBlank()) "No matches in this list."
+                        else "No movies yet. Tap + to find films.",
+                    listFooter = {
+                        watchlistSuggestions(state, suggestions, stackId,
+                            onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
+                            onAdd = viewModel::addSuggestedMovie, onDismissError = viewModel::clearSuggestionError)
+                    },
+                    gridFooter = {
+                        watchlistSuggestions(state, suggestions, stackId,
+                            onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
+                            onAdd = viewModel::addSuggestedMovie, onDismissError = viewModel::clearSuggestionError)
+                    },
                 )
             }
         }

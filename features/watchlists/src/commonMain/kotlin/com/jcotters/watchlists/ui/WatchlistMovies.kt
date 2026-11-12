@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
@@ -47,6 +50,9 @@ internal fun WatchlistMovies(
     onContribution: (FilmContribution) -> Unit,
     modifier: Modifier = Modifier,
     bottomContentPadding: Dp = 24.dp,
+    emptyMessage: String? = null,
+    listFooter: LazyListScope.() -> Unit = {},
+    gridFooter: LazyGridScope.() -> Unit = {},
 ) {
     val removeButton: @Composable (Int, String) -> Unit = { id, title ->
         if (editing) {
@@ -68,6 +74,9 @@ internal fun WatchlistMovies(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (emptyMessage != null) item(key = "empty-list", span = { GridItemSpan(maxLineSpan) }) {
+                androidx.compose.material3.Text(emptyMessage, Modifier.padding(16.dp))
+            }
             gridItems(content.movies, key = { it.id }) { movie ->
                 MoviePosterCard(
                     movie = movie,
@@ -85,6 +94,7 @@ internal fun WatchlistMovies(
                     },
                 )
             }
+            gridFooter()
         }
     } else {
         LazyColumn(
@@ -92,6 +102,9 @@ internal fun WatchlistMovies(
             modifier = modifier,
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = bottomContentPadding),
         ) {
+            if (emptyMessage != null) item(key = "empty-list") {
+                androidx.compose.material3.Text(emptyMessage, Modifier.padding(16.dp))
+            }
             items(content.movies, key = { it.id }) { movie ->
                 MovieSwipeActions(
                     movieTitle = movie.title,
@@ -113,6 +126,7 @@ internal fun WatchlistMovies(
                     }
                 }
             }
+            listFooter()
         }
     }
 }

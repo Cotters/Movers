@@ -10,6 +10,7 @@ kotlin {
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlin.serialization.json)
         implementation(libs.multiplatform.lifecycle.compose)
+        implementation(libs.androidx.paging.compose)
         implementation(libs.koin.compose.viewmodel)
         implementation(project(":movie:contract"))
         implementation(project(":presentation"))

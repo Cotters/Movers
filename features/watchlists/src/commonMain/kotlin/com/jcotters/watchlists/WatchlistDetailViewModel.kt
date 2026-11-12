@@ -3,17 +3,29 @@ package com.jcotters.watchlists
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.filter
+import com.jcotters.contract.search.domain.IMovieSearchRepository
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
 import com.jcotters.contract.watchlists.domain.Watchlist
 import com.jcotters.contract.watchlists.domain.WatchlistContent
 import com.jcotters.watchlists.preferences.WatchlistPreferences
 import com.jcotters.watchlists.preferences.WatchlistSort
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -29,7 +41,16 @@ internal data class WatchlistDetailState(
     val preferencesReady: Boolean = false,
     val sortSaving: Boolean = false,
     val sortError: String? = null,
+    val memberIds: Set<Int> = emptySet(),
+    val hiddenIds: Set<Int> = emptySet(),
+    val membershipReadFailed: Boolean = false,
+    val suggestionQuery: String = "",
+    val adding: Set<Int> = emptySet(),
+    val suggestionError: String? = null,
 ) {
+    val waitingForSuggestions get() = query.trim() != suggestionQuery
+    val canAddSuggestions get() = !loading && !busy && !membershipReadFailed && content != null
+    val excludedSuggestionIds: Set<Int> = memberIds + hiddenIds
     val visibleMovies: List<com.jcotters.contract.detail.domain.models.Movie>
         get() {
             val movies = content?.movies.orEmpty()
@@ -41,19 +62,39 @@ internal data class WatchlistDetailState(
         }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class WatchlistDetailViewModel(
     private val repository: IWatchlistsRepository,
     private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository,
     private val removals: WatchlistRemovalCoordinator,
     private val savedState: SavedStateHandle,
     private val preferences: WatchlistPreferences,
+    search: IMovieSearchRepository,
 ) : ViewModel() {
     private val state = MutableStateFlow(WatchlistDetailState())
-    val uiState = combine(state, savedState.getStateFlow("query", ""), preferences.state) { content, query, saved ->
+    private val query = savedState.getStateFlow("query", "")
+    val uiState = combine(state, query, preferences.state) { content, query, saved ->
         content.copy(query = query, sort = content.listId?.let { saved.sorts[it] } ?: WatchlistSort(), preferencesReady = saved.ready)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state.value.copy(query = savedState["query"] ?: ""))
 
-    fun changeQuery(query: String) { savedState["query"] = query }
+    private val candidates = query.map(String::trim).distinctUntilChanged().flatMapLatest { value ->
+        flow {
+            // Clear the old generation and cancel its search immediately, before debouncing the new query.
+            emit(PagingData.empty<com.jcotters.contract.detail.domain.models.Movie>())
+            if (value.isNotEmpty()) delay(600)
+            state.update { it.copy(suggestionQuery = value) }
+            if (value.isNotEmpty()) emitAll(search.searchMovies(value))
+        }
+    }.cachedIn(viewModelScope)
+
+    val suggestions = combine(candidates, state.map { it.excludedSuggestionIds }.distinctUntilChanged()) { page, excluded ->
+        page.filter { it.id !in excluded }
+    }.cachedIn(viewModelScope)
+
+    fun changeQuery(query: String) {
+        state.update { it.copy(suggestionError = null) }
+        savedState["query"] = query
+    }
     private var listId: String? = null
     private var observation: Job? = null
 
@@ -66,13 +107,45 @@ internal class WatchlistDetailViewModel(
         observation = viewModelScope.launch {
             combine(repository.observeWatchlist(id), repository.observeWatchlists(), removals.removals) { content, lists, pending ->
                 val hidden = pending.hiddenMovieIds(id)
-                content?.copy(movies = content.movies.filterNot { it.id in hidden }) to lists
+                ObservedWatchlist(
+                    content?.copy(movies = content.movies.filterNot { it.id in hidden }), lists,
+                    content?.movies.orEmpty().map { it.id }.toSet(), hidden,
+                )
             }.catch { error ->
                 if (error is CancellationException || error !is Exception) throw error
-                state.update { it.copy(loading = false, error = "Unable to read this list.") }
-            }.collect { (content, lists) -> state.update { it.copy(content = content, lists = lists, loading = false) } }
+                state.update { it.copy(loading = false, membershipReadFailed = true, error = "Unable to read this list.") }
+            }.collect { observed ->
+                state.update { it.copy(content = observed.content, lists = observed.lists, memberIds = observed.memberIds,
+                    hiddenIds = observed.hiddenIds, membershipReadFailed = false, loading = false) }
+            }
         }
     }
+
+    private data class ObservedWatchlist(
+        val content: WatchlistContent?,
+        val lists: List<Watchlist>,
+        val memberIds: Set<Int>,
+        val hiddenIds: Set<Int>,
+    )
+
+    fun addSuggestedMovie(movieId: Int) {
+        val id = listId ?: return
+        val current = state.value
+        if (!current.canAddSuggestions || movieId in current.adding || movieId in current.excludedSuggestionIds) return
+        state.update { it.copy(adding = it.adding + movieId, suggestionError = null) }
+        viewModelScope.launch {
+            try {
+                repository.setMembership(id, movieId, true).onSuccess {
+                    // Keep the action guarded until the observed cache confirms membership.
+                    state.first { it.membershipReadFailed || it.content == null || movieId in it.memberIds }
+                }.onFailure {
+                    state.update { it.copy(suggestionError = "Couldn't add this film. Try again.") }
+                }
+            } finally { state.update { it.copy(adding = it.adding - movieId) } }
+        }
+    }
+
+    fun clearSuggestionError() { state.update { it.copy(suggestionError = null) } }
 
     private var failedSort: WatchlistSort? = null
 

@@ -1,6 +1,10 @@
 package com.jcotters.watchlists.preferences
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,8 +77,13 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
             val current = mutableState.value
             val next = transform(current)
             if (next != current) {
-                storage.write(encode(next))
-                mutableState.value = next
+                currentCoroutineContext().ensureActive()
+                // Finish a started native write and its state publication as one small critical section.
+                withContext(NonCancellable) {
+                    storage.write(encode(next))
+                    mutableState.value = next
+                }
+                currentCoroutineContext().ensureActive()
             }
             Result.success(Unit)
         } catch (error: CancellationException) {

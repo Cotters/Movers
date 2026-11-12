@@ -55,9 +55,12 @@ internal class WatchlistsViewModel(
     fun refreshShared() { viewModelScope.launch { sharing.refresh() } }
 
     fun retryPreferences() {
-        failedPin?.let { (id, pinned) -> setPinned(id, pinned); return }
+        failedPin?.let { (id, pinned) ->
+            if (state.value.lists.any { it.id == id }) { setPinned(id, pinned); return }
+            failedPin = null
+        }
         viewModelScope.launch {
-            val result = if (state.value.loading) preferences.load()
+            val result = if (state.value.loading || state.value.error != null) preferences.load()
                 else preferences.retainLists(state.value.lists.map { it.id }.toSet())
             result.onSuccess { state.update { it.copy(preferenceError = null) } }
                 .onFailure { state.update { it.copy(preferenceError = "Couldn't read saved pins. Try again.") } }
