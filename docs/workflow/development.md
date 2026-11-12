@@ -1,13 +1,13 @@
 # Development with AI
 
-Reviewed 9 November 2026. These are current working agreements. The [retrospective and research](retrospective-2026-11-09.md) explain their rationale; the [handoff](handoff.md) holds active state. Read only what the task needs.
+Reviewed 12 November 2026. These are current working agreements. The [retrospective and research](retrospective-2026-11-09.md) explain earlier changes; the [code review routine](code-review.md) covers the latest audit corrections. The [handoff](handoff.md) holds active state. Read only what the task needs.
 
 ## Work cycle
 
 1. Inspect Git status/HEAD, relevant code and existing checks. Locate the nearest working feature, actual consumed dependencies and platform boundaries before proposing changes.
 2. For a new feature, agree outcome, consequential unknowns and scope. A clear follow-up can proceed directly. Keep a short requirement note in the handoff for substantial work: behavior, affected modules, exclusions, checks and unresolved assumptions. Do not create a new planning system for every task.
 3. Implement one coherent slice at a time. Follow existing conventions, use source/diff/static checks during iteration and preserve unrelated edits. Product changes and toolchain migrations are separate tasks unless explicitly combined.
-4. Review the resulting diff against requirements. During the feature phase, update existing test expectations; add no new cases unless requested. Do not run routine builds, compilation-backed tests or automatic final gates. Run them only on explicit request or a concrete need for a substantial change/release, explained before execution. Use [the verification decision table](testing.md#verification-by-change) to choose the smallest necessary scope and report deferred verification.
+4. After each coherent code change and review fix, run the [code review routine](code-review.md): fast mechanical script followed by full-function/caller review for correctness, simplicity and SOLID responsibilities. Include committed work by passing the task's starting commit. Remove obsolete paths and justify new abstractions against a direct implementation. During the feature phase, update existing test expectations; add no new cases unless requested. Do not run routine builds, compilation-backed tests or automatic final gates. Run them only on explicit request or a concrete need for a substantial change/release, explained before execution. Use [the verification decision table](testing.md#verification-by-change) to choose the smallest necessary scope and report deferred verification.
 5. Report outcome, evidence and limits; update current memory. A docs-only edit needs document validation, not an Android/iOS rebuild. Do not rerun successful checks to generate a newer timestamp when nothing relevant changed.
 
 A useful substantial-task note is small:

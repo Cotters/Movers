@@ -20,7 +20,7 @@ Read before changing shared layout or visual hierarchy. The [style guide](style-
 
 ## Review honestly
 
-Read the complete affected component and its callers, not only added lines. Check short/long titles, absent metadata, attribution present/absent, edit actions, narrow widths, large text, light/dark and RTL implications. Keep representative gallery examples using production components and synthetic data.
+Use the [required code review routine](../workflow/code-review.md) after code changes and review fixes. Read the complete affected component and its callers, not only added lines; trace padding/constraints to the visible child and remove obsolete layout paths. Check short/long titles, absent metadata, attribution present/absent, edit actions, narrow widths, large text, light/dark and RTL implications. Keep representative gallery examples using production components and synthetic data.
 
 Follow the existing no-routine-build/no-new-tests policy. Static checks and compilation cannot establish visual quality. People verify on physical devices; agents never use emulators/simulators. Report the exact remaining visual check rather than claiming the layout is verified.
 

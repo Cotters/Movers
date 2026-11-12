@@ -1,6 +1,6 @@
 # Current handoff
 
-Updated 12 November 2026. Latest feature verification checkpoint `91bed7e`; current avatar-footer implementation `f677057`. Completed separate Todos: sorting `93c57ad`, overview pins/separators `9d66e4d`, film-search suggestions `d2e12a3`; right-side swipe follow-up `91bed7e`. See [organization behaviour/ownership](../features/watchlist-organization.md), [design-system rules](../design/style-guide.md) and [prior UI evidence](history/2026-11-12-before-watchlist-organization.md).
+Updated 12 November 2026. Latest feature verification checkpoint `91bed7e`; avatar-footer implementation `f677057`; unused row-overlay cleanup `cd3c7bc`. Completed separate Todos: sorting `93c57ad`, overview pins/separators `9d66e4d`, film-search suggestions `d2e12a3`; right-side swipe follow-up `91bed7e`. See [organization behaviour/ownership](../features/watchlist-organization.md), [design-system rules](../design/style-guide.md) and [prior UI evidence](history/2026-11-12-before-watchlist-organization.md).
 
 ## Current iteration
 
@@ -8,7 +8,9 @@ Feed poster sizing follow-up: Home list posters are 33% wider (127.68 dp) and wa
 
 [UI review rules](../design/ui-guidelines.md) now require thought about hierarchy/alignment and asking about ambiguous placements before dependent edits; push back on unclear/conflicting directions. Linked from AGENTS, Human and development. Official Compose/CMP and NN/g research informs the rules; the installed Compose performance skill was used for layout review, not aesthetic decisions. No dependency/platform/backend changes.
 
-Source/diff and documentation checks passed (30 documents / 134 local link targets); no build or test run for this ordinary iteration. Verification below predates poster sizing and avatar changes. Physical review remains pending: watchlist rows/grid with short/long titles, missing year/synopsis, large text, edit actions, and contributor tap versus film open.
+Follow-up [source audit and tool research](history/2026-11-12-ui-code-audit.md) found speculative slot factories, incomplete constraint tracing and an obsolete row overlay path. Removed the now-unused `MovieListRow.posterOverlay` parameter/Box; grids retain their used edit/Add overlays. The [code review routine](code-review.md) is now required after code changes and review fixes: offline `scripts/review-code.sh` plus full-function/caller simplicity and contract review. Pass the task-start commit to include committed slices. No external skill/plugin installed; evaluated candidates and tooling compatibility are in the audit. Existing `posterWidth` sizing-mode coupling remains scoped design debt, not permission for another layout change.
+
+Latest audit verification: fast code review script, shell syntax, source/diff review and documentation checks passed (32 documents). The script also passed nine temporary-fixture exercises covering staged/untracked violations, a staged violation hidden by a working-tree fix, whitespace/conflict rejection without source output, an explicit base and invocation outside the repository. No new committed test cases, builds or app test runs. Verification below predates poster sizing/avatar/overlay changes. Physical review remains pending: watchlist rows/grid with short/long titles, missing year/synopsis, large text, edit actions, contributor tap versus film open, and row poster/shared-transition behavior after removing the empty wrapper.
 
 ## Implemented
 
