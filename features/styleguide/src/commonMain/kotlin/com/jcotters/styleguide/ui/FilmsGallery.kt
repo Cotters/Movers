@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.jcotters.designsystem.ButtonVariant
 import com.jcotters.designsystem.MoversActivity
+import com.jcotters.designsystem.MoversAvatarButton
 import com.jcotters.designsystem.MoversButton
 import com.jcotters.designsystem.MoversCheckboxRow
 import com.jcotters.designsystem.MoversDesign
@@ -40,6 +41,7 @@ internal fun FilmsGallery() {
     var detailVisible by rememberSaveable { mutableStateOf(false) }
     var addingTitle by rememberSaveable { mutableStateOf(demoTitles[0]) }
     var addingVisible by rememberSaveable { mutableStateOf(false) }
+    var contributorVisible by rememberSaveable { mutableStateOf(false) }
     var fridayFilms by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var weekendFilms by rememberSaveable { mutableStateOf(listOf(demoTitles[0])) }
     fun openDetail(title: String) { detailTitle = title; detailVisible = true }
@@ -48,12 +50,18 @@ internal fun FilmsGallery() {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         demoTitles.forEachIndexed { index, title ->
             MoversFilmCard(title, "2026", { openDetail(title) }, poster = { DemoPoster(index, it) },
-                modifier = Modifier.weight(1f), onAdd = { openPicker(title) })
+                modifier = Modifier.weight(1f), onAdd = { openPicker(title) },
+                footerContent = {
+                    MoversAvatarButton("Avery", "Added by Avery", { contributorVisible = true })
+                })
         }
     }
-    GalleryHeading("List row", "Long title, metadata and a quick action")
+    GalleryHeading("Watchlist row", "Long title, synopsis and bottom-right contributor")
     MoversFilmRow(demoTitles[1], "2026 · 114 min", "Two friends follow a forgotten route across the places that shaped them.",
-        onOpen = { openDetail(demoTitles[1]) }, poster = { DemoPoster(1, it) }, onAdd = { openPicker(demoTitles[1]) })
+        onOpen = { openDetail(demoTitles[1]) }, poster = { DemoPoster(1, it) }, posterWidth = 96.dp * 1.2f,
+        footerContent = {
+            MoversAvatarButton("Avery", "Added by Avery", { contributorVisible = true })
+        })
     MoversRating(8.4, "1,286")
     GalleryHeading("Shared list", "Names and initials, with room for the films")
     MoversWatchlistSummary("Friday films", 12, listOf("Avery", "Morgan", "Casey"))
@@ -80,6 +88,9 @@ internal fun FilmsGallery() {
         MoversRating(8.4, "1,286")
         MoversText("Two friends follow a forgotten route across the places that shaped them.")
         MoversButton("Add to list", { detailVisible = false; openPicker(detailTitle) })
+    }
+    MoversDialog("Added by Avery", contributorVisible, onDismiss = { contributorVisible = false }) {
+        MoversText("Demo contributor · Today, 19:42")
     }
 }
 

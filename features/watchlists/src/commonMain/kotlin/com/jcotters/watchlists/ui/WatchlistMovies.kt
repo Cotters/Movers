@@ -53,11 +53,6 @@ internal fun WatchlistMovies(
     listFooter: LazyListScope.() -> Unit = {},
     gridFooter: LazyGridScope.() -> Unit = {},
 ) {
-    val contributor: (Int) -> (@Composable () -> Unit)? = { movieId ->
-        content.contributions[movieId]?.let { contribution ->
-            { FilmContributorButton(contribution, onClick = { onContribution(contribution) }) }
-        }
-    }
     val removeButton: @Composable (Int, String) -> Unit = { id, title ->
         if (editing) {
             MovieMembershipButton(
@@ -86,7 +81,9 @@ internal fun WatchlistMovies(
                     movie = movie,
                     onOpen = { onOpen(movie.id) },
                     posterModifier = moviePosterTransitionModifier(movie.id, stackId),
-                    metadataAccessory = contributor(movie.id),
+                    footerContent = content.contributions[movie.id]?.let { contribution ->
+                        { FilmContributorButton(contribution, onClick = { onContribution(contribution) }) }
+                    },
                     posterOverlay = {
                         if (editing) {
                             Surface(
@@ -125,7 +122,9 @@ internal fun WatchlistMovies(
                             modifier = Modifier.fillMaxWidth(),
                             posterModifier = moviePosterTransitionModifier(movie.id, stackId),
                             onOpen = openMovie,
-                            metadataAccessory = contributor(movie.id),
+                            footerContent = content.contributions[movie.id]?.let { contribution ->
+                                { FilmContributorButton(contribution, onClick = { onContribution(contribution) }) }
+                            },
                         ) { removeButton(movie.id, movie.title) }
                         HorizontalDivider()
                     }

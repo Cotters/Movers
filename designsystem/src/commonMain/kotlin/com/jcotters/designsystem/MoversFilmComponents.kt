@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +24,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -58,7 +57,7 @@ fun MoversFilmCard(
     modifier: Modifier = Modifier,
     onAdd: (() -> Unit)? = null,
     posterOverlay: @Composable BoxScope.() -> Unit = {},
-    metadataAccessory: (@Composable () -> Unit)? = null,
+    footerContent: (@Composable () -> Unit)? = null,
 ) {
     val tokens = MoversDesign.tokens
     Column(modifier.then(filmAction(title, onOpen)), verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
@@ -72,7 +71,8 @@ fun MoversFilmCard(
             }
         }
         MoversText(title, style = tokens.type.label, maxLines = 2)
-        FilmMetadata(year, metadataAccessory)
+        FilmMetadata(year)
+        if (footerContent != null) FilmFooter(content = footerContent)
     }
 }
 
@@ -87,7 +87,7 @@ fun MoversFilmRow(
     onAdd: (() -> Unit)? = null,
     compact: Boolean = false,
     posterWidth: Dp? = null,
-    metadataAccessory: (@Composable () -> Unit)? = null,
+    footerContent: (@Composable () -> Unit)? = null,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     val tokens = MoversDesign.tokens
@@ -104,12 +104,17 @@ fun MoversFilmRow(
             poster(Modifier.matchParentSize())
         }
         Column(
-            Modifier.weight(1f).heightIn(min = posterWidth?.let { it * 1.5f } ?: if (compact) 96.dp else 144.dp),
-            verticalArrangement = Arrangement.spacedBy(tokens.spacing),
+            Modifier.weight(1f).fillMaxHeight().heightIn(min = posterWidth?.let { it * 1.5f } ?: if (compact) 96.dp else 144.dp),
         ) {
-            MoversText(title, style = tokens.type.label, maxLines = 2)
-            FilmMetadata(metadata, metadataAccessory)
-            if (synopsis.isNotBlank()) MoversText(synopsis, style = tokens.type.caption, maxLines = if (compact) 2 else 4)
+            Column(verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
+                MoversText(title, style = tokens.type.label, maxLines = 2)
+                FilmMetadata(metadata)
+                if (synopsis.isNotBlank()) MoversText(synopsis, style = tokens.type.caption, maxLines = if (compact) 2 else 4)
+            }
+            if (footerContent != null) {
+                Spacer(Modifier.weight(1f))
+                FilmFooter(Modifier.padding(top = tokens.spacing), footerContent)
+            }
         }
         onAdd?.let { MoversIconButton(MoversSymbol.Add, "Add $title to list", it) }
         trailingContent()
@@ -117,18 +122,20 @@ fun MoversFilmRow(
 }
 
 @Composable
-private fun FilmMetadata(value: String, accessory: (@Composable () -> Unit)?) {
-    if (value.isBlank() && accessory == null) return
+private fun FilmMetadata(value: String) {
+    if (value.isBlank()) return
     val tokens = MoversDesign.tokens
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(tokens.spacing),
-        verticalAlignment = Alignment.CenterVertically,
+    MoversText(value, style = tokens.type.caption, color = tokens.colors.muted)
+}
+
+/** The item owns footer placement; callers supply attribution or another secondary action. */
+@Composable
+private fun FilmFooter(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Box(
+        modifier.fillMaxWidth(),
+        contentAlignment = Alignment.BottomEnd,
     ) {
-        Box(Modifier.weight(1f)) {
-            if (value.isNotBlank()) MoversText(value, style = tokens.type.caption, color = tokens.colors.muted)
-        }
-        accessory?.invoke()
+        content()
     }
 }
 
@@ -177,24 +184,6 @@ fun MoversRatingStars(score: Double, modifier: Modifier = Modifier) {
                 right = if (rtl) bounds.right else bounds.left + bounds.width * fraction,
             ) { drawPath(path, tokens.colors.accent) }
         }
-    }
-}
-
-@Composable
-fun MoversAvatar(
-    name: String,
-    modifier: Modifier = Modifier,
-    background: Color = MoversDesign.tokens.colors.accent,
-    contentColor: Color = MoversDesign.tokens.colors.onAccent,
-) {
-    val tokens = MoversDesign.tokens
-    Box(
-        modifier.size(32.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)).background(background, CircleShape)
-            .clearAndSetSemantics { contentDescription = name },
-        contentAlignment = Alignment.Center,
-    ) {
-        MoversText(name.trim().take(1).uppercase().ifEmpty { "?" }, style = tokens.type.label,
-            color = contentColor)
     }
 }
 

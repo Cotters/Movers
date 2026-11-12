@@ -1,7 +1,5 @@
 package com.jcotters.presentation
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +22,18 @@ val participantAvatarColors = listOf(
 fun ParticipantAvatar(name: String, color: Int, modifier: Modifier = Modifier) {
     com.jcotters.designsystem.MoversAvatar(
         name = name,
+        modifier = modifier,
+        background = participantAvatarColors[color.mod(participantAvatarColors.size)].background,
+        contentColor = Color.White,
+    )
+}
+
+@Composable
+fun ParticipantAvatarButton(name: String, color: Int, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    com.jcotters.designsystem.MoversAvatarButton(
+        name = name,
+        label = label,
+        onClick = onClick,
         modifier = modifier,
         background = participantAvatarColors[color.mod(participantAvatarColors.size)].background,
         contentColor = Color.White,
