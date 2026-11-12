@@ -5,6 +5,9 @@ import org.koin.dsl.module
 import org.koin.dsl.onClose
 
 val watchlistsDependencies = module {
+    single<com.jcotters.watchlists.preferences.WatchlistPreferences> {
+        com.jcotters.watchlists.preferences.LocalWatchlistPreferences(get())
+    }
     single { WatchlistRemovalCoordinator(get()) } onClose { it?.close() }
     viewModelOf(::WatchlistsViewModel)
     viewModelOf(::WatchlistDetailViewModel)

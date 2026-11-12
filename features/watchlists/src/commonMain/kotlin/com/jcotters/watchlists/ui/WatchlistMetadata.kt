@@ -34,6 +34,9 @@ internal fun WatchlistSummary(
     onMembers: () -> Unit,
     modifier: Modifier = Modifier,
     totalMovieCount: Int = movieCount,
+    sort: com.jcotters.watchlists.preferences.WatchlistSort = com.jcotters.watchlists.preferences.WatchlistSort(),
+    sortEnabled: Boolean = false,
+    onSort: (com.jcotters.watchlists.preferences.WatchlistSort) -> Unit = {},
 ) {
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -47,6 +50,7 @@ internal fun WatchlistSummary(
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        WatchlistSortMenu(sort, sortEnabled, onSort)
         if (sharedInfo != null) {
             val memberCount = sharedInfo.members.size
             Row(

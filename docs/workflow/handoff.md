@@ -2,6 +2,10 @@
 
 Updated 12 November 2026. Source checkpoint `6b50e92`, following the production styling in `b841cc7` and design-system commit `16eb7a4`. The owner reviewed the guide, approved **16 dp corners / Comfortable spacing**, and authorized app adoption. [Earlier gallery evidence](history/2026-11-11-style-guide-before-app-adoption.md) is historical. See the [design-system guide](../design/style-guide.md).
 
+## Active work
+
+Authorized: watchlist film sorting, overview separators/swipe-to-pin (five maximum), then film-search suggestions below local matches. Commit each Todo separately. Sorting is implemented with installation-local preferences; pinning and suggestions are next. See [organization design](../features/watchlist-organization.md). Run existing host/native compilation checks once integrated; no new test cases or devices.
+
 ## Implemented and ownership
 
 - Android/iOS share the approved graphite/ivory/mint/teal palette and Inter typography. System light/dark mode is respected; Android dynamic-colour overrides and starter theme files are retired. Gallery adjustments stay local. Haze remains deferred, including its dependency.

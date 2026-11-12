@@ -1,5 +1,7 @@
 package com.jcotters.watchlists
 
+import com.jcotters.watchlists.preferences.WatchlistPreferences
+import com.jcotters.watchlists.preferences.WatchlistSort
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -64,14 +66,20 @@ internal data class WatchlistDetailState(
     val lists: List<Watchlist> = emptyList(),
     val removing: Set<Int> = emptySet(),
     val query: String = "",
+    val listId: String? = null,
+    val sort: WatchlistSort = WatchlistSort(),
+    val preferencesReady: Boolean = false,
+    val sortSaving: Boolean = false,
+    val sortError: String? = null,
 ) {
     val visibleMovies: List<com.jcotters.contract.detail.domain.models.Movie>
         get() {
             val movies = content?.movies.orEmpty()
             val terms = query.trim().split(Regex("\\s+")).filter(String::isNotBlank)
-            return if (terms.isEmpty()) movies else movies.filter { movie ->
+            val matches = if (terms.isEmpty()) movies else movies.filter { movie ->
                 terms.all { movie.title.contains(it, ignoreCase = true) }
             }
+            return sort.apply(matches)
         }
 }
 
@@ -80,10 +88,11 @@ internal class WatchlistDetailViewModel(
     private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository,
     private val removals: WatchlistRemovalCoordinator,
     private val savedState: SavedStateHandle,
+    private val preferences: WatchlistPreferences,
 ) : ViewModel() {
     private val state = MutableStateFlow(WatchlistDetailState())
-    val uiState = combine(state, savedState.getStateFlow("query", "")) { content, query ->
-        content.copy(query = query)
+    val uiState = combine(state, savedState.getStateFlow("query", ""), preferences.state) { content, query, saved ->
+        content.copy(query = query, sort = content.listId?.let { saved.sorts[it] } ?: WatchlistSort(), preferencesReady = saved.ready)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state.value.copy(query = savedState["query"] ?: ""))
 
     fun changeQuery(query: String) { savedState["query"] = query }
@@ -91,10 +100,11 @@ internal class WatchlistDetailViewModel(
     private var observation: Job? = null
 
     fun load(id: String) {
+        retryPreferences()
         if (id == listId && observation?.isActive == true) return
         observation?.cancel()
         listId = id
-        state.update { it.copy(loading = true, error = null) }
+        state.update { it.copy(listId = id, loading = true, error = null) }
         observation = viewModelScope.launch {
             combine(repository.observeWatchlist(id), repository.observeWatchlists(), removals.removals) { content, lists, pending ->
                 val hidden = pending.hiddenMovieIds(id)
@@ -103,6 +113,30 @@ internal class WatchlistDetailViewModel(
                 if (error is CancellationException || error !is Exception) throw error
                 state.update { it.copy(loading = false, error = "Unable to read this list.") }
             }.collect { (content, lists) -> state.update { it.copy(content = content, lists = lists, loading = false) } }
+        }
+    }
+
+    private var failedSort: WatchlistSort? = null
+
+    fun retryPreferences() {
+        failedSort?.let { changeSort(it); return }
+        viewModelScope.launch {
+            preferences.load().onSuccess { state.update { it.copy(sortError = null) } }
+                .onFailure { state.update { it.copy(sortError = "Couldn't read saved sorting. Try again.") } }
+        }
+    }
+
+    fun changeSort(sort: WatchlistSort) {
+        val id = listId ?: return
+        if (state.value.sortSaving) return
+        state.update { it.copy(sortSaving = true, sortError = null) }
+        failedSort = sort
+        viewModelScope.launch {
+            try {
+                preferences.setSort(id, sort).onSuccess { failedSort = null }.onFailure {
+                    state.update { it.copy(sortError = "Couldn't save sorting. Try again.") }
+                }
+            } finally { state.update { it.copy(sortSaving = false) } }
         }
     }
 

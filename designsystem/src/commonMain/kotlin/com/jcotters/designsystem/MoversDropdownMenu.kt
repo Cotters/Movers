@@ -74,13 +74,14 @@ fun MoversDropdownMenuItem(
     enabled: Boolean = true,
     destructive: Boolean = false,
     leadingIcon: (@Composable () -> Unit)? = null,
+    closeOnClick: Boolean = true,
 ) {
     val tokens = MoversDesign.tokens
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val pressed by interaction.collectIsPressedAsState()
     val shape = RoundedCornerShape(tokens.cornerRadius)
-    UnstyledDropdownMenuItem(onClick = onClick, enabled = enabled, interactionSource = interaction,
+    UnstyledDropdownMenuItem(onClick = onClick, enabled = enabled, interactionSource = interaction, closeOnClick = closeOnClick,
         modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape)
             .background(if (focused || pressed) tokens.colors.raised else tokens.colors.surface)
             .border(1.dp, if (focused) tokens.colors.accent else tokens.colors.surface, shape)

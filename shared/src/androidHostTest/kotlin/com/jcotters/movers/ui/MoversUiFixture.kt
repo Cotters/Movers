@@ -48,6 +48,13 @@ internal class MoversUiFixture(
             if (database.profileDao().get() == null) database.profileDao().insert(com.jcotters.database.profile.DeviceProfile(installationId = "fixture",displayName = "Josh",nameConfirmed = true))
         }
         initializeMovers(module {
+            single<com.jcotters.watchlists.preferences.WatchlistPreferenceStorage> {
+                object : com.jcotters.watchlists.preferences.WatchlistPreferenceStorage {
+                    private var value: String? = null
+                    override suspend fun read(): String? = value
+                    override suspend fun write(value: String) { this.value = value }
+                }
+            }
             single { database }
             single { client }
             single<NetworkMonitor> { object : NetworkMonitor { override val networkStatus = flowOf(NetworkStatus.Online) } }

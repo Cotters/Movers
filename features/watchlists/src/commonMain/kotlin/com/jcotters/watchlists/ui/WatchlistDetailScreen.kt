@@ -78,6 +78,10 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     LaunchedEffect(listId) { viewModel.load(listId) }
     LaunchedEffect(state.deleted) { if (state.deleted) navigator.goBack() }
     LaunchedEffect(state.renamed) { if (state.renamed) { renaming = false; viewModel.consumeRenamed() } }
+    LaunchedEffect(state.sort) {
+        listState.requestScrollToItem(0)
+        gridState.requestScrollToItem(0)
+    }
     val list = state.content?.watchlist
     Scaffold(topBar = {
         MoversTopBar(title = { Text(list?.name ?: "Watchlist", maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = {
@@ -140,6 +144,10 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                 Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
                 MoversTextButton(onClick = { viewModel.clearError(); viewModel.load(listId) }) { Text("Retry") }
             }
+            state.sortError?.let { message ->
+                Text(message, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
+                MoversTextButton(onClick = viewModel::retryPreferences) { Text("Retry sorting") }
+            }
             if (!state.loading && state.error == null && state.content == null) Text("This list no longer exists.", Modifier.padding(24.dp))
             state.content?.let { content ->
                 val visibleMovies = state.visibleMovies
@@ -160,6 +168,9 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                             movieCount = visibleMovies.size,
                             totalMovieCount = content.movies.size,
                             sharedInfo = content.watchlist.shared,
+                            sort = state.sort,
+                            sortEnabled = state.preferencesReady && !state.sortSaving,
+                            onSort = viewModel::changeSort,
                             onMembers = { navigator.navigate(SharedListKey(listId, SharedSection.Members)) },
                         )
                     },

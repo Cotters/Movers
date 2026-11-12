@@ -24,7 +24,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.composeunstyled.UnstyledButton
 
-enum class MoversSymbol { Add, Check, Close, Search, Trash, More, Back, Grid }
+enum class MoversSymbol { Add, Check, Close, Search, Trash, More, Back, Grid, Sort, Pin, PinOff }
 
 /** Small original stroke icons; no icon-font or external asset dependency. */
 @Composable
@@ -49,6 +49,15 @@ fun MoversIcon(symbol: MoversSymbol, modifier: Modifier = Modifier, tint: Color 
                 line(4f, 6f, 20f, 6f); line(9f, 3f, 15f, 3f)
                 line(6f, 6f, 7f, 21f); line(7f, 21f, 17f, 21f); line(17f, 21f, 18f, 6f)
                 line(10f, 10f, 10f, 17f); line(14f, 10f, 14f, 17f)
+            }
+            MoversSymbol.Sort -> {
+                line(4f, 6f, 20f, 6f); line(7f, 12f, 17f, 12f); line(10f, 18f, 14f, 18f)
+            }
+            MoversSymbol.Pin, MoversSymbol.PinOff -> {
+                line(8f, 3f, 16f, 3f); line(9f, 3f, 9f, 9f); line(15f, 3f, 15f, 9f)
+                line(9f, 9f, 6f, 14f); line(15f, 9f, 18f, 14f); line(6f, 14f, 18f, 14f)
+                line(12f, 14f, 12f, 22f)
+                if (symbol == MoversSymbol.PinOff) line(3f, 3f, 21f, 21f)
             }
             MoversSymbol.Grid -> listOf(4f to 4f, 14f to 4f, 4f to 14f, 14f to 14f).forEach { (x, y) ->
                 drawRect(tint, Offset(x * scale, y * scale), Size(6f * scale, 6f * scale), style = Stroke(stroke))

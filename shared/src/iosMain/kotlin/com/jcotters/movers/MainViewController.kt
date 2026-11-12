@@ -25,6 +25,9 @@ fun initializeIosMovers(apiToken: String, backendUrl: String = "", backendKey: S
     single<com.jcotters.profile.domain.ParticipantIdentity> { backend }
     single<com.jcotters.contract.watchlists.data.SharedWatchlistRemote> { backend }
     single<com.jcotters.contract.watchlists.domain.InvitationSharing> { IosInvitationSharing() }
+    single<com.jcotters.watchlists.preferences.WatchlistPreferenceStorage> {
+        com.jcotters.watchlists.preferences.IosWatchlistPreferenceStorage()
+    }
     single { createDatabase(databaseBuilder(), Dispatchers.IO) }
     single<NetworkMonitor> { IosNetworkMonitor() }
     single { HttpClient(Darwin) { configureMovieApi(apiToken) } }
