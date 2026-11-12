@@ -53,9 +53,13 @@ Review non-obvious invariants: observable persisted membership rather than compe
 
 Match actual artifacts and installed APIs. In particular, shared navigation consumes `org.jetbrains.androidx.navigation3:navigation3-ui` through `libs.multiplatform.navigation3.ui`; the separate Android `navigation3` version alias does not establish its version. Read the catalog/module declaration and, when necessary, dependency output before copying a sample or making a compatibility claim. Apply [KMP/CMP checks](multiplatform.md#changes-to-shared-code) without incidental upgrades.
 
-## Experimental UI work
+## Shared UI and state ownership
 
-The [development style guide](../design/style-guide.md) is the approved place to refine the prospective Movers components. Its design-system module is experimental; production UI adoption and Haze effects remain separate review/planning steps. Keep gallery state synthetic and local, preserve release gating and use existing conventions. Do not introduce a second live data path or silently apply preview settings to the app.
+The approved [Movers design system](../design/style-guide.md) is production UI: 16 dp corners, Comfortable spacing and a shared light/dark palette. Refine reusable controls in `:designsystem` and the development gallery; keep feature-specific adapters in `:presentation`. Use slots/callbacks instead of component dependencies on repositories, navigation or Koin. Keep the explicit Material infrastructure bridge centralized; do not scatter Material control overrides across features. Haze remains deferred.
+
+ViewModels or focused state models own actions, validation, data transformations and derived screen state. Compose renders that state and forwards events. Keep focus, scroll/gesture mechanics, popup visibility and native UI integrations with their Compose lifecycle; do not force them into a ViewModel. Preserve restoration when moving durable inputs: use the existing SavedStateHandle pattern, with Nav 3 entry ownership. Avoid doing file serialization or other background work in composable callbacks.
+
+Gallery data stays synthetic and local; preview theme changes never become production preferences. Preserve Debug-only access and release restoration guards. Dialogs own their scrolling once; nested lazy content needs a bounded viewport. Validate intended behaviour with existing checks and leave new test coverage to the agreed post-feature work.
 
 ## Durable memory
 

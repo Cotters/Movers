@@ -9,7 +9,7 @@ Movers shares its screens, navigation, ViewModels, repositories, HTTP policy, ca
 | `:app` | Android application/activity, system bars, and platform startup |
 | `iosApp/` | SwiftUI app embedding the shared Compose controller; Xcode project and local configuration |
 | `:shared` | App composition, Koin graph, theme, retained bottom-navigation state, and platform service bindings |
-| `:designsystem`, `:features:styleguide` + contract | Experimental shared tokens/components and development-only gallery; production adoption is deferred until review |
+| `:designsystem`, `:features:styleguide` + contract | Shared production tokens/components and development-only gallery; 16 dp corners/Comfortable defaults and local preview overrides |
 | Existing feature modules and contracts | Shared screens/state/use cases and feature-owned NavKeys |
 | `:profile:contract`, `:profile` | Device-profile model/repository contract, local implementation, and Profile UI |
 | `:movie:contract`, `:movie:internal` | Public movie/search/list operations and neutral list storage API; Ktor transport, mapping, paging, freshness, and repository implementations |
@@ -21,7 +21,7 @@ Use `src/commonMain/kotlin` and `composeResources` for reusable code/assets. `an
 
 Koin definitions stay at composition boundaries; constructors receive typed dependencies. Feature entry providers own their screens. ViewModels use the Nav 3 entry's store, not a global singleton. Navigation uses an explicit polymorphic serializer registry on both platforms; register new keys when adding destinations. Do not reintroduce Android reflection-based serialization in common code.
 
-Retain the existing Home feed, details/retry/cache behavior, custom Watchlists/search, and Profile. Each tab keeps its history. Reselection pops to that tab's root; Back from another tab root returns Home. Android Back at Home root exits. Error messages use the shared snackbar; Android dynamic colors remain platform-specific.
+Retain the existing Home feed, details/retry/cache behavior, custom Watchlists/search, and Profile. Each tab keeps its history. Reselection pops to that tab's root; Back from another tab root returns Home. Android Back at Home root exits. Error messages use the shared snackbar host with Movers notices. The brand palette and Inter typography are shared; system light/dark mode is respected without Android dynamic-colour overrides.
 
 ## Device profile and reset
 
