@@ -1,9 +1,6 @@
 package com.jcotters.presentation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +22,6 @@ fun MovieListRow(
     onOpen: (() -> Unit)? = null,
     compact: Boolean = false,
     posterWidth: Dp? = null,
-    posterOverlay: @Composable BoxScope.() -> Unit = {},
     footerContent: (@Composable () -> Unit)? = null,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
@@ -39,15 +35,12 @@ fun MovieListRow(
         footerContent = footerContent,
         modifier = modifier.padding(vertical = 8.dp),
         poster = { imageModifier ->
-            Box(imageModifier) {
-                MoverImageView(
-                    posterUrl = movie.posterUrl.orEmpty(),
-                    sharedImageKey = moviePosterKey(movie.id),
-                    contentDescription = "Movie poster for ${movie.title}",
-                    modifier = posterModifier.fillMaxSize(),
-                )
-                posterOverlay()
-            }
+            MoverImageView(
+                posterUrl = movie.posterUrl.orEmpty(),
+                sharedImageKey = moviePosterKey(movie.id),
+                contentDescription = "Movie poster for ${movie.title}",
+                modifier = posterModifier.then(imageModifier),
+            )
         },
         trailingContent = trailingContent,
     )
