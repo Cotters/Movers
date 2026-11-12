@@ -1,10 +1,14 @@
 # Current handoff
 
-Updated 12 November 2026. Source checkpoint `91bed7e`. Completed separate Todos: sorting `93c57ad`, overview pins/separators `9d66e4d`, film-search suggestions `d2e12a3`; right-side swipe follow-up `91bed7e`. See [organization behaviour/ownership](../features/watchlist-organization.md), [design-system rules](../design/style-guide.md) and [prior UI evidence](history/2026-11-12-before-watchlist-organization.md).
+Updated 12 November 2026. Latest feature verification checkpoint `91bed7e`; current avatar-footer implementation `f677057`. Completed separate Todos: sorting `93c57ad`, overview pins/separators `9d66e4d`, film-search suggestions `d2e12a3`; right-side swipe follow-up `91bed7e`. See [organization behaviour/ownership](../features/watchlist-organization.md), [design-system rules](../design/style-guide.md) and [prior UI evidence](history/2026-11-12-before-watchlist-organization.md).
 
 ## Current iteration
 
-Feed poster sizing follow-up: Home list posters are 33% wider (127.68 dp) and watchlist film posters 20% wider (115.2 dp), relative to the prior 96 dp. Explicit widths retain a 2:3 aspect ratio and bottom alignment when text is taller. Grid/search/suggestion sizing is unchanged. Watchlist contributor avatars now use a reusable metadata accessory slot beside the year in list/grid layouts, retaining their attribution tap action; they no longer cover posters. Source/diff/docs checks only; no build or test run for this ordinary iteration. The verification below predates this sizing change; physical review remains pending.
+Feed poster sizing follow-up: Home list posters are 33% wider (127.68 dp) and watchlist film posters 20% wider (115.2 dp), relative to the prior 96 dp. Explicit widths retain a 2:3 aspect ratio and bottom alignment when text is taller. Grid/search/suggestion sizing is unchanged. Watchlist contributor avatars now use a dedicated bottom-right footer below film details in rows and grid cards (owner confirmed). This supersedes the beside-year metadata accessory placement from `0b3cda1`. The shared `footerContent` slot owns alignment; rows use available height above the footer, with natural growth for text. A dedicated avatar button preserves 32 dp artwork inside a minimum 48 dp scalable touch target; the old poster-badge border and icon-padding squeeze are removed. Attribution tap actions and persisted colours are unchanged. Films gallery includes footer examples. Existing title-style/formatting edits are preserved.
+
+[UI review rules](../design/ui-guidelines.md) now require thought about hierarchy/alignment and asking about ambiguous placements before dependent edits; push back on unclear/conflicting directions. Linked from AGENTS, Human and development. Official Compose/CMP and NN/g research informs the rules; the installed Compose performance skill was used for layout review, not aesthetic decisions. No dependency/platform/backend changes.
+
+Source/diff and documentation checks passed (30 documents / 134 local link targets); no build or test run for this ordinary iteration. Verification below predates poster sizing and avatar changes. Physical review remains pending: watchlist rows/grid with short/long titles, missing year/synopsis, large text, edit actions, and contributor tap versus film open.
 
 ## Implemented
 

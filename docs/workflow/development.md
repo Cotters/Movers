@@ -55,6 +55,8 @@ Match actual artifacts and installed APIs. In particular, shared navigation cons
 
 ## Shared UI and state ownership
 
+Follow [UI design and Compose review](../design/ui-guidelines.md). Describe hierarchy and alignment before layout changes; ask the owner about ambiguous placements and push back on conflicting or unclear directions. Wait for that decision before dependent edits. Approved component styling is not approval for an unreviewed screen composition. Preserve clear decisions without repeated questions.
+
 The approved [Movers design system](../design/style-guide.md) is production UI: 16 dp corners, Comfortable spacing and a shared light/dark palette. Refine reusable controls in `:designsystem` and the development gallery; keep feature-specific adapters in `:presentation`. Use slots/callbacks instead of component dependencies on repositories, navigation or Koin. Keep the explicit Material infrastructure bridge centralized; do not scatter Material control overrides across features. Haze remains deferred.
 
 ViewModels or focused state models own actions, validation, data transformations and derived screen state. Compose renders that state and forwards events. Keep focus, scroll/gesture mechanics, popup visibility and native UI integrations with their Compose lifecycle; do not force them into a ViewModel. Preserve restoration when moving durable inputs: use the existing SavedStateHandle pattern, with Nav 3 entry ownership. Avoid doing file serialization or other background work in composable callbacks.

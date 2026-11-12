@@ -36,13 +36,15 @@ Selected **Compose Unstyled 2.10.2** modules supply button/field/menu/dialog/she
 ## Layout rules
 
 - Film rows keep sizing in the shared component rather than adding fixed row heights in feeds/search. An explicit poster width retains a 2:3 ratio: Home uses 96 dp × 1.33 and watchlist feeds 96 dp × 1.20. Posters align to the row bottom if large text needs more height. Other rows keep their existing text-height sizing. Image children use match-parent sizing so remote image dimensions do not determine row height; see [Compose intrinsic measurements](https://developer.android.com/develop/ui/compose/layouts/intrinsic-measurements).
-- Shared watchlist contributor avatars sit beside the year in the details area, in both rows and grid cards. Use the generic metadata accessory slot and retain the attribution tap action; keep avatars off the artwork.
+- Shared watchlist contributor avatars sit in a separate bottom-right footer in rows and grid cards, below the film details and off the artwork. The shared `footerContent` slot owns alignment; rows use remaining height above the footer and can grow for text. Preserve the attribution tap action and a 32 dp avatar inside a minimum 48 dp scalable touch target. The Films gallery includes these footers.
 - Grid cards round only their posters. Use `imageCornerRadius` (8 dp by default) for poster/backdrop clipping; `cornerRadius` remains 16 dp for controls. Do not clip the title/year region or wrap the image in a second control-radius clip.
 - Swipe foregrounds match the screen background, including gutters. Coloured surfaces belong to intentional panels/overlays rather than accidental padded row rectangles.
 - Search uses one inline-hint control with a persistent accessible label. Keep 48 dp action targets; do not add vertical field padding around those targets. The gallery uses the production search component.
 - Sheets own their outer padding once. Add-to-list rows reuse the labelled checkbox control with concise metadata. Quick membership and avatar-colour saves use guarded controls and error feedback without progress bars/spinners; initial screen loading and longer-running work remain separate.
 
 ## State ownership and validation
+
+Follow [UI design and Compose review](ui-guidelines.md), including asking about ambiguous placements before implementation. Component styling approval does not replace production-layout review.
 
 Keep reusable UI in `:designsystem`, domain-aware movie adapters in `:presentation`, and actions/derived state in feature ViewModels or focused state models. Components accept values, slots and callbacks, with no repositories or service lookup. List query restoration/filtering, import summaries and export serialization belong to feature models; native file dialogs, focus, scrolling and popup visibility belong to Compose. Dialogs have one scrolling owner; sheet bodies with a LazyColumn must stay bounded. Menus limit their scroll viewport to the safe window height.
 
