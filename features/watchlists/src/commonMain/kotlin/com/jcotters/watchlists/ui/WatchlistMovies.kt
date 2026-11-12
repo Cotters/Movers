@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
@@ -29,7 +29,6 @@ import com.jcotters.presentation.MovieMembershipButton
 import com.jcotters.presentation.MoviePosterCard
 import com.jcotters.presentation.MovieSwipeActions
 import com.jcotters.presentation.moviePosterTransitionModifier
-import androidx.compose.foundation.lazy.grid.items as gridItems
 
 @Composable
 internal fun WatchlistMovies(
@@ -105,7 +104,7 @@ internal fun WatchlistMovies(
                     Column(swipeModifier) {
                         MovieListRow(
                             movie = movie,
-                            modifier = Modifier.height(180.dp).fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth(),
                             posterModifier = moviePosterTransitionModifier(movie.id, stackId),
                             onOpen = openMovie,
                             posterOverlay = { ContributorBadge(content.contributions[movie.id], onContribution) },

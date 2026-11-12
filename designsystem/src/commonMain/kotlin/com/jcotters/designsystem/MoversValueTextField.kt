@@ -56,6 +56,7 @@ fun MoversTextField(
     val keyboard = LocalSoftwareKeyboardController.current
     val actions = keyboardActions ?: KeyboardActions(onDone = { focus.clearFocus(); keyboard?.hide() })
     val foreground = if (enabled) tokens.colors.content else tokens.colors.muted
+    val hasIcons = leadingIcon != null || trailingIcon != null
     CompositionLocalProvider(
         LocalContentColor provides foreground,
         LocalTextSelectionColors provides TextSelectionColors(tokens.colors.accent, tokens.colors.accent.copy(alpha = 0.25f)),
@@ -79,7 +80,10 @@ fun MoversTextField(
                     Row(
                         Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape).background(tokens.colors.surface)
                             .border(if (focused) 2.dp else 1.dp, if (focused) tokens.colors.accent else tokens.colors.controlOutline, shape)
-                            .padding(horizontal = tokens.controlPadding, vertical = 12.dp),
+                            .padding(
+                                horizontal = if (hasIcons) tokens.spacing * 1.5f else tokens.controlPadding,
+                                vertical = if (hasIcons) 0.dp else 12.dp,
+                            ),
                         horizontalArrangement = Arrangement.spacedBy(tokens.spacing),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {

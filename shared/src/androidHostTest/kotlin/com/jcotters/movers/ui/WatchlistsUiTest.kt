@@ -131,7 +131,7 @@ class WatchlistsUiTest {
         awaitText("Tonight")
         compose.onNodeWithText("Tonight").performClick()
         compose.onNodeWithContentDescription("Add movies").performClick()
-        compose.onNodeWithText("Search films").performTextInput("test")
+        compose.onNodeWithContentDescription("Search films").performTextInput("test")
         awaitText("Search Movie")
         compose.onNodeWithContentDescription("Add Search Movie to list").performClick()
         awaitAction("Remove Search Movie from list")
@@ -141,7 +141,7 @@ class WatchlistsUiTest {
         awaitAction("Remove Search Movie from list")
         compose.onNodeWithContentDescription("Add Another Movie to list").performClick()
         compose.waitUntil(10_000) { compose.onAllNodes(hasContentDescription("Remove ", substring = true) and isEnabled()).fetchSemanticsNodes().size == 2 }
-        compose.onNodeWithText("Search films").assertTextContains("test")
+        compose.onNodeWithContentDescription("Search films").assertTextContains("test")
         compose.onNodeWithContentDescription("Back").performClick()
         awaitText("2 movies")
         compose.onNodeWithText("Search Movie").assertIsDisplayed()
@@ -164,7 +164,7 @@ class WatchlistsUiTest {
         compose.setContent { SharedApp() }
         awaitText("Test Movie")
         compose.onNodeWithContentDescription("Search movies").performClick()
-        compose.onNodeWithText("Search films").performTextInput("search")
+        compose.onNodeWithContentDescription("Search films").performTextInput("search")
         awaitText("Search Movie")
         runBlocking {
             val cached = fixture.database.movieDao().getMovieById(25)
@@ -180,7 +180,7 @@ class WatchlistsUiTest {
         compose.onAllNodesWithText("Add to 1 list").assertCountEquals(0)
         compose.onNodeWithText("Close").performClick()
         awaitSheetClosed()
-        compose.onNodeWithText("Search films").assertTextContains("search")
+        compose.onNodeWithContentDescription("Search films").assertTextContains("search")
         compose.onNodeWithText("Search Movie").assertIsDisplayed()
     }
 
@@ -197,14 +197,14 @@ class WatchlistsUiTest {
         compose.setContent { SharedApp() }
         awaitText("Test Movie")
         compose.onNodeWithContentDescription("Search movies").performClick()
-        compose.onNodeWithText("Search films").performTextInput("search")
+        compose.onNodeWithContentDescription("Search films").performTextInput("search")
         awaitText("Unable to search for movies. Check your connection and retry.")
         fixture.failSearch = false
         compose.onNodeWithText("Retry").performClick()
         awaitText("Search Movie")
-        compose.onNodeWithText("Search films").performTextReplacement("none")
+        compose.onNodeWithContentDescription("Search films").performTextReplacement("none")
         awaitText("No movies found.")
-        compose.onNodeWithText("Clear").performClick()
+        compose.onNodeWithContentDescription("Clear search").performClick()
         awaitText("Search for a movie to add to your lists.")
     }
 

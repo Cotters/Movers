@@ -1,7 +1,6 @@
 package com.jcotters.presentation
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -35,10 +34,6 @@ fun MovieMembershipButton(
         },
         contentColor = color,
     ) {
-        if (saving) {
-            CircularProgressIndicator(Modifier.size(20.dp), color = color, strokeWidth = 2.dp)
-        } else {
-            Icon(painterResource(if (isAdded) Res.drawable.trash else Res.drawable.add), contentDescription = null)
-        }
+        Icon(painterResource(if (isAdded) Res.drawable.trash else Res.drawable.add), contentDescription = null)
     }
 }

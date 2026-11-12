@@ -86,7 +86,6 @@ fun ProfileView(
             }
             Text("Avatar colour", style = MaterialTheme.typography.titleSmall)
             AvatarColorPicker(selected = it.color, enabled = !savingName && !savingColor, onSelect = onSaveColor)
-            if (savingColor) LinearProgressIndicator(Modifier.fillMaxWidth())
             colorError?.let { message -> Text(message, color = MaterialTheme.colorScheme.error) }
         }
 

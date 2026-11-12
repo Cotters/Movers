@@ -8,12 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,14 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.jcotters.designsystem.MoversIconButton
-import com.jcotters.designsystem.MoversTextField
-import com.jcotters.presentation.resources.Res
-import com.jcotters.presentation.resources.close
-import com.jcotters.presentation.resources.search
-import org.jetbrains.compose.resources.painterResource
+import com.jcotters.designsystem.MoversSearchField
 
 @Composable
 internal fun WatchlistSearchHeader(
@@ -69,22 +58,10 @@ internal fun WatchlistSearchHeader(
 
 @Composable
 internal fun WatchlistSearchField(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    val keyboard = LocalSoftwareKeyboardController.current
-    MoversTextField(
+    MoversSearchField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("Search this list") },
-        singleLine = true,
-        modifier = modifier.fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
-        leadingIcon = { Icon(painterResource(Res.drawable.search), contentDescription = null) },
-        trailingIcon = if (value.isNotEmpty()) {
-            {
-                MoversIconButton(onClick = { onValueChange("") }) {
-                    Icon(painterResource(Res.drawable.close), contentDescription = "Clear search")
-                }
-            }
-        } else null,
+        label = "Search this list",
+        modifier = modifier,
     )
 }

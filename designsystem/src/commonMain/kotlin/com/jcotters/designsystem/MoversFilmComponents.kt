@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,13 +35,13 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import kotlin.math.PI
@@ -55,8 +59,8 @@ fun MoversFilmCard(
     posterOverlay: @Composable BoxScope.() -> Unit = {},
 ) {
     val tokens = MoversDesign.tokens
-    Column(modifier.then(filmAction(title, onOpen, describe = false)), verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
-        Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(tokens.cornerRadius))) {
+    Column(modifier.then(filmAction(title, onOpen)), verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
+        Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(tokens.imageCornerRadius))) {
             poster(Modifier.matchParentSize())
             posterOverlay()
             onAdd?.let { add ->
@@ -83,9 +87,20 @@ fun MoversFilmRow(
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     val tokens = MoversDesign.tokens
-    Row(modifier.fillMaxWidth().then(if (onOpen == null) Modifier else filmAction(title, onOpen, describe = false)), horizontalArrangement = Arrangement.spacedBy(tokens.spacing * 1.5f), verticalAlignment = Alignment.Top) {
-        poster(Modifier.width(if (compact) 56.dp else 80.dp).aspectRatio(2f / 3f).clip(RoundedCornerShape(tokens.cornerRadius)))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
+    Row(
+        modifier.fillMaxWidth().height(IntrinsicSize.Min)
+            .then(if (onOpen == null) Modifier else filmAction(title, onOpen)),
+        horizontalArrangement = Arrangement.spacedBy(tokens.spacing * 1.5f),
+        verticalAlignment = Alignment.Top,
+    ) {
+        // Text determines the row's height. The image fills it without contributing image intrinsics.
+        Box(Modifier.width(if (compact) 56.dp else 96.dp).fillMaxHeight().clip(RoundedCornerShape(tokens.imageCornerRadius))) {
+            poster(Modifier.matchParentSize())
+        }
+        Column(
+            Modifier.weight(1f).heightIn(min = if (compact) 96.dp else 144.dp),
+            verticalArrangement = Arrangement.spacedBy(tokens.spacing),
+        ) {
             MoversText(title, style = tokens.type.label, maxLines = 2)
             if (metadata.isNotBlank()) MoversText(metadata, style = tokens.type.caption, color = tokens.colors.muted)
             if (synopsis.isNotBlank()) MoversText(synopsis, style = tokens.type.caption, maxLines = if (compact) 2 else 4)
@@ -190,17 +205,16 @@ fun MoversActivity(name: String, filmTitle: String, action: String, time: String
 }
 
 @Composable
-private fun filmAction(title: String, onOpen: () -> Unit, describe: Boolean): Modifier {
+private fun filmAction(title: String, onOpen: () -> Unit): Modifier {
     val tokens = MoversDesign.tokens
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val pressed by interaction.collectIsPressedAsState()
-    return Modifier.clip(RoundedCornerShape(tokens.cornerRadius)).clickable(interactionSource = interaction, indication = null,
+    return Modifier.clickable(interactionSource = interaction, indication = null,
         role = Role.Button, onClickLabel = "Open $title", onClick = onOpen)
-        .semantics { if (describe) contentDescription = title }
         .drawWithContent {
             drawContent()
             if (pressed) drawRect(tokens.colors.accent.copy(alpha = 0.12f))
         }
-        .border(2.dp, if (focused) tokens.colors.accent else Color.Transparent, RoundedCornerShape(tokens.cornerRadius))
+        .border(2.dp, if (focused) tokens.colors.accent else Color.Transparent, RectangleShape)
 }

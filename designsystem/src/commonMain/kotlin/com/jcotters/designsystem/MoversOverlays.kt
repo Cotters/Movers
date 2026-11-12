@@ -136,8 +136,9 @@ fun MoversSheet(title: String, visible: Boolean, onDismiss: () -> Unit, scrollCo
             ) {
                 Column(
                     Modifier.then(if (scrollContent) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-                        .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)).padding(tokens.controlPadding),
-                    verticalArrangement = Arrangement.spacedBy(tokens.spacing * 1.5f),
+                        .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                        .padding(horizontal = tokens.controlPadding).padding(bottom = tokens.controlPadding),
+                    verticalArrangement = Arrangement.spacedBy(tokens.spacing),
                 ) {
                     DragIndication(
                         Modifier.align(Alignment.CenterHorizontally).size(64.dp, 48.dp).drawBehind {

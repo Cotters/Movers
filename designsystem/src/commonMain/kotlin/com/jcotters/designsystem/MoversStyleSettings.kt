@@ -12,5 +12,6 @@ enum class ComponentDensity { Compact, Comfortable }
 data class MoversStyleSettings(
     val theme: ThemeMode = ThemeMode.System,
     val cornerRadius: Dp = 16.dp,
+    val imageCornerRadius: Dp = 8.dp,
     val density: ComponentDensity = ComponentDensity.Comfortable,
 )

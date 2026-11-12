@@ -1,6 +1,5 @@
 package com.jcotters.presentation
 
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
@@ -40,11 +39,11 @@ import androidx.compose.ui.unit.dp
 import com.jcotters.presentation.resources.Res
 import com.jcotters.presentation.resources.add_to_list
 import com.jcotters.presentation.resources.trash
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-import kotlin.math.abs
-import kotlin.math.roundToInt
 
 private enum class MovieReveal { Closed, Add, Remove }
 
@@ -121,7 +120,7 @@ fun MovieSwipeActions(
                 enabled = enabled,
                 flingBehavior = AnchoredDraggableDefaults.flingBehavior(state),
             )
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .semantics(mergeDescendants = true) {
                 customActions = if (!enabled) emptyList() else buildList {
                     if (onAddToList != null) add(CustomAccessibilityAction("Add $movieTitle to lists") { perform(onAddToList); true })

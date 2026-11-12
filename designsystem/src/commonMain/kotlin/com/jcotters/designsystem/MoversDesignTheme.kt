@@ -51,6 +51,7 @@ data class MoversDesignTokens(
     val colors: MoversColors,
     val type: MoversTypography,
     val cornerRadius: Dp,
+    val imageCornerRadius: Dp,
     val spacing: Dp,
     val controlPadding: Dp,
 )
@@ -86,6 +87,7 @@ fun MoversDesignTheme(settings: MoversStyleSettings = MoversStyleSettings(), con
             caption = TextStyle(fontFamily = family, fontSize = 13.sp, lineHeight = 19.sp),
         ),
         cornerRadius = settings.cornerRadius,
+        imageCornerRadius = settings.imageCornerRadius,
         spacing = if (settings.density == ComponentDensity.Comfortable) 8.dp else 6.dp,
         controlPadding = if (settings.density == ComponentDensity.Comfortable) 16.dp else 12.dp,
     )

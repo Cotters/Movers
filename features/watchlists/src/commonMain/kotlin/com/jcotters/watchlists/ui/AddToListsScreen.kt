@@ -5,12 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,10 +18,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.jcotters.designsystem.MoversCheckbox
+import com.jcotters.designsystem.MoversCheckboxRow
 import com.jcotters.designsystem.MoversTextButton
 import com.jcotters.navigation.Navigator
 import com.jcotters.watchlists.AddToListsViewModel
@@ -47,13 +43,12 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
     LaunchedEffect(state.createdId) {
         if (state.createdId != null) { creating = false; name = ""; viewModel.consumeCreated() }
     }
-    Column(Modifier.fillMaxWidth().heightIn(max = 680.dp).padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth().heightIn(max = 680.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Add to list", style = MaterialTheme.typography.headlineSmall)
             MoversTextButton(onClick = navigator::goBack, enabled = !state.busy) { Text("Close") }
         }
         Text(state.title, style = MaterialTheme.typography.titleMedium)
-        if (state.loading || state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (!state.loading && state.error == null && state.lists.isEmpty()) Text("Create your first list to save this movie.")
         state.error?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
@@ -66,22 +61,15 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
             items(state.lists, key = { it.id }) { list ->
                 val existing = list.id in state.existing
                 val enabled = !state.loading && !state.readFailed && !state.creating && list.id !in state.saving
-                Row(
-                    Modifier.fillMaxWidth().toggleable(
-                        value = existing,
-                        enabled = enabled,
-                        role = Role.Checkbox,
-                        onValueChange = { viewModel.setMembership(list.id, it) },
-                    ).padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    MoversCheckbox(checked = existing, onCheckedChange = null, enabled = enabled)
-                    Column(Modifier.padding(start = 12.dp)) {
-                        Text(list.name)
-                        list.shared?.let { shared -> Text("Shared · ${shared.members.size} members",style = MaterialTheme.typography.bodySmall) }
-                        Text(if (list.id in state.saving) "Saving…" else "${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
+                val count = "${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}"
+                val shared = list.shared?.let { " · ${it.members.size} members" }.orEmpty()
+                MoversCheckboxRow(
+                    label = list.name,
+                    checked = existing,
+                    onCheckedChange = { viewModel.setMembership(list.id, it) },
+                    enabled = enabled,
+                    description = if (list.id in state.saving) "Saving…" else count + shared,
+                )
             }
         }
         if (creating) {

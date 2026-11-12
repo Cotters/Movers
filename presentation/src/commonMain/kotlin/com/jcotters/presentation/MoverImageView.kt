@@ -50,7 +50,7 @@ fun MoverImageView(
     sharedImageKey: String? = null,
 ) {
     val imageModifier = modifier
-        .clip(RoundedCornerShape(com.jcotters.designsystem.MoversDesign.tokens.cornerRadius))
+        .clip(RoundedCornerShape(com.jcotters.designsystem.MoversDesign.tokens.imageCornerRadius))
         .background(com.jcotters.designsystem.MoversDesign.tokens.colors.raised)
     if (LocalInspectionMode.current) {
         val description = contentDescription

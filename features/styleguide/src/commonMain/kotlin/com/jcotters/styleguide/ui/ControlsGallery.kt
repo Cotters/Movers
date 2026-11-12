@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.jcotters.designsystem.ButtonVariant
 import com.jcotters.designsystem.MoversButton
@@ -20,6 +19,7 @@ import com.jcotters.designsystem.MoversChoice
 import com.jcotters.designsystem.MoversDesign
 import com.jcotters.designsystem.MoversIconButton
 import com.jcotters.designsystem.MoversPanel
+import com.jcotters.designsystem.MoversSearchField
 import com.jcotters.designsystem.MoversSymbol
 import com.jcotters.designsystem.MoversText
 import com.jcotters.designsystem.MoversTextField
@@ -43,10 +43,11 @@ internal fun ControlsGallery() {
         MoversIconButton(MoversSymbol.Search, "Search demo films", { action = "Demo search selected." })
         MoversIconButton(MoversSymbol.More, "Unavailable options", {}, enabled = false)
     }
-    GalleryHeading("Fields", "Labels stay visible · try focus, paste and keyboard actions")
+    GalleryHeading("Fields", "Labelled forms and inline search · try focus, paste and keyboard actions")
     MoversTextField(rememberTextFieldState(), "List name", placeholder = "Friday films")
-    MoversTextField(rememberTextFieldState(), "Search films", placeholder = "Find a film", imeAction = ImeAction.Search,
-        onSubmit = { action = "Demo search submitted." })
+    var search by rememberSaveable { mutableStateOf("") }
+    MoversSearchField(search, { search = it }, "Search films",
+        onSearch = { action = "Demo search submitted." })
     MoversTextField(rememberTextFieldState(""), "Name with an error", placeholder = "Your list", error = "Enter a list name.")
     MoversTextField(rememberTextFieldState("Saved locally"), "Disabled field", enabled = false)
     MoversTextField(rememberTextFieldState(), "Paste titles or CSV", placeholder = "A film title, 2026", multiline = true)
