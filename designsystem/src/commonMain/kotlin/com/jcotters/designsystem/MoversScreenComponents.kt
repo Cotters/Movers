@@ -55,6 +55,7 @@ fun MoversListItem(
     modifier: Modifier = Modifier,
     supportingContent: (@Composable () -> Unit)? = null,
     leadingContent: (@Composable () -> Unit)? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val tokens = MoversDesign.tokens
     Row(modifier.fillMaxWidth().padding(horizontal = tokens.controlPadding, vertical = 12.dp),
@@ -66,6 +67,7 @@ fun MoversListItem(
                 ProvideTextStyle(tokens.type.caption, content = supportingContent)
             }
         }
+        trailingContent?.invoke()
     }
 }
 

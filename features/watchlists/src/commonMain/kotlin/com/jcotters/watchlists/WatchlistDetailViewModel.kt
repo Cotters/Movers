@@ -1,64 +1,22 @@
 package com.jcotters.watchlists
 
-import com.jcotters.watchlists.preferences.WatchlistPreferences
-import com.jcotters.watchlists.preferences.WatchlistSort
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
 import com.jcotters.contract.watchlists.domain.Watchlist
 import com.jcotters.contract.watchlists.domain.WatchlistContent
+import com.jcotters.watchlists.preferences.WatchlistPreferences
+import com.jcotters.watchlists.preferences.WatchlistSort
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-internal data class WatchlistsState(
-    val lists: List<Watchlist> = emptyList(), val loading: Boolean = true,
-    val busy: Boolean = false, val error: String? = null, val createdId: String? = null, val syncError: String? = null,
-)
-
-internal class WatchlistsViewModel(private val repository: IWatchlistsRepository, private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository) : ViewModel() {
-    private val state = MutableStateFlow(WatchlistsState())
-    val uiState = state.asStateFlow()
-    private var observation: Job? = null
-    init {
-        retry()
-        viewModelScope.launch { sharing.syncStatus.collect { status -> state.update { it.copy(syncError = status.error) } } }
-    }
-    fun refreshShared() { viewModelScope.launch { sharing.refresh() } }
-
-    fun retry() {
-        if (observation?.isActive == true) return
-        state.update { it.copy(loading = true, error = null) }
-        observation = viewModelScope.launch {
-            repository.observeWatchlists().catch { error ->
-                if (error is CancellationException || error !is Exception) throw error
-                state.update { it.copy(loading = false, error = "Unable to read your lists.") }
-            }.collect { lists -> state.update { it.copy(lists = lists, loading = false) } }
-        }
-    }
-
-    fun create(name: String) {
-        if (state.value.busy) return
-        state.update { it.copy(busy = true, error = null) }
-        viewModelScope.launch {
-            try {
-                repository.create(name).onSuccess { id -> state.update { it.copy(createdId = id) } }
-                    .onFailure { error -> state.update { it.copy(error = error.message) } }
-            } finally { state.update { it.copy(busy = false) } }
-        }
-    }
-
-    fun consumeCreated() { state.update { it.copy(createdId = null) } }
-    fun clearError() { state.update { it.copy(error = null) } }
-}
 
 internal data class WatchlistDetailState(
     val content: WatchlistContent? = null, val loading: Boolean = true, val busy: Boolean = false,

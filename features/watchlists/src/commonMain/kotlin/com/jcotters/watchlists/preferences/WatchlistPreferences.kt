@@ -43,7 +43,6 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
     private val mutableState = MutableStateFlow(WatchlistPreferenceState())
     override val state = mutableState.asStateFlow()
     private val mutex = Mutex()
-    private var knownListIds: Set<String>? = null
 
     override suspend fun load(): Result<Unit> = change { it }
 
@@ -61,12 +60,11 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
     }
 
     override suspend fun retainLists(listIds: Set<String>): Result<Unit> = change { current ->
-        knownListIds = listIds
         current.copy(pinnedIds = current.pinnedIds.filter { it in listIds }, sorts = current.sorts.filterKeys { it in listIds })
     }
 
     private fun requireAvailable(listId: String) {
-        require(listId.isNotBlank() && knownListIds?.contains(listId) != false) { "This list is no longer available." }
+        require(listId.isNotBlank()) { "This list is no longer available." }
     }
 
     private suspend fun change(transform: (WatchlistPreferenceState) -> WatchlistPreferenceState): Result<Unit> = mutex.withLock {

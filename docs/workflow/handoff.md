@@ -4,7 +4,7 @@ Updated 12 November 2026. Source checkpoint `6b50e92`, following the production 
 
 ## Active work
 
-Authorized: watchlist film sorting, overview separators/swipe-to-pin (five maximum), then film-search suggestions below local matches. Commit each Todo separately. Sorting is implemented with installation-local preferences; pinning and suggestions are next. See [organization design](../features/watchlist-organization.md). Run existing host/native compilation checks once integrated; no new test cases or devices.
+Authorized: watchlist film sorting, overview separators/swipe-to-pin (five maximum), then film-search suggestions below local matches. Commit each Todo separately. Sorting and overview pinning/separators are implemented with installation-local preferences. Their commits are separate; film-search suggestions are next. See [organization design](../features/watchlist-organization.md). Run existing host/native compilation checks once integrated; no new test cases or devices.
 
 ## Implemented and ownership
 
