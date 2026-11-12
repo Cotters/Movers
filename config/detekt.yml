@@ -1,0 +1,18 @@
+config:
+  validation: true
+  warningsAsErrors: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongParameterList:
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+
+style:
+  UnnecessaryParentheses:
+    active: true
+  MagicNumber:
+    ignoreAnnotated: ['Composable']

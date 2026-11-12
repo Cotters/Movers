@@ -101,6 +101,7 @@ if failures:
     print("\n".join(failures), file=sys.stderr)
     sys.exit(1)
 print(f"Mechanical checks passed; {len(files)} changed code/config files against {base[:8]}, including untracked files.")
-print("Before committing: format task-owned Kotlin, review imports/diagnostics, then full functions/callers with docs/workflow/code-review.md.")
+print("Before committing: format task-owned Kotlin, run scripts/lint-kotlin.sh, review diagnostics, "
+      "then full functions/callers with docs/workflow/code-review.md.")
 print("This checks patch hygiene and selected added imports; it does not validate SOLID, syntax, behaviour or UI quality.")
 PY

@@ -1,4 +1,5 @@
 [versions]
+detekt = "2.0.0-alpha.6"
 android-compileSdk = "37"
 android-minSdk = "28"
 android-targetSdk = "36"
@@ -35,6 +36,7 @@ junitKtx = "1.3.0"
 sqliteBundled = "2.7.1"
 
 [libraries]
+detekt-cli = { module = "dev.detekt:detekt-cli", version.ref = "detekt" }
 unstyled-button = { module = "com.composables:composeunstyled-button", version.ref = "composeUnstyled" }
 unstyled-text-field = { module = "com.composables:composeunstyled-text-field", version.ref = "composeUnstyled" }
 unstyled-dialog = { module = "com.composables:composeunstyled-dialog", version.ref = "composeUnstyled" }

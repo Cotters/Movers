@@ -6,7 +6,7 @@ Use source/diff/static checks during iteration; do not run routine builds or com
 
 ## Verification by change
 
-Every coding task also follows the [pre-commit formatting/static/source review](code-review.md), including rechecks after fixes. The formatter and `review-code.sh` do not invoke Gradle. Their success is separate from compiler-backed lint/tests and physical acceptance; unavailable IDE checks must be reported explicitly.
+Every coding task also follows the [pre-commit formatting/static/source review](code-review.md), including rechecks after fixes and the source-only `./scripts/lint-kotlin.sh` warning gate. The formatter and `review-code.sh` do not invoke Gradle; Kotlin lint uses an isolated Gradle/Detekt CLI build without compiling app targets or running tests. Its use each coding task is explicitly authorized. Its coverage is separate from type-aware IDE/compiler-backed Android lint and physical acceptance; failures and unavailable checks must be reported explicitly.
 
 | Change | Iteration | Final evidence |
 | --- | --- | --- |

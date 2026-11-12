@@ -32,4 +32,8 @@ Run `./gradlew -p build-logic :convention:check` when changing conventions. Test
 
 See [multiplatform ownership/setup](../docs/workflow/multiplatform.md) and [backend portability](../docs/workflow/open-source.md). Existing feature and contract/internal boundaries remain; only platform integrations belong in native source sets. The sole authorized destructive reset is the transition from old account databases to device-profile version 7.
 
+## Source-only quality tooling
+
+`./scripts/lint-kotlin.sh` invokes the separate `tools/lint` Gradle build. It follows Detekt's standalone JavaExec integration, resolves its CLI from the shared version catalog and uses JDK 17. It deliberately applies no application/KMP convention or Kotlin/AGP plugin: source-only analysis needs no feature targets, SDK or app compilation. Feature modules retain the conventions above. Reports and current coverage/strict warning policy are described in the [code review routine](../docs/workflow/code-review.md#kotlin-code-smell-lint).
+
 References reviewed 8 November 2026: [Now in Android conventions](https://github.com/android/nowinandroid/blob/main/build-logic/README.md), [Jetchat's simpler direct build](https://github.com/android/compose-samples/blob/main/Jetchat/app/build.gradle.kts), [Gradle conventions](https://docs.gradle.org/current/userguide/implementing_gradle_plugins_convention.html), [built-in Kotlin](https://developer.android.com/build/migrate-to-built-in-kotlin), [Android KMP libraries](https://developer.android.com/kotlin/multiplatform/plugin), and [incremental migration](https://kotlinlang.org/docs/multiplatform/migrate-from-android.html). Use sample patterns selectively; do not copy signing credentials, managed devices, or application services.
