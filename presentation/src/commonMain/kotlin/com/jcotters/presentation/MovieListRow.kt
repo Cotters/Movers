@@ -9,6 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.designsystem.MoversIconButton
@@ -23,6 +24,7 @@ fun MovieListRow(
     posterModifier: Modifier = Modifier,
     onOpen: (() -> Unit)? = null,
     compact: Boolean = false,
+    posterWidth: Dp? = null,
     posterOverlay: @Composable BoxScope.() -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
@@ -32,6 +34,7 @@ fun MovieListRow(
         synopsis = movie.synopsis,
         onOpen = onOpen,
         compact = compact,
+        posterWidth = posterWidth,
         modifier = modifier.padding(vertical = 8.dp),
         poster = { imageModifier ->
             Box(imageModifier) {

@@ -117,6 +117,7 @@ internal fun WatchlistMovies(
                     Column(swipeModifier) {
                         MovieListRow(
                             movie = movie,
+                            posterWidth = 96.dp * 1.2f,
                             modifier = Modifier.fillMaxWidth(),
                             posterModifier = moviePosterTransitionModifier(movie.id, stackId),
                             onOpen = openMovie,

@@ -2,6 +2,10 @@
 
 Updated 12 November 2026. Source checkpoint `91bed7e`. Completed separate Todos: sorting `93c57ad`, overview pins/separators `9d66e4d`, film-search suggestions `d2e12a3`; right-side swipe follow-up `91bed7e`. See [organization behaviour/ownership](../features/watchlist-organization.md), [design-system rules](../design/style-guide.md) and [prior UI evidence](history/2026-11-12-before-watchlist-organization.md).
 
+## Current iteration
+
+Feed poster sizing follow-up: Home list posters are 33% wider (127.68 dp) and watchlist film posters 20% wider (115.2 dp), relative to the prior 96 dp. Explicit widths retain a 2:3 aspect ratio and bottom alignment when text is taller. Grid/search/suggestion sizing is unchanged. Source/diff/docs checks only; no build or test run for this ordinary iteration. The verification below predates this sizing change; physical review remains pending.
+
 ## Implemented
 
 - **Sorting:** control beside the film count; release date, alphabetical and rating in either direction, with Recently added preserving the default. Missing/invalid values stay last and ties are deterministic. Selection persists per list/device and applies after filtering in list/grid. Initial preference loading/returning from details does not reset restored scroll; changing the sort does.

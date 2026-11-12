@@ -170,6 +170,7 @@ private fun PopularMoviesContent(
                     Column(swipeModifier) {
                         MovieListRow(
                             movie = movie,
+                            posterWidth = 96.dp * 1.33f,
                             modifier = Modifier.fillMaxWidth(),
                             posterModifier = posterModifier(movie),
                             onOpen = openMovie,

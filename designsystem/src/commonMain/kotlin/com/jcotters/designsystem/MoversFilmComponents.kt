@@ -43,6 +43,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.PI
 import kotlin.math.cos
@@ -84,6 +85,7 @@ fun MoversFilmRow(
     modifier: Modifier = Modifier,
     onAdd: (() -> Unit)? = null,
     compact: Boolean = false,
+    posterWidth: Dp? = null,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     val tokens = MoversDesign.tokens
@@ -93,12 +95,14 @@ fun MoversFilmRow(
         horizontalArrangement = Arrangement.spacedBy(tokens.spacing * 1.5f),
         verticalAlignment = Alignment.Top,
     ) {
-        // Text determines the row's height. The image fills it without contributing image intrinsics.
-        Box(Modifier.width(if (compact) 56.dp else 96.dp).fillMaxHeight().clip(RoundedCornerShape(tokens.imageCornerRadius))) {
+        // Explicit widths retain a 2:3 poster; other rows keep their text-height sizing.
+        val imageWidth = posterWidth ?: if (compact) 56.dp else 96.dp
+        val imageSizing = if (posterWidth != null) Modifier.aspectRatio(2f / 3f) else Modifier.fillMaxHeight()
+        Box(Modifier.width(imageWidth).then(imageSizing).align(Alignment.Bottom).clip(RoundedCornerShape(tokens.imageCornerRadius))) {
             poster(Modifier.matchParentSize())
         }
         Column(
-            Modifier.weight(1f).heightIn(min = if (compact) 96.dp else 144.dp),
+            Modifier.weight(1f).heightIn(min = posterWidth?.let { it * 1.5f } ?: if (compact) 96.dp else 144.dp),
             verticalArrangement = Arrangement.spacedBy(tokens.spacing),
         ) {
             MoversText(title, style = tokens.type.label, maxLines = 2)
