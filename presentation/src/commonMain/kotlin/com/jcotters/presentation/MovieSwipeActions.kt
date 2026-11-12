@@ -21,16 +21,18 @@ fun MovieSwipeActions(
     modifier: Modifier = Modifier,
     content: @Composable (Modifier, () -> Unit) -> Unit,
 ) {
+    val addAction = onAddToList?.let { add ->
+        MoversSwipeAction("Add to list", "Add $movieTitle to lists", add,
+            icon = { Icon(painterResource(Res.drawable.add_to_list), contentDescription = null, tint = it) })
+    }
+    val removeAction = onRemove?.let { remove ->
+        MoversSwipeAction("Remove", "Remove $movieTitle from list", remove, destructive = true,
+            icon = { Icon(painterResource(Res.drawable.trash), contentDescription = null, tint = it) })
+    }
     MoversSwipeActions(
         onOpen = onOpen,
-        startAction = onAddToList?.let { add ->
-            MoversSwipeAction("Add to list", "Add $movieTitle to lists", add,
-                icon = { Icon(painterResource(Res.drawable.add_to_list), contentDescription = null, tint = it) })
-        },
-        endAction = onRemove?.let { remove ->
-            MoversSwipeAction("Remove", "Remove $movieTitle from list", remove, destructive = true,
-                icon = { Icon(painterResource(Res.drawable.trash), contentDescription = null, tint = it) })
-        },
+        startAction = if (removeAction != null) addAction else null,
+        endAction = removeAction ?: addAction,
         enabled = enabled,
         modifier = modifier,
         content = content,

@@ -36,10 +36,10 @@ import com.jcotters.designsystem.MoversSymbol
 import com.jcotters.designsystem.MoversTextButton
 import com.jcotters.designsystem.MoversTopBar
 import com.jcotters.navigation.Navigator
-import com.jcotters.watchlists.preferences.MaximumPinnedWatchlists
 import com.jcotters.watchlists.WatchlistsState
 import com.jcotters.watchlists.WatchlistsViewModel
 import com.jcotters.watchlists.navigation.WatchlistDetailKey
+import com.jcotters.watchlists.preferences.MaximumPinnedWatchlists
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,7 +112,7 @@ private fun LazyListScope.watchlistRows(
         val canPin = pinned || state.canPinMore
         MoversSwipeActions(
             onOpen = { onOpen(list.id) },
-            startAction = MoversSwipeAction(
+            endAction = MoversSwipeAction(
                 label = if (pinned) "Unpin" else if (canPin) "Pin" else "$MaximumPinnedWatchlists pin limit",
                 accessibilityLabel = "${if (pinned) "Unpin" else "Pin"} ${list.name}",
                 onClick = { onPin(list.id, !pinned) },

@@ -2,6 +2,10 @@ package com.jcotters.movers.ui
 
 import android.os.Looper
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.performCustomAccessibilityActionWithLabel
 import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -87,13 +91,16 @@ class WatchlistsUiTest {
         compose.onAllNodesWithText("Classics").assertCountEquals(0)
     }
 
+    @OptIn(androidx.compose.ui.test.ExperimentalTestApi::class)
     @Test
     fun catalogueAndDetailPickerAddToMultipleListsWithoutLeavingTheirSource() {
         runBlocking { fixture.lists.create("One").getOrThrow(); fixture.lists.create("Two").getOrThrow() }
         val restore = StateRestorationTester(compose)
         restore.setContent { SharedApp() }
         awaitText("Test Movie")
-        compose.onNodeWithContentDescription("Add to list").performClick()
+        compose.onNode(SemanticsMatcher("Catalogue quick-add action") { node ->
+            node.config.getOrNull(SemanticsActions.CustomActions)?.any { it.label == "Add Test Movie to lists" } == true
+        }).performCustomAccessibilityActionWithLabel("Add Test Movie to lists")
         awaitText("One")
         compose.onNodeWithText("One").performClick()
         compose.onNodeWithText("Two").performClick()

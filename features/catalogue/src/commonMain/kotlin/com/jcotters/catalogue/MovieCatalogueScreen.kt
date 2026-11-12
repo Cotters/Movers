@@ -46,7 +46,6 @@ import com.jcotters.designsystem.MoversIconButton
 import com.jcotters.designsystem.MoversTopBar
 import com.jcotters.features.catalogue.resources.Res
 import com.jcotters.features.catalogue.resources.cached_movies_refresh_error
-import com.jcotters.presentation.AddToListButton
 import com.jcotters.presentation.MovieLayoutToggle
 import com.jcotters.presentation.MovieListRow
 import com.jcotters.presentation.MovieSwipeActions
@@ -174,9 +173,7 @@ private fun PopularMoviesContent(
                             modifier = Modifier.fillMaxWidth(),
                             posterModifier = posterModifier(movie),
                             onOpen = openMovie,
-                        ) {
-                            if (onAddToList != null) AddToListButton(onClick = { onAddToList(movie.id) })
-                        }
+                        )
                         HorizontalDivider()
                     }
                 }
