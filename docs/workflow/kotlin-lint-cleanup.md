@@ -34,3 +34,5 @@ Completion requires zero findings for the agreed Detekt profile, resolved releva
 - Latest scan after this slice: **208 findings**, with behavior-sensitive refactoring and production constants still to address. No application build/tests or device verification for the formatting-only slice.
 
 - Naming/syntax slice: value types now have matching files, constants use Kotlin names, explicit mapper guards preserve validation, and redundant syntax/wildcard imports are removed. Studio validation passes all 33 touched Kotlin files. Existing Android host suite succeeds after correcting conditional callback lambdas; no cases were added. Source lint remains failing with **182 findings**.
+
+- Document slice: separate encoding, quoted-table reader, column mapping, reference parsing and export codecs. Preserve partial recovery and limits; JSON shape errors now catch `IllegalArgumentException`, preserving the root cause. Eight files pass Studio formatting, existing watchlist/shared host tests pass, strict lint reports **157 remaining**. No dedicated parser suite exists; that coverage remains deferred.

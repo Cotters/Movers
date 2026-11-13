@@ -12,7 +12,7 @@ Reviewed profile corrections extend default test exclusions to Android KMP host/
 
 First cleanup commit: `74dd5fb`. The next slice moves value types to matching files, fixes constant names/redundant syntax and keeps mapper validation as explicit guards. Conditional callback lambdas retain their function type; a first compile caught and corrected a semantic parentheses-removal mistake.
 
-Latest source-only scan: **182 findings remain**. Remaining slices cover actual long/complex functions, redundant syntax/naming, production constants and error boundaries. Do not present intermediate cleanup commits as lint-clean. Canonical pre-commit command is `scripts/check-code.sh`; formatting/import/diagnostic and manual architecture review remain separate requirements. See [code review](code-review.md).
+Latest source-only scan: **157 findings remain**. Remaining slices cover actual long/complex functions, redundant syntax/naming, production constants and error boundaries. Do not present intermediate cleanup commits as lint-clean. Canonical pre-commit command is `scripts/check-code.sh`; formatting/import/diagnostic and manual architecture review remain separate requirements. See [code review](code-review.md).
 
 ## Behavior to preserve
 
@@ -24,4 +24,5 @@ Latest source-only scan: **182 findings remain**. Remaining slices cover actual 
 
 - Formatting slice: Studio format plus lexical token comparison. Naming/syntax slice: all 33 changed/new Kotlin files pass Studio formatting; mechanical checks pass, source lint still fails with 182 findings. Existing `testAndroidHostTest testDebugUnitTest` now succeeds after correcting conditional lambdas. No new cases or devices. Type-aware IDE inspections remain unavailable; compilation covers Android types, not native targets.
 - Previous app evidence predates recent UI changes: `91bed7e`, 79 existing tests / 21 suites, Android debug build and shared iOS arm64 compilation. It is not evidence for forthcoming refactors. Existing missing `iosApp/MoversApp.swift` is still an app-link prerequisite; preserve its earlier deletion.
+- Document slice: decoding, CSV state/mapping, film references and export codecs are separated. All eight changed Kotlin files pass Studio formatting; mechanical checks pass. Existing watchlist/shared host tests pass. No dedicated import-parser tests exist; edge cases received source review, not a claim of runtime coverage.
 - Next: fix focused remaining findings, run existing host/native checks when the refactor scope warrants it (explain first), reach a clean agreed profile, then wire CI. New tests remain deferred. Physical Android/iPhone acceptance stays user-owned; never use emulators/simulators.
