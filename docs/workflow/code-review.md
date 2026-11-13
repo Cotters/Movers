@@ -54,6 +54,8 @@ These are design questions, not requirements to add classes/interfaces or inheri
 - **Interface segregation:** consumers receive the operations/data they need. The design system accepts display values and callbacks; it does not require film, participant or backend models.
 - **Dependency inversion:** features depend on existing provider-neutral contracts; internal adapters and Koin supply implementations. An interface per concrete class is not a goal.
 
+For broad operation boundaries, use the existing shared `recoverableResult` policy rather than duplicating cancellation guards or using plain `runCatching` for suspending work. Kotlin `runCatching` captures every `Throwable`; the policy deliberately rethrows cancellation and fatal errors. Callers still own typed domain errors, causes, user messages and `finally` cleanup. A warning fix must preserve semantics: conditional lambdas, infix operators and labelled/non-local returns need full-function review, not blind syntax removal.
+
 Prefer explicit names, straightforward control flow and focused changes. Preserve helpful abstraction and accessibility; fewer lines alone do not establish cleaner code. Formatting and lint are useful mechanics, not a substitute for this review.
 
 ## Tool limits

@@ -2,6 +2,7 @@ package com.jcotters.internal.watchlists
 
 import com.cotters.data.network.NetworkMonitor
 import com.cotters.data.network.NetworkStatus
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.contract.watchlists.data.FilmActivity
 import com.jcotters.contract.watchlists.data.ImportBatchResult
 import com.jcotters.contract.watchlists.data.ImportUnavailableException
@@ -20,14 +21,13 @@ import com.jcotters.database.MoversDatabase
 import com.jcotters.database.watchlists.DbSharedOperation
 import com.jcotters.profile.domain.DeviceProfileRepository
 import com.jcotters.profile.domain.ParticipantIdentity
-import kotlinx.coroutines.CancellationException
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
-import kotlin.uuid.Uuid
 
 internal class SharedWatchlistsRepository(
     private val database: MoversDatabase,
@@ -63,8 +63,8 @@ internal class SharedWatchlistsRepository(
         }
     }
 
-    private suspend fun refreshLists(listId: String?): Result<Unit> = result {
-        if (!configured) return@result
+    private suspend fun refreshLists(listId: String?): Result<Unit> = recoverableResult {
+        if (!configured) return@recoverableResult
         mutex.withLock {
             online()
             val id = identity.currentId() ?: run {
@@ -81,7 +81,7 @@ internal class SharedWatchlistsRepository(
         }
     }
 
-    override suspend fun publish(listId: String): Result<Unit> = result {
+    override suspend fun publish(listId: String): Result<Unit> = recoverableResult {
         mutex.withLock {
             val owner = participant()
             reconcile(owner)
@@ -102,11 +102,11 @@ internal class SharedWatchlistsRepository(
         }
     }
 
-    override suspend fun preview(invitation: String): Result<InvitePreview> = result {
+    override suspend fun preview(invitation: String): Result<InvitePreview> = recoverableResult {
         mutex.withLock { participant(); remote.preview(WatchlistInvitation.token(invitation)) }
     }
 
-    override suspend fun join(invitation: String): Result<String> = result {
+    override suspend fun join(invitation: String): Result<String> = recoverableResult {
         mutex.withLock {
             val owner = participant()
             reconcile(owner)
@@ -117,7 +117,7 @@ internal class SharedWatchlistsRepository(
         }
     }
 
-    override suspend fun invite(listId: String): Result<String> = result {
+    override suspend fun invite(listId: String): Result<String> = recoverableResult {
         mutex.withLock {
             val owner = participant(); reconcile(owner); WatchlistInvitation.url(remote.createInvite(listId))
         }
@@ -125,7 +125,7 @@ internal class SharedWatchlistsRepository(
 
     override suspend fun revokeInvites(listId: String) = mutate(SharedCommand.RevokeInvites(listId))
     override suspend fun leave(listId: String) = mutate(SharedCommand.Leave(listId))
-    override suspend fun loadActivity(listId: String, older: Boolean): Result<Boolean> = result {
+    override suspend fun loadActivity(listId: String, older: Boolean): Result<Boolean> = recoverableResult {
         mutex.withLock {
             val owner = participant()
             val cursor = database.sharedActivityDao().cursor(listId)
@@ -137,7 +137,7 @@ internal class SharedWatchlistsRepository(
         }
     }
 
-    suspend fun mutate(value: SharedCommand): Result<Unit> = result {
+    suspend fun mutate(value: SharedCommand): Result<Unit> = recoverableResult {
         mutex.withLock { val owner = participant(); reconcile(owner); command(owner, value) }
     }
 
@@ -256,11 +256,4 @@ internal class SharedWatchlistsRepository(
         }
     }
 
-    private suspend fun <T> result(block: suspend () -> T): Result<T> = try {
-        Result.success(block())
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
 }

@@ -2,6 +2,7 @@ package com.jcotters.profile.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.profile.domain.DeviceProfileRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -18,7 +19,9 @@ internal class ProfileViewModel(
     val uiState = state.asStateFlow()
     private var observation: Job? = null
 
-    init { retry() }
+    init {
+        retry()
+    }
 
     val savingName = MutableStateFlow(false)
     val nameError = MutableStateFlow<String?>(null)
@@ -26,10 +29,12 @@ internal class ProfileViewModel(
         if (savingName.value || savingColor.value) return
         savingName.value = true
         viewModelScope.launch {
-            try { profiles.saveName(name); nameError.value = null }
-            catch (e: CancellationException) { throw e }
-            catch (e: Exception) { nameError.value = e.message ?: "Unable to save your name." }
-            finally { savingName.value = false }
+            try {
+                recoverableResult { profiles.saveName(name); nameError.value = null }
+                    .onFailure { nameError.value = it.message ?: "Unable to save your name." }
+            } finally {
+                savingName.value = false
+            }
         }
     }
 
@@ -40,10 +45,12 @@ internal class ProfileViewModel(
         savingColor.value = true
         colorError.value = null
         viewModelScope.launch {
-            try { profiles.saveColor(color) }
-            catch (e: CancellationException) { throw e }
-            catch (_: Exception) { colorError.value = "Unable to save your colour. Try again." }
-            finally { savingColor.value = false }
+            try {
+                recoverableResult { profiles.saveColor(color) }
+                    .onFailure { colorError.value = "Unable to save your colour. Try again." }
+            } finally {
+                savingColor.value = false
+            }
         }
     }
 

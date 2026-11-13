@@ -2,8 +2,8 @@ package com.jcotters.internal.detail.data
 
 import com.jcotters.contract.detail.domain.IMovieTrailersRepository
 import com.jcotters.contract.detail.domain.MovieTrailer
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.internal.MovieApi
-import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -19,25 +19,24 @@ data class MovieVideoDto(
 )
 
 internal class MovieTrailersRepository(private val api: MovieApi) : IMovieTrailersRepository {
-    override suspend fun trailerForMovie(movieId: Int): Result<MovieTrailer?> = try {
+    override suspend fun trailerForMovie(movieId: Int): Result<MovieTrailer?> = recoverableResult {
         val response = api.getMovieVideos(movieId)
         require(response.id == movieId) { "Trailer response did not match the requested movie." }
         val candidates = response.results.orEmpty().filterNotNull().filter {
             it.site == "YouTube" && it.type == "Trailer" && it.key?.matches(videoKey) == true
         }
         val video = candidates.firstOrNull { it.official } ?: candidates.firstOrNull()
-        Result.success(video?.let {
+        video?.let {
             MovieTrailer(
                 title = it.name?.trim()?.takeIf(String::isNotEmpty) ?: "Trailer",
                 watchUrl = "https://www.youtube.com/watch?v=${it.key}",
                 embedUrl = "https://www.youtube.com/embed/${it.key}?playsinline=1&autoplay=0&fs=0",
             )
-        })
-    } catch (error: CancellationException) {
-        throw error
-    } catch (error: Exception) {
-        Result.failure(IllegalStateException("Unable to find a trailer.", error))
-    }
+        }
+    }.fold(
+        onSuccess = { Result.success(it) },
+        onFailure = { Result.failure(IllegalStateException("Unable to find a trailer.", it)) },
+    )
 
     private companion object {
         val videoKey = Regex("[A-Za-z0-9_-]{11}")

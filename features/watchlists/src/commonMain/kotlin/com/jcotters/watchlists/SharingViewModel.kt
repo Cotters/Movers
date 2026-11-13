@@ -2,6 +2,7 @@ package com.jcotters.watchlists
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.contract.watchlists.data.FilmActivity
 import com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
@@ -93,7 +94,9 @@ internal class SharingViewModel(
         state.update { it.copy(inviteUrl = url) }
     }
 
-    fun consumeInvite() { state.update { it.copy(inviteUrl = null) } }
+    fun consumeInvite() {
+        state.update { it.copy(inviteUrl = null) }
+    }
 
     fun revoke(id: String) = action {
         sharing.revokeInvites(id).getOrThrow()
@@ -119,19 +122,21 @@ internal class SharingViewModel(
         state.update { it.copy(joinedId = id, invitation = "") }
     }
 
-    fun consumeJoined() { state.update { it.copy(joinedId = null) } }
+    fun consumeJoined() {
+        state.update { it.copy(joinedId = null) }
+    }
 
     private fun action(block: suspend () -> Unit) {
         if (state.value.busy) return
         state.update { it.copy(busy = true, error = null, message = null) }
         viewModelScope.launch {
             try {
-                block()
+                recoverableResult { block() }.onFailure { error ->
+                    state.update { it.copy(error = error.message ?: "Unable to complete this shared change.") }
+                }
             } catch (error: CancellationException) {
                 pendingActivityListId = null
                 throw error
-            } catch (error: Exception) {
-                state.update { it.copy(error = error.message ?: "Unable to complete this shared change.") }
             } finally {
                 state.update { it.copy(busy = false) }
                 pendingActivityListId?.let { id ->

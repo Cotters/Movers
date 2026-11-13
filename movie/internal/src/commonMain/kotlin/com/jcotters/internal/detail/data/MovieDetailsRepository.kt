@@ -2,10 +2,10 @@ package com.jcotters.internal.detail.data
 
 import com.jcotters.contract.detail.domain.IMovieDetailsRepository
 import com.jcotters.contract.detail.domain.models.Movie
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.contract.time.AppClock
 import com.jcotters.database.movies.MovieDao
 import com.jcotters.internal.MovieApi
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -26,26 +26,24 @@ internal class MovieDetailsRepository(
         .map { it?.let(movieMapper::toDomainModel) }
         .distinctUntilChanged()
 
-    override suspend fun refreshMovieWithId(id: Int): Result<Unit> = try {
+    override suspend fun refreshMovieWithId(id: Int): Result<Unit> = recoverableResult {
         val movieMutex = refreshMutexRegistry.withLock { refreshMutexes.getOrPut(id) { Mutex() } }
         movieMutex.withLock {
             val fetchedAt = movieDao.getMovieById(id)?.detailsFetchedAt
             val now = clock.millis()
             if (fetchedAt != null && fetchedAt <= now && now - fetchedAt < CACHE_TTL_MILLIS) {
-                return@withLock Result.success(Unit)
+                return@withLock
             }
             val dto = api.getMovieById(movieId = id)
             require(dto.id == id) { "Movie details response did not match the requested movie." }
             val movie = movieMapper.toDatabaseModel(dto, fetchedAt = clock.millis())
                 ?: throw NoSuchElementException("Movie details response omitted its title.")
             movieDao.saveMovieDetails(movie)
-            Result.success(Unit)
         }
-    } catch (error: CancellationException) {
-        throw error
-    } catch (error: Exception) {
-        Result.failure(IllegalStateException("Unable to load additional movie details.", error))
-    }
+    }.fold(
+        onSuccess = { Result.success(Unit) },
+        onFailure = { Result.failure(IllegalStateException("Unable to load additional movie details.", it)) },
+    )
 
     private companion object {
         const val CACHE_TTL_MILLIS = 24 * 60 * 60 * 1000L

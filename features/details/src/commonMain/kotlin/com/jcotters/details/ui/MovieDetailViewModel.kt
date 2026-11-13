@@ -3,7 +3,7 @@ package com.jcotters.details.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jcotters.contract.detail.domain.IMovieDetailsRepository
-import kotlinx.coroutines.CancellationException
+import com.jcotters.contract.result.recoverableResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,21 +63,17 @@ internal class MovieDetailViewModel(
         viewModelUiState.update { it.copy(isRefreshingDetails = true, detailsError = null) }
         detailRefresh = viewModelScope.launch {
             try {
-                movieDetailsRepository.refreshMovieWithId(movieId).onFailure {
-                    viewModelUiState.update { current ->
-                        current.copy(detailsError = "Unable to load additional movie details.")
+                recoverableResult { movieDetailsRepository.refreshMovieWithId(movieId).getOrThrow() }
+                    .onFailure {
+                        viewModelUiState.update { it.copy(detailsError = "Unable to load additional movie details.") }
                     }
-                }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                viewModelUiState.update { it.copy(detailsError = "Unable to load additional movie details.") }
             } finally {
                 if (loadedMovieId == movieId) {
                     viewModelUiState.update { current ->
                         current.copy(
                             // A successful refresh may finish before Room emits its first row.
-                            isLoading = current.movie == null && current.detailsError == null && current.errorMessage.isBlank(),
+                            isLoading = current.movie == null && current.detailsError == null &&
+                                current.errorMessage.isBlank(),
                             isRefreshingDetails = false,
                         )
                     }

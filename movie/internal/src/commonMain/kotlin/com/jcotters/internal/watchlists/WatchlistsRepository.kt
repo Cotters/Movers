@@ -1,5 +1,6 @@
 package com.jcotters.internal.watchlists
 
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.contract.time.AppClock
 import com.jcotters.contract.watchlists.data.MAX_IMPORT_BATCH_SIZE
 import com.jcotters.contract.watchlists.data.WatchlistDatabase
@@ -9,7 +10,6 @@ import com.jcotters.contract.watchlists.domain.Watchlist
 import com.jcotters.contract.watchlists.domain.WatchlistContent
 import com.jcotters.contract.watchlists.domain.WatchlistNotFoundException
 import kotlin.uuid.Uuid
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.map
 
 internal class WatchlistsRepository(private val database: WatchlistDatabase, private val clock: AppClock) :
@@ -53,22 +53,25 @@ internal class WatchlistsRepository(private val database: WatchlistDatabase, pri
     private fun validateName(name: String): String =
         name.trim().also { require(it.isNotBlank()) { "Enter a list name." } }
 
-    private suspend fun <T> write(message: String, operation: suspend () -> T): Result<T> = try {
-        Result.success(operation())
-    } catch (error: CancellationException) {
-        throw error
-    } catch (error: WatchlistNotFoundException) {
-        Result.failure(error)
-    } catch (error: IllegalArgumentException) {
-        Result.failure(error)
-    } catch (error: Exception) {
-        Result.failure(
-            if (error is com.jcotters.contract.watchlists.data.SharedConnectionException ||
-                error is com.jcotters.contract.watchlists.data.SharedAccessDeniedException ||
-                error is com.jcotters.contract.watchlists.data.ImportUnavailableException ||
-                error is com.jcotters.contract.watchlists.data.SharingUnavailableException
-            ) error else IllegalStateException(message, error)
-        )
+    private suspend fun <T> write(message: String, operation: suspend () -> T): Result<T> = recoverableResult {
+        operation()
+    }.fold(
+        onSuccess = { Result.success(it) },
+        onFailure = { error ->
+            Result.failure(
+                if (preservesFailure(error)) error else IllegalStateException(message, error)
+            )
+        },
+    )
+
+    private fun preservesFailure(error: Throwable): Boolean = when (error) {
+        is WatchlistNotFoundException, is IllegalArgumentException,
+        is com.jcotters.contract.watchlists.data.SharedConnectionException,
+        is com.jcotters.contract.watchlists.data.SharedAccessDeniedException,
+        is com.jcotters.contract.watchlists.data.ImportUnavailableException,
+        is com.jcotters.contract.watchlists.data.SharingUnavailableException -> true
+
+        else -> false
     }
 }
 

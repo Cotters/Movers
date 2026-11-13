@@ -16,12 +16,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
+import com.jcotters.contract.result.recoverableResult
+import java.io.ByteArrayOutputStream
+import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.io.File
 
 @Composable
 internal actual fun rememberDocumentActions(
@@ -40,7 +41,7 @@ internal actual fun rememberDocumentActions(
             result(DocumentResult.Cancelled); return@rememberLauncherForActivityResult
         }
         scope.launch {
-            try {
+            recoverableResult {
                 val document = withContext(Dispatchers.IO) {
                     val name =
                         context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
@@ -61,10 +62,10 @@ internal actual fun rememberDocumentActions(
                     PickedDocument(name, bytes)
                 }
                 if (alive) picked(document)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                if (alive) result(DocumentResult.Failed(if (e is IllegalArgumentException) "Choose a readable file up to 5 MB." else "Couldn't open this file."))
+            }.onFailure { e ->
+                val message = if (e is IllegalArgumentException) "Choose a readable file up to 5 MB."
+                else "Couldn't open this file."
+                if (alive) result(DocumentResult.Failed(message))
             }
         }
     }

@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cotters.data.network.NetworkMonitor
 import com.cotters.data.network.NetworkStatus
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.profile.domain.DeviceProfileRepository
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,11 +29,11 @@ internal class AppViewModel(private val profiles: DeviceProfileRepository, netwo
         savingName.value = true
         viewModelScope.launch {
             try {
-                profiles.saveName(name); startup.value = StartupState.Ready; nameError.value = null
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                nameError.value = e.message ?: "Unable to save your name."
+                recoverableResult {
+                    profiles.saveName(name)
+                    startup.value = StartupState.Ready
+                    nameError.value = null
+                }.onFailure { nameError.value = it.message ?: "Unable to save your name." }
             } finally {
                 savingName.value = false
             }
@@ -54,16 +54,12 @@ internal class AppViewModel(private val profiles: DeviceProfileRepository, netwo
         if (initialization?.isActive == true) return
         startup.value = StartupState.Loading
         initialization = viewModelScope.launch {
-            try {
+            recoverableResult {
                 profiles.initialize()
                 val profile = profiles.profile.first()
                 suggestedName.value = profile?.displayName.orEmpty()
                 startup.value = if (profile?.nameConfirmed == true) StartupState.Ready else StartupState.NameRequired
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: Exception) {
-                startup.value = StartupState.Failed
-            }
+            }.onFailure { startup.value = StartupState.Failed }
         }
     }
 }

@@ -6,6 +6,7 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.immediateTransaction
 import androidx.room.useWriterConnection
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.contract.time.AppClock
 import com.jcotters.database.MoversDatabase
 import com.jcotters.database.movies.DbMovie
@@ -13,7 +14,6 @@ import com.jcotters.database.movies.DbMovieCatalogueRemoteKey
 import com.jcotters.database.movies.MovieCatalogue
 import com.jcotters.internal.MovieApi
 import com.jcotters.internal.detail.data.MovieMapper
-import kotlinx.coroutines.CancellationException
 
 @OptIn(ExperimentalPagingApi::class)
 internal class PopularMoviesRemoteMediator(
@@ -48,16 +48,11 @@ internal class PopularMoviesRemoteMediator(
         loadType: LoadType,
         state: PagingState<Int, DbMovie>
     ): MediatorResult {
-        return try {
-            val page: Int = when (loadType) {
-                LoadType.REFRESH -> START_PAGE
-                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
-                LoadType.APPEND -> {
-                    remoteKeysDao.getRemoteKey(catalogue)?.nextPage
-                        ?: return MediatorResult.Success(
-                            endOfPaginationReached = true
-                        )
-                }
+        if (loadType == LoadType.PREPEND) return MediatorResult.Success(endOfPaginationReached = true)
+        return recoverableResult<MediatorResult> {
+            val page = if (loadType == LoadType.REFRESH) START_PAGE else {
+                remoteKeysDao.getRemoteKey(catalogue)?.nextPage
+                    ?: return@recoverableResult MediatorResult.Success(endOfPaginationReached = true)
             }
 
             val response = movieApi.getPopularMovies(page = page)
@@ -89,11 +84,7 @@ internal class PopularMoviesRemoteMediator(
                 }
             }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            MediatorResult.Error(e)
-        }
+        }.getOrElse { MediatorResult.Error(it) }
     }
 
     private suspend fun removeCatalogueData() {

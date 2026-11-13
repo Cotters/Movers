@@ -1,15 +1,16 @@
 package com.jcotters.watchlists.preferences
 
+import com.jcotters.contract.result.recoverableResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
@@ -75,7 +76,7 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
 
     private suspend fun change(transform: (WatchlistPreferenceState) -> WatchlistPreferenceState): Result<Unit> =
         mutex.withLock {
-            try {
+            recoverableResult {
                 if (!mutableState.value.ready) mutableState.value = decode(storage.read()).copy(ready = true)
                 val current = mutableState.value
                 val next = transform(current)
@@ -88,11 +89,6 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
                     }
                     currentCoroutineContext().ensureActive()
                 }
-                Result.success(Unit)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                Result.failure(error)
             }
         }
 

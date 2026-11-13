@@ -1,8 +1,9 @@
 package com.jcotters.watchlists
 
 import com.jcotters.contract.detail.domain.models.Movie
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
-import kotlinx.coroutines.CancellationException
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.uuid.Uuid
 
 internal data class RemovalKey(val listId: String, val movieId: Int)
 internal data class RemovalTarget(val key: RemovalKey, val title: String)
@@ -63,13 +63,11 @@ internal class WatchlistRemovalCoordinator(private val repository: IWatchlistsRe
             scope.launch {
                 for (target in batch.targets) {
                     try {
-                        repository.removeMovie(target.key.listId, target.key.movieId).onFailure {
+                        recoverableResult {
+                            repository.removeMovie(target.key.listId, target.key.movieId).getOrThrow()
+                        }.onFailure {
                             failures.send("Couldn't remove “${target.title}”.")
                         }
-                    } catch (error: CancellationException) {
-                        throw error
-                    } catch (error: Exception) {
-                        failures.send("Couldn't remove “${target.title}”.")
                     } finally {
                         state.update { it.copy(committing = it.committing - target.key) }
                     }

@@ -1,5 +1,6 @@
 package com.jcotters.backend.supabase
 
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.contract.watchlists.data.ActivityPage
 import com.jcotters.contract.watchlists.data.ImportBatchResult
 import com.jcotters.contract.watchlists.data.ImportUnavailableException
@@ -18,19 +19,21 @@ import io.github.jan.supabase.auth.exception.NoSessionFoundException
 import io.github.jan.supabase.auth.user.UserSession
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.exception.PostgrestRestException
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -51,7 +54,7 @@ internal interface SecureCredentialStore {
 internal class SecureSessions(private val store: SecureCredentialStore) : SessionManager {
     private val json = Json { ignoreUnknownKeys = true }
     private val mutex = Mutex()
-    var failure: Exception? = null
+    var failure: Throwable? = null
         private set
 
     override suspend fun saveSession(session: UserSession) = protect { store.write(json.encodeToString(session)) }
@@ -60,13 +63,11 @@ internal class SecureSessions(private val store: SecureCredentialStore) : Sessio
         protect { store.read()?.let { json.decodeFromString<UserSession>(it) } }
 
     override suspend fun deleteSession() = protect { store.clear() }
-    private suspend fun <T> protect(block: suspend () -> T): T = try {
+    private suspend fun <T> protect(block: suspend () -> T): T = recoverableResult {
         mutex.withLock { block().also { failure = null } }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        failure = e
-        throw IllegalStateException("Unable to read or save this device's sharing identity.")
+    }.getOrElse { error ->
+        failure = error
+        throw IllegalStateException("Unable to read or save this device's sharing identity.", error)
     }
 }
 
@@ -86,38 +87,30 @@ class SupabaseBackend internal constructor(url: String, key: String, store: Secu
     private fun backend() = client ?: throw SharingUnavailableException()
     override suspend fun currentId(): String? {
         val client = backend()
-        try {
-            client.auth.awaitInitialization()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (_: Exception) {
-            throw IllegalStateException("Unable to restore your sharing identity. Reopen the app to retry.")
+        recoverableResult { client.auth.awaitInitialization() }.getOrElse { error ->
+            throw IllegalStateException("Unable to restore your sharing identity. Reopen the app to retry.", error)
         }
-        if (sessions.failure != null) throw IllegalStateException("Unable to restore your sharing identity. Reopen the app to retry; do not clear app data.")
+        check(sessions.failure == null) {
+            "Unable to restore your sharing identity. Reopen the app to retry; do not clear app data."
+        }
         val saved = sessions.loadSessionOrNull()
         if (saved != null && client.auth.currentUserOrNull() == null) {
-            try {
-                client.auth.importSession(saved)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-                throw IllegalStateException("Unable to restore your sharing identity. Reconnect and retry.")
+            recoverableResult { client.auth.importSession(saved) }.getOrElse { error ->
+                throw IllegalStateException("Unable to restore your sharing identity. Reconnect and retry.", error)
             }
         }
         val id = client.auth.currentUserOrNull()?.id
-        if (saved != null && id == null) throw IllegalStateException("Unable to restore your sharing identity. Reconnect and retry.")
+        check(saved == null || id != null) { "Unable to restore your sharing identity. Reconnect and retry." }
         return id
     }
 
     override suspend fun ensure(name: String, color: Int): String = identityMutex.withLock {
         val client = backend()
         val id = currentId() ?: run {
-            try {
-                client.auth.signInAnonymously()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (_: Exception) {
-                throw IllegalStateException("Unable to create this device's sharing identity. Check your connection and retry later.")
+            recoverableResult { client.auth.signInAnonymously() }.getOrElse { error ->
+                throw IllegalStateException(
+                    "Unable to create this device's sharing identity. Check your connection and retry later.", error
+                )
             }
             currentId() ?: error("Unable to create this device's sharing identity.")
         }
@@ -171,29 +164,30 @@ class SupabaseBackend internal constructor(url: String, key: String, store: Secu
                 collection.join()
             }
         } finally {
-            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { backend().realtime.removeChannel(channel) }
+            withContext(NonCancellable) { backend().realtime.removeChannel(channel) }
         }
     }
 
     private fun params(id: String) = buildJsonObject { put("p_list", id) }
-    private suspend fun rpc(name: String, params: JsonObject): JsonElement = try {
+    private suspend fun rpc(name: String, params: JsonObject): JsonElement = recoverableResult {
         val data = backend().postgrest.rpc(name, params).data
         if (data.isBlank()) JsonNull else json.parseToJsonElement(data)
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: io.github.jan.supabase.postgrest.exception.PostgrestRestException) {
-        when (e.code) {
-            "PGRST202" -> if (name == "movers_import") throw ImportUnavailableException() else throw IllegalStateException(
-                "This backend needs updating."
+    }.getOrElse { throw rpcFailure(name, it) }
+
+    private fun rpcFailure(name: String, error: Throwable): Throwable = when (error) {
+        is PostgrestRestException -> when (error.code) {
+            "PGRST202" -> if (name == "movers_import") ImportUnavailableException()
+            else IllegalStateException("This backend needs updating.", error)
+
+            "42501" -> SharedAccessDeniedException()
+            "22023", "23514", "23502", "23505", "22P02", "22001" -> IllegalArgumentException(
+                "This change or invitation is invalid. Check the name or request a new invitation.", error
             )
 
-            "42501" -> throw SharedAccessDeniedException()
-            "22023", "23514", "23502", "23505", "22P02", "22001" -> throw IllegalArgumentException("This change or invitation is invalid. Check the name or request a new invitation.")
-            else -> throw IllegalStateException("Unable to save this shared change. Retry when connected.")
+            else -> IllegalStateException("Unable to save this shared change. Retry when connected.", error)
         }
-    } catch (e: SharingUnavailableException) {
-        throw e
-    } catch (e: Exception) {
-        throw SharedConnectionException()
+
+        is SharingUnavailableException -> error
+        else -> SharedConnectionException()
     }
 }

@@ -3,6 +3,7 @@ package com.jcotters.watchlists
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jcotters.contract.detail.domain.models.Movie
+import com.jcotters.contract.result.recoverableResult
 import com.jcotters.contract.watchlists.data.FilmReference
 import com.jcotters.contract.watchlists.data.FilmResolution
 import com.jcotters.contract.watchlists.data.ImportDisposition
@@ -187,7 +188,7 @@ internal class FilmImportViewModel(
         parser?.cancel()
         state.update { it.copy(parsing = true, error = null) }
         parser = viewModelScope.launch {
-            try {
+            recoverableResult {
                 source = withContext(Dispatchers.Default) { ListDocuments.decode(bytes) }
                 state.update {
                     it.copy(
@@ -199,9 +200,7 @@ internal class FilmImportViewModel(
                     )
                 }
                 parseNow()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
+            }.onFailure { e ->
                 state.update { it.copy(parsing = false, parsed = null, error = e.message ?: "Unable to read file.") }
             }
         }
@@ -231,7 +230,7 @@ internal class FilmImportViewModel(
 
     private suspend fun parseNow() {
         val current = state.value
-        try {
+        recoverableResult {
             val result = withContext(Dispatchers.Default) {
                 ListDocuments.parse(
                     source,
@@ -241,9 +240,7 @@ internal class FilmImportViewModel(
                 )
             }
             state.update { it.copy(parsing = false, parsed = result, error = null) }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
+        }.onFailure { e ->
             state.update { it.copy(parsing = false, parsed = null, error = e.message ?: "Unable to read these films.") }
         }
     }
@@ -294,67 +291,70 @@ internal class FilmImportViewModel(
         state.update { it.copy(running = true, paused = false, error = null) }
         worker = viewModelScope.launch {
             try {
-                if (pending != null && !commit(id)) return@launch
-                while (true) {
-                    var lookupFailed = false
-                    val next =
-                        if (resolveOnly) emptyList() else state.value.rows.filter { it.status == ImportRowState.Ready }
-                            .take(MAX_IMPORT_BATCH_SIZE)
-                    for (pair in next.groupBy { it.input.reference }.entries.chunked(2)) {
-                        val results = coroutineScope {
-                            pair.map { (reference, rows) ->
-                                async {
-                                    rows.forEach { row -> update(row.id) { it.copy(status = ImportRowState.LookingUp) } }
-                                    try {
-                                        Triple(rows, resolve(reference), null)
-                                    } catch (e: CancellationException) {
-                                        throw e
-                                    } catch (e: Exception) {
-                                        Triple(rows, null, e.message ?: "Unable to look up this film.")
-                                    }
-                                }
-                            }.map { it.await() }
-                        }
-                        results.forEach { (rows, result, error) ->
-                            rows.forEach { row ->
-                                update(row.id) {
-                                    when (result) {
-                                        is FilmResolution.Matched -> it.copy(
-                                            status = ImportRowState.Resolved,
-                                            movie = result.movie,
-                                            issue = null
-                                        )
-
-                                        is FilmResolution.Review -> it.copy(
-                                            status = ImportRowState.Review,
-                                            candidates = result.candidates,
-                                            issue = result.reason
-                                        )
-
-                                        null -> it.copy(status = ImportRowState.Failed, issue = error)
-                                    }
-                                }
-                            }
-                            if (error != null) lookupFailed = true
-                        }
-                        if (lookupFailed) break
-                    }
-                    prepareBatch(id)
+                recoverableResult {
                     if (pending != null && !commit(id)) return@launch
-                    if (lookupFailed) {
-                        state.update {
-                            it.copy(
-                                paused = true,
-                                error = "Lookup paused. Retry when connected."
-                            )
-                        }; return@launch
+                    while (true) {
+                        var lookupFailed = false
+                        val next =
+                            if (resolveOnly) emptyList() else state.value.rows.filter { it.status == ImportRowState.Ready }
+                                .take(MAX_IMPORT_BATCH_SIZE)
+                        for (pair in next.groupBy { it.input.reference }.entries.chunked(2)) {
+                            val results = coroutineScope {
+                                pair.map { (reference, rows) ->
+                                    async {
+                                        rows.forEach { row -> update(row.id) { it.copy(status = ImportRowState.LookingUp) } }
+                                        recoverableResult { resolve(reference) }.fold(
+                                            onSuccess = { Triple(rows, it, null) },
+                                            onFailure = {
+                                                Triple(
+                                                    rows,
+                                                    null,
+                                                    it.message ?: "Unable to look up this film."
+                                                )
+                                            },
+                                        )
+                                    }
+                                }.map { it.await() }
+                            }
+                            results.forEach { (rows, result, error) ->
+                                rows.forEach { row ->
+                                    update(row.id) {
+                                        when (result) {
+                                            is FilmResolution.Matched -> it.copy(
+                                                status = ImportRowState.Resolved,
+                                                movie = result.movie,
+                                                issue = null
+                                            )
+
+                                            is FilmResolution.Review -> it.copy(
+                                                status = ImportRowState.Review,
+                                                candidates = result.candidates,
+                                                issue = result.reason
+                                            )
+
+                                            null -> it.copy(status = ImportRowState.Failed, issue = error)
+                                        }
+                                    }
+                                }
+                                if (error != null) lookupFailed = true
+                            }
+                            if (lookupFailed) break
+                        }
+                        prepareBatch(id)
+                        if (pending != null && !commit(id)) return@launch
+                        if (lookupFailed) {
+                            state.update {
+                                it.copy(
+                                    paused = true,
+                                    error = "Lookup paused. Retry when connected."
+                                )
+                            }; return@launch
+                        }
+                        if (resolveOnly || state.value.rows.none { it.status == ImportRowState.Ready || it.status == ImportRowState.Resolved }) break
                     }
-                    if (resolveOnly || state.value.rows.none { it.status == ImportRowState.Ready || it.status == ImportRowState.Resolved }) break
+                }.onFailure { e ->
+                    state.update { it.copy(paused = true, error = e.message ?: "Import paused. Retry when connected.") }
                 }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                state.update { it.copy(paused = true, error = e.message ?: "Import paused. Retry when connected.") }
             } finally {
                 if (generation == version) state.update { it.copy(running = false) }
             }
@@ -494,7 +494,7 @@ internal class FilmImportViewModel(
         }
         state.update { it.copy(searching = true, candidates = emptyList(), searchError = null) }
         search = viewModelScope.launch {
-            try {
+            recoverableResult {
                 delay(debounceMillis)
                 val results = resolver.search(query)
                 state.update {
@@ -503,9 +503,7 @@ internal class FilmImportViewModel(
                         searching = false
                     ) else it
                 }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
+            }.onFailure { e ->
                 state.update { it.copy(searching = false, searchError = e.message ?: "Unable to search. Retry.") }
             }
         }
