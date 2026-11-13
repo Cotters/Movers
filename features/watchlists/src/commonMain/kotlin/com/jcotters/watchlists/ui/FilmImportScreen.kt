@@ -69,13 +69,13 @@ import org.koin.compose.viewmodel.koinViewModel
 internal fun FilmImportRoute(listId: String, navigator: Navigator) {
     val viewModel: FilmImportViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(listId) { viewModel.load(listId) }
+    LaunchedEffect(listId) { viewModel.session.load(listId) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle, viewModel) {
         val observer =
-            LifecycleEventObserver { _, _ -> viewModel.active(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
+            LifecycleEventObserver { _, _ -> viewModel.session.active(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
         lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer); viewModel.active(false) }
+        onDispose { lifecycle.removeObserver(observer); viewModel.session.active(false) }
     }
     val keyboard = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -86,7 +86,7 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
     val preference = rememberImportHelpPreference()
     var help by rememberSaveable { mutableStateOf(!preference.seen) }
     val documents = rememberDocumentActions(
-        onPicked = { viewModel.pickedFile(it.name, it.bytes) },
+        onPicked = { viewModel.input.pickedFile(it.name, it.bytes) },
         onResult = viewModel::documentResult,
     )
     LaunchedEffect(state.remainingDocument) {
@@ -99,7 +99,7 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
         detectTapGestures(onTap = { dismissKeyboard() })
     }, topBar = {
         MoversTopBar(title = { Text("Import films") }, navigationIcon = {
-            MoversIconButton(onClick = { viewModel.pause(); navigator.goBack() }) {
+            MoversIconButton(onClick = { viewModel.session.pause(); navigator.goBack() }) {
                 Icon(
                     painterResource(Res.drawable.arrow_back),
                     "Back"
@@ -147,7 +147,7 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                 if (state.filename == null) item {
                     MoversTextField(
                         value = state.text,
-                        onValueChange = viewModel::sourceChanged,
+                        onValueChange = viewModel.input::sourceChanged,
                         label = { Text("Paste titles or CSV") },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 4,
@@ -155,7 +155,7 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { dismissKeyboard() }),
                     )
-                } else item { MoversTextButton(onClick = { viewModel.sourceChanged("") }) { Text("Paste instead") } }
+                } else item { MoversTextButton(onClick = { viewModel.input.sourceChanged("") }) { Text("Paste instead") } }
                 item { ImportFormatControls(state, viewModel) }
                 if (state.parsing) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
                 state.parsed?.let { parsed ->
@@ -180,7 +180,7 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                 }
                 item {
                     MoversButton(
-                        onClick = { dismissKeyboard(); viewModel.start() },
+                        onClick = { dismissKeyboard(); viewModel.session.start() },
                         enabled = !state.parsing && !state.unavailable && !state.parsed?.films.isNullOrEmpty()
                     ) { Text("Import") }
                 }
@@ -194,9 +194,9 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                 if (state.running) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (state.running) MoversTextButton(onClick = viewModel::pause) { Text("Stop") }
+                        if (state.running) MoversTextButton(onClick = viewModel.session::pause) { Text("Stop") }
                         else if (state.canResume) {
-                            MoversButton(onClick = viewModel::start) { Text(if (state.error != null) "Retry failed" else "Resume") }
+                            MoversButton(onClick = viewModel.session::start) { Text(if (state.error != null) "Retry failed" else "Resume") }
                         }
                         if (state.remainingCount > 0) MoversTextButton(
                             onClick = viewModel::saveRemaining,
@@ -265,7 +265,7 @@ private fun ImportFormatControls(state: FilmImportState, viewModel: FilmImportVi
                 InputFormat.entries.forEach { format ->
                     MoversDropdownMenuItem(
                         text = { Text(format.label) },
-                        onClick = { menu = false; viewModel.formatChanged(format) })
+                        onClick = { menu = false; viewModel.input.formatChanged(format) })
                 }
             }
             if (state.parsed?.headings?.isNotEmpty() == true) MoversTextButton(onClick = { columns = !columns }) {
@@ -277,22 +277,33 @@ private fun ImportFormatControls(state: FilmImportState, viewModel: FilmImportVi
         val parsed = state.parsed
         if (columns && parsed != null && parsed.headings.isNotEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                MoversCheckbox(state.headerOverride ?: parsed.hasHeader, onCheckedChange = viewModel::headerChanged)
+                MoversCheckbox(
+                    state.headerOverride ?: parsed.hasHeader,
+                    onCheckedChange = viewModel.input::headerChanged
+                )
                 Text("Header row")
             }
             val mapping = state.mappingOverride ?: parsed.mapping
-            ColumnPicker("Title", parsed.headings, mapping.title) { viewModel.mappingChanged(mapping.copy(title = it)) }
-            ColumnPicker("Year", parsed.headings, mapping.year) { viewModel.mappingChanged(mapping.copy(year = it)) }
+            ColumnPicker(
+                "Title",
+                parsed.headings,
+                mapping.title
+            ) { viewModel.input.mappingChanged(mapping.copy(title = it)) }
+            ColumnPicker(
+                "Year",
+                parsed.headings,
+                mapping.year
+            ) { viewModel.input.mappingChanged(mapping.copy(year = it)) }
             ColumnPicker(
                 "TMDB ID",
                 parsed.headings,
                 mapping.movieId
-            ) { viewModel.mappingChanged(mapping.copy(movieId = it)) }
+            ) { viewModel.input.mappingChanged(mapping.copy(movieId = it)) }
             ColumnPicker(
                 "IMDb ID",
                 parsed.headings,
                 mapping.imdbId
-            ) { viewModel.mappingChanged(mapping.copy(imdbId = it)) }
+            ) { viewModel.input.mappingChanged(mapping.copy(imdbId = it)) }
         }
     }
 }
