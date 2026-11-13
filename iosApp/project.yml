@@ -2,7 +2,7 @@ name: Movers
 options:
   bundleIdPrefix: com.jcotters
   deploymentTarget:
-    iOS: '15.0'
+    iOS: '16.0'
 configs:
   Debug: debug
   Release: release

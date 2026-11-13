@@ -17,7 +17,7 @@ Movers shares its screens, navigation, ViewModels, repositories, HTTP policy, ca
 | `:backend:supabase` | Supabase SDK/remote operations, anonymous identity and native secure session storage behind neutral contracts |
 | `:presentation`, `:data:network` | Shared images/transitions/snackbars and network-status contract; native network observers |
 
-Use `src/commonMain/kotlin` and `composeResources` for reusable code/assets. `androidMain` and `iosMain` contain native integrations. Only the composition module creates the iOS framework; other modules remain libraries. iOS targets are `iosArm64` for physical devices and `iosSimulatorArm64` for Apple silicon simulators, minimum iOS 15. No Intel simulator or desktop target is configured. Room's KSP processor is configured for both iOS targets.
+Use `src/commonMain/kotlin` and `composeResources` for reusable code/assets. `androidMain` and `iosMain` contain native integrations. Only the composition module creates the iOS framework; other modules remain libraries. iOS targets are `iosArm64` for physical devices and `iosSimulatorArm64` for Apple silicon simulators; the app minimum is iOS 16.0, configured in both `iosApp/project.yml` and the Xcode project. No Intel simulator or desktop target is configured. Room's KSP processor is configured for both iOS targets.
 
 Koin definitions stay at composition boundaries; constructors receive typed dependencies. Feature entry providers own their screens. ViewModels use the Nav 3 entry's store, not a global singleton. Navigation uses an explicit polymorphic serializer registry on both platforms; register new keys when adding destinations. Do not reintroduce Android reflection-based serialization in common code.
 
@@ -48,6 +48,8 @@ xcodegen generate --spec iosApp/project.yml --project iosApp
 The iOS verification script builds unsigned with the physical-device SDK; it does not install or launch anything. `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` compiles the arm64 Simulator framework without launching anything. Agents never run or interact with emulators/simulators under the latest standing instruction. Native runtime/UI verification remains user-owned on physical devices. Android PR CI runs the host script with a placeholder token. iOS CI, signing, distribution, and runtime acceptance are not implied by a local build.
 
 For archive readiness, run `./scripts/verify-ios.sh --archive` as a separate check. It exercises Release optimization and writes an unsigned archive to `build/iosArchives/Movers.xcarchive`; use Xcode's signed Archive flow for actual device/TestFlight distribution. See [verification](testing.md#shared-androidios-verification) for heap settings and the difference between Debug and archive coverage.
+
+Follow the [iOS build/release procedure](ios-release.md) for Swift formatting, artifact checks, physical-device acceptance and signed delivery. A shared-framework build does not verify `MoversApp.swift` or the complete Xcode host. Keep that entry point tracked along with its XcodeGen source reference.
 
 ### App Store Connect and uploads
 
@@ -96,6 +98,6 @@ KMP supplies shared code/logic and target integrations; Compose Multiplatform su
 - Review common sources and public contracts for Android/JVM/provider-only types. Preserve entry-scoped ViewModels, explicit NavKey serializers and Koin bindings on both hosts. Verify packaged resources when assets/conventions change; compilation/accessors alone do not establish packaging or portable XML parsing.
 - Apply the [requested/necessary build policy](testing.md#verification-by-change); no automatic gates during iteration. When verification is requested/necessary, select affected host/native checks. For target, KSP, resource-packaging or convention changes, consider affected configured targets, including `:shared:linkDebugFrameworkIosSimulatorArm64` when affected. This builds a framework without starting a simulator. Compile relevant Android test APKs separately.
 - Record each target and result separately. Robolectric is Android host simulation; it does not execute iOS. Linking a framework or preparing simulator resources does not prove native launch/runtime behavior.
-- Keep platform warnings visible. The historical bundled ICU Simulator object warning (built for 18.5; configured minimum 15.0) remains a release/compatibility follow-up; successful newer-OS validation does not establish minimum-OS support.
+- Keep platform warnings visible. The historical bundled ICU Simulator object warning (built for 18.5; then configured minimum 15.0, now 16.0) remains a compatibility follow-up; changing the app target or successful newer-OS validation does not establish minimum-OS support. Physical-device iOS 16 acceptance is still required.
 
 See [Kotlin's source-set guidance](https://kotlinlang.org/docs/multiplatform/multiplatform-share-on-platforms.html) and [AI-specific Kotlin acceptance guidance](https://kotlinlang.org/docs/ai-for-development.html#kotlin-specific-acceptance-criteria). Apply target checks within the user's no-device and existing-tests-only policies.
