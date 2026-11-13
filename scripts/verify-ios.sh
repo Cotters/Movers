@@ -31,7 +31,7 @@ if [[ ! "$java_version" =~ $version_pattern ]] || [[ "${BASH_REMATCH[1]}" != 17 
 fi
 
 xcrun --find swift-format >/dev/null 2>&1 || fail 'The selected Xcode must provide swift-format.'
-xcrun swift-format lint --strict iosApp/MoversApp.swift
+xcrun swift-format lint --strict iosApp/MoversApp.swift iosApp/MoversNotificationDelegate.swift iosApp/PushEnvironment.swift
 
 configuration=Debug
 action=build

@@ -32,7 +32,12 @@ import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId: String) {
+internal fun WatchlistDetailRoute(
+    listId: String,
+    navigator: Navigator,
+    stackId: String,
+    fromNotification: Boolean = false,
+) {
     val viewModel: WatchlistDetailViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val suggestions = viewModel.suggestions.collectAsLazyPagingItems()
@@ -51,6 +56,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     var attribution by remember(listId) { mutableStateOf<FilmContribution?>(null) }
     WatchlistDetailEffects(
         listId, state, viewModel, navigator, listState, gridState, onRenamed = { renaming = false },
+        fromNotification = fromNotification,
     )
     Scaffold(topBar = {
         WatchlistDetailTopBar(
@@ -140,8 +146,9 @@ private fun WatchlistDetailEffects(
     listState: LazyListState,
     gridState: LazyGridState,
     onRenamed: () -> Unit,
+    fromNotification: Boolean,
 ) {
-    LaunchedEffect(listId) { viewModel.load(listId) }
+    LaunchedEffect(listId) { viewModel.load(listId, fromNotification) }
     LaunchedEffect(state.deleted) { if (state.deleted) navigator.goBack() }
     LaunchedEffect(state.renamed) {
         if (state.renamed) {

@@ -5,6 +5,8 @@ import com.jcotters.contract.watchlists.data.ActivityPage
 import com.jcotters.contract.watchlists.data.ImportBatchResult
 import com.jcotters.contract.watchlists.data.ImportUnavailableException
 import com.jcotters.contract.watchlists.data.InvitePreview
+import com.jcotters.contract.watchlists.data.PushRegistration
+import com.jcotters.contract.watchlists.data.PushRegistrations
 import com.jcotters.contract.watchlists.data.SharedAccessDeniedException
 import com.jcotters.contract.watchlists.data.SharedCommand
 import com.jcotters.contract.watchlists.data.SharedConnectionException
@@ -73,7 +75,7 @@ internal class SecureSessions(private val store: SecureCredentialStore) : Sessio
 
 /** Provider implementation. Applications bind its neutral interfaces at composition. */
 class SupabaseBackend internal constructor(url: String, key: String, store: SecureCredentialStore) :
-    SharedWatchlistRemote, ParticipantIdentity {
+    SharedWatchlistRemote, ParticipantIdentity, PushRegistrations {
     override val configured = url.startsWith("https://") && key.isNotBlank() && !key.startsWith("$(")
     private val sessions = SecureSessions(store)
     private val identityMutex = Mutex()
@@ -120,6 +122,16 @@ class SupabaseBackend internal constructor(url: String, key: String, store: Secu
 
     override suspend fun update(name: String, color: Int) {
         rpc("movers_profile", buildJsonObject { put("p_name", name); put("p_color", color) })
+    }
+
+    override suspend fun registerPush(registration: PushRegistration) {
+        check(currentId() != null) { "Sharing identity required." }
+        rpc("movers_push_register", buildJsonObject {
+            put("p_device", registration.deviceId)
+            put("p_environment", registration.environment.wireName)
+            put("p_token", registration.token?.let(::JsonPrimitive) ?: JsonNull)
+            put("p_enabled", registration.enabled)
+        })
     }
 
     override suspend fun snapshot(listId: String): SharedSnapshot =

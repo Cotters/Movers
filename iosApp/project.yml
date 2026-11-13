@@ -15,6 +15,8 @@ targets:
     platform: iOS
     sources:
       - path: MoversApp.swift
+      - path: MoversNotificationDelegate.swift
+      - path: PushEnvironment.swift
       - path: Assets.xcassets
       - path: PrivacyInfo.xcprivacy
     info:
@@ -35,6 +37,7 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
     settings:
       base:
+        CODE_SIGN_ENTITLEMENTS: Movers.entitlements
         PRODUCT_BUNDLE_IDENTIFIER: com.jcotters.movers
         CURRENT_PROJECT_VERSION: 3
         MARKETING_VERSION: '0.2.0'
@@ -45,6 +48,10 @@ targets:
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         FRAMEWORK_SEARCH_PATHS: '$(inherited) "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"'
         OTHER_LDFLAGS: $(inherited) -framework MoversShared
+    attributes:
+      SystemCapabilities:
+        com.apple.Push:
+          enabled: 1
     preBuildScripts:
       - name: Build shared Kotlin framework
         basedOnDependencyAnalysis: false

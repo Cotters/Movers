@@ -14,7 +14,7 @@ enum class SharedSection { Members, Activity, Sharing }
 data class SharedListKey(val listId: String, val section: SharedSection) : NavKey
 
 @Serializable
-data class WatchlistDetailKey(val listId: String) : NavKey
+data class WatchlistDetailKey(val listId: String, val notificationEntryId: String? = null) : NavKey
 
 @Serializable
 data class ListTransferKey(val listId: String) : NavKey

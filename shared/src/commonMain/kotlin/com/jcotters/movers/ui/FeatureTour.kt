@@ -17,13 +17,14 @@ import com.jcotters.designsystem.MoversTextButton
 internal expect fun rememberFeatureTourPreference(): FeatureTourPreference
 
 @Composable
-internal fun FeatureTour() {
+internal fun FeatureTour(onFinish: () -> Unit = {}) {
     val preference = rememberFeatureTourPreference()
     var visible by rememberSaveable { mutableStateOf(!preference.seen) }
     if (visible) {
         FeatureTourDialog(onFinish = {
             preference.finish()
             visible = false
+            onFinish()
         })
     }
 }

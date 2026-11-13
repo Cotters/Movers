@@ -21,7 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -56,9 +59,14 @@ fun MoversApp(installers: Set<EntryProviderInstaller>) {
         }
 
         StartupState.Ready -> {
+            val tourPreference = rememberFeatureTourPreference()
+            var tourFinished by rememberSaveable { mutableStateOf(tourPreference.seen) }
             SharedListSynchronization()
-            MoversNavigationShell(networkStatus, installers, snackbarEffects = { WatchlistUndoMessages() })
-            FeatureTour()
+            MoversNavigationShell(
+                networkStatus, installers, snackbarEffects = { WatchlistUndoMessages() },
+                allowNotificationPrompt = tourFinished
+            )
+            FeatureTour(onFinish = { tourFinished = true })
         }
 
         StartupState.Failed -> androidx.compose.foundation.layout.Column {
@@ -75,9 +83,11 @@ internal fun MoversNavigationShell(
     installers: Set<EntryProviderInstaller>,
     state: NavigationState = rememberNavigationState(),
     snackbarEffects: @Composable () -> Unit = {},
+    allowNotificationPrompt: Boolean = true,
 ) {
     val navigator = remember(state) { AppNavigator(state) }
     IncomingInvitations(state, navigator)
+    com.jcotters.movers.notifications.NotificationEffects(state, allowNotificationPrompt, networkStatus)
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
     val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     val forwardTransition = remember { defaultTransitionSpec<NavKey>() }

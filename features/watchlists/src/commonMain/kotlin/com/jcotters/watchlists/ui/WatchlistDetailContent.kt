@@ -51,10 +51,7 @@ internal fun WatchlistDetailContent(
         if (state.loading) LinearProgressIndicator()
         state.error?.let {
             Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
-            MoversTextButton(onClick = {
-                viewModel.clearError()
-                viewModel.load(listId)
-            }) { Text("Retry") }
+            MoversTextButton(onClick = viewModel::retry) { Text("Retry") }
         }
         state.sortError?.let { message ->
             Text(message, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)

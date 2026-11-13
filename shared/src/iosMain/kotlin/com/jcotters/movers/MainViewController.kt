@@ -12,6 +12,7 @@ import io.ktor.client.engine.darwin.Darwin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 fun MainViewController() = ComposeUIViewController(configure = {
     // Shared content handles IME insets; panning this view would also move bottom navigation.
@@ -21,9 +22,16 @@ fun MainViewController() = ComposeUIViewController(configure = {
 }
 
 fun initializeIosMovers(apiToken: String, backendUrl: String = "", backendKey: String = "") = initializeMovers(module {
-    val backend = com.jcotters.backend.supabase.createIosBackend(backendUrl,backendKey)
+    val backend = com.jcotters.backend.supabase.createIosBackend(backendUrl, backendKey)
     single<com.jcotters.profile.domain.ParticipantIdentity> { backend }
     single<com.jcotters.contract.watchlists.data.SharedWatchlistRemote> { backend }
+    single<com.jcotters.contract.watchlists.data.PushRegistrations> { backend }
+    single<com.jcotters.movers.notifications.NativeNotifications> {
+        com.jcotters.movers.notifications.IosNotifications
+    }
+    single<com.jcotters.profile.domain.Notifications> {
+        com.jcotters.movers.notifications.WatchlistNotifications(get(), get(), get())
+    } onClose { (it as? com.jcotters.movers.notifications.WatchlistNotifications)?.close() }
     single<com.jcotters.contract.watchlists.domain.InvitationSharing> { IosInvitationSharing() }
     single<com.jcotters.watchlists.preferences.WatchlistPreferenceStorage> {
         com.jcotters.watchlists.preferences.IosWatchlistPreferenceStorage()

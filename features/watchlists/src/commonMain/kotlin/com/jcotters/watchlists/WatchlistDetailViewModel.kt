@@ -3,7 +3,6 @@ package com.jcotters.watchlists
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.filter
 import com.jcotters.contract.search.domain.IMovieSearchRepository
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
 import com.jcotters.contract.watchlists.domain.Watchlist
@@ -16,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,6 +30,7 @@ internal data class WatchlistDetailState(
     val preferencesReady: Boolean = false,
     val sortSaving: Boolean = false,
     val sortError: String? = null,
+    val recentOverride: Boolean = false,
     val memberIds: Set<Int> = emptySet(),
     val hiddenIds: Set<Int> = emptySet(),
     val membershipReadFailed: Boolean = false,
@@ -57,17 +56,18 @@ internal class WatchlistDetailViewModel(
     private val repository: IWatchlistsRepository,
     private val sharing: com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository,
     private val removals: WatchlistRemovalCoordinator,
-    savedState: SavedStateHandle,
+    private val savedState: SavedStateHandle,
     preferences: WatchlistPreferences,
     search: IMovieSearchRepository,
 ) : ViewModel() {
     private val state = MutableStateFlow(WatchlistDetailState())
-    val sorting = WatchlistSorting(preferences, state, viewModelScope)
+    val sorting = WatchlistSorting(preferences, state, savedState, viewModelScope)
     val filmSearch = WatchlistFilmSearch(repository, search, state, savedState, viewModelScope)
     val uiState = combine(state, filmSearch.query, preferences.state) { content, query, saved ->
         content.copy(
             query = query,
-            sort = content.listId?.let { saved.sorts[it] } ?: WatchlistSort(),
+            sort = if (content.recentOverride) WatchlistSort() else content.listId?.let { saved.sorts[it] }
+                ?: WatchlistSort(),
             preferencesReady = saved.ready)
     }.stateIn(
         viewModelScope,
@@ -80,12 +80,29 @@ internal class WatchlistDetailViewModel(
     private var listId: String? = null
     private var observation: Job? = null
 
-    fun load(id: String) {
+    fun load(id: String, fromNotification: Boolean = false) {
         sorting.retry()
         if (id == listId && observation?.isActive == true) return
+        if (fromNotification && savedState.get<Boolean>("notificationViewInitialized") != true) {
+            savedState["notificationViewInitialized"] = true
+            savedState["notificationRecentOverride"] = true
+            filmSearch.changeQuery("")
+        }
         observation?.cancel()
         listId = id
-        state.update { it.copy(listId = id, loading = true, error = null) }
+        state.update {
+            it.copy(
+                listId = id, loading = true, error = null,
+                recentOverride = savedState["notificationRecentOverride"] ?: false
+            )
+        }
+        if (fromNotification) viewModelScope.launch {
+            sharing.refresh(id).onFailure {
+                state.update {
+                    it.copy(error = "Couldn't refresh this watchlist. Check your connection and try again.")
+                }
+            }
+        }
         observation = viewModelScope.launch {
             combine(
                 repository.observeWatchlist(id),
@@ -115,6 +132,12 @@ internal class WatchlistDetailViewModel(
                 }
             }
         }
+    }
+
+    fun retry() {
+        val id = listId ?: return
+        observation?.cancel()
+        load(id, fromNotification = savedState.get<Boolean>("notificationViewInitialized") == true)
     }
 
     private data class ObservedWatchlist(

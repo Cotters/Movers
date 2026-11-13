@@ -4,6 +4,8 @@ import UIKit
 
 @main
 struct MoversApp: App {
+    @UIApplicationDelegateAdaptor(MoversNotificationDelegate.self) private var notifications
+
     init() {
         let token = Bundle.main.object(forInfoDictionaryKey: "TMDB_API_TOKEN") as? String ?? ""
         let backendUrl = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String ?? ""
