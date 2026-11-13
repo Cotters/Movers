@@ -56,3 +56,5 @@ Completion requires zero findings for the agreed Detekt profile, resolved releva
 - Detail/navigation rendering: focused metadata/genre/feedback sections, separate previews, trailer lifecycle and invitation effects, individual bottom tabs, shared fade definition, cached unchanged icon strokes. Eleven files pass Studio formatting; affected detail/shared host tasks pass. Strict lint reports **21 remaining**; physical visual acceptance remains pending.
 
 - Watchlist models: focus sorting/retry and saved-query suggestion ownership under the existing ViewModel scope/state; isolate local membership acknowledgement from shared revision waiting. Five files pass Studio formatting; affected host tasks pass. Strict lint reports **19 remaining**.
+
+- Import/search rendering: source/progress/review sections retain one lazy owner; platform/lifecycle hooks and modal search are explicit. Three files pass Studio formatting; affected host tasks pass. Strict lint reports **nine remaining**. Dedicated import/physical UI coverage remains deferred.

@@ -9,7 +9,7 @@ import com.jcotters.watchlists.documents.ParsedInput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
-private const val MAX_IMPORT_TITLE_LENGTH = 200
+internal const val MAX_IMPORT_TITLE_LENGTH = 200
 
 internal enum class ImportRowState { Ready, LookingUp, Resolved, Pending, Imported, Skipped, Review, Failed }
 internal data class ImportRow(
@@ -64,6 +64,9 @@ internal data class FilmImportState(
     val savingRemaining: Boolean = false,
     val documentMessage: String? = null,
 ) {
+    val progressLabel: String
+        get() = "$importedCount imported · $skippedCount skipped · $remainingCount " +
+            if (running) "remaining" else "need attention"
     val importedCount get() = rows.count { it.status == ImportRowState.Imported }
     val skippedCount get() = rows.count { it.status == ImportRowState.Skipped }
     val remainingCount get() = rows.count { it.remaining }

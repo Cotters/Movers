@@ -4,11 +4,11 @@ Updated 13 November 2026. Cleanup starts from `364b988`; owner authorized cleanu
 
 ## Active work: Kotlin hygiene cleanup
 
-[Cleanup plan](kotlin-lint-cleanup.md) is in progress: **656 initial findings → 19 remaining**. Strict source lint still fails; no baseline, broad suppression, ignore-failure setting or relaxed application complexity limits. Intermediate cleanup commits are explicitly not lint-clean feature commits.
+[Cleanup plan](kotlin-lint-cleanup.md) is in progress: **656 initial findings → 9 remaining**. Strict source lint still fails; no baseline, broad suppression, ignore-failure setting or relaxed application complexity limits. Intermediate cleanup commits are explicitly not lint-clean feature commits.
 
 Completed slices cover actual Studio formatting, declaration/syntax cleanup, document codecs, named limits, shared-control responsibilities, membership waits and existing migration fixture organization. The owner's title typography was included as authorized in `74dd5fb`. Later commits and evidence are in the cleanup plan/Git.
 
-Latest slice separates detail sorting/retry and saved-query film suggestions into focused ViewModel-owned models sharing the existing state/scope. The list/search membership guards and acknowledgement waits are preserved; local search membership confirmation is separate from the shared revision protocol. No new DI bindings, dependencies or intended behavior changes.
+Latest slice separates import source/progress/review content, native-document and lifecycle hooks, and the manual-resolution sheet. It retains one lazy scrolling owner and existing keyboard/actions. Import count text is derived state. Search separates load/error states from result rows with existing callbacks. No intended layout/interaction changes.
 
 The Studio formatter works alongside the user's IDE using isolated ignored directories in `build/quality/studio-formatter`; serialize its invocations. Explicit `STUDIO_PROPERTIES` overrides remain supported. Canonical code gate is `scripts/check-code.sh 364b988`; inspect exact staged content and report remaining lint failure. Type-aware IDE inspections are unavailable; source-only lint cannot prove unused imports or all compiler warnings absent.
 
@@ -20,7 +20,8 @@ The Studio formatter works alongside the user's IDE using isolated ignored direc
 
 ## Latest verification and next action
 
-- Watchlist-model slice: five changed/new Kotlin files pass Studio formatting; mechanical checks pass; strict source lint reports 19 remaining. Existing watchlist/search/shared host tasks pass. No new cases or devices.
+- Import/search screen slice: three changed Kotlin files pass Studio formatting; mechanical checks pass; strict source lint reports nine remaining. Existing watchlist/search/shared host tasks pass. No new cases or devices; dedicated import coverage remains absent.
+- Watchlist-model slice (`e7ada2d`) passed affected host tasks; sorting/suggestions share the existing state, scope and saved query.
 - Detail/navigation slice (`29c23e0`) passed affected detail/shared host tasks; physical visual acceptance remains pending.
 - Command/resolver slice (`652f147`) passed affected repository/shared host tasks. Native network-observer wrapping awaits cumulative iOS compilation.
 - Import-model slice (`89af7ba`) passed affected watchlist/shared host tasks. Input/lookup/session models share one state and ViewModel scope, retaining pending receipts and cancellation generations. Dedicated import coverage remains absent/deferred.

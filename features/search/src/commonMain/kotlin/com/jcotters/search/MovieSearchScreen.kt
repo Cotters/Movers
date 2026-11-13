@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +26,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
+import com.jcotters.contract.detail.domain.models.Movie
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.jcotters.designsystem.MoversIconButton
@@ -80,65 +83,91 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                 Text(it, Modifier.padding(12.dp), color = MaterialTheme.colorScheme.error)
                 MoversTextButton(onClick = { viewModel.clearError(); viewModel.retryLists() }) { Text("Dismiss") }
             }
-            when {
-                missing -> Text("This list no longer exists.", Modifier.padding(16.dp))
-                query.isBlank() -> Text("Search for a movie to add to your lists.", Modifier.padding(16.dp))
-                query.trim() != searchedQuery -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                movies.loadState.refresh is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                movies.loadState.refresh is LoadState.Error && movies.itemCount == 0 -> {
+            MovieSearchContent(query, searchedQuery, missing, movies) {
+                MovieSearchResults(
+                    movies, scroll, stackId, listId, added, actions,
+                    onOpen = { keyboard?.hide(); navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
+                    onAdd = { keyboard?.hide(); navigator.navigate(AddToListsKey(it)) },
+                    onMembershipChange = viewModel::setMembership,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MovieSearchContent(
+    query: String,
+    searchedQuery: String,
+    missing: Boolean,
+    movies: LazyPagingItems<Movie>,
+    results: @Composable () -> Unit,
+) {
+    when {
+        missing -> Text("This list no longer exists.", Modifier.padding(16.dp))
+        query.isBlank() -> Text("Search for a movie to add to your lists.", Modifier.padding(16.dp))
+        query.trim() != searchedQuery -> LinearProgressIndicator(Modifier.fillMaxWidth())
+        movies.loadState.refresh is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
+        movies.loadState.refresh is LoadState.Error && movies.itemCount == 0 -> {
+            Text(
+                (movies.loadState.refresh as LoadState.Error).error.message ?: "Unable to search.",
+                Modifier.padding(16.dp),
+                color = MaterialTheme.colorScheme.error
+            )
+            MoversTextButton(onClick = movies::retry) { Text("Retry") }
+        }
+
+        movies.itemCount == 0 -> Text("No movies found.", Modifier.padding(16.dp))
+        else -> results()
+    }
+}
+
+@Composable
+private fun MovieSearchResults(
+    movies: LazyPagingItems<Movie>,
+    scroll: LazyListState,
+    stackId: String,
+    listId: String?,
+    added: Set<Int>,
+    actions: SearchActionsState,
+    onOpen: (Int) -> Unit,
+    onAdd: (Int) -> Unit,
+    onMembershipChange: (Int, Boolean) -> Unit,
+) {
+    LazyColumn(state = scroll) {
+        items(movies.itemCount, key = movies.itemKey { it.id }) { index ->
+            val movie = movies[index] ?: return@items
+            MovieSearchResult(
+                movie,
+                posterModifier = moviePosterTransitionModifier(movie.id, stackId),
+                onOpen = { onOpen(movie.id) }) {
+                if (listId == null) {
+                    AddToListButton(onClick = { onAdd(movie.id) })
+                } else {
+                    val isAdded = movie.id in added
+                    MovieMembershipButton(
+                        movieTitle = movie.title,
+                        isAdded = isAdded,
+                        onClick = { onMembershipChange(movie.id, !isAdded) },
+                        enabled = !actions.membershipLoading && !actions.membershipReadFailed,
+                        saving = movie.id in actions.saving,
+                    )
+                }
+            }
+            HorizontalDivider()
+        }
+        item {
+            when (val append = movies.loadState.append) {
+                is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
+                is LoadState.Error -> Column(Modifier.padding(16.dp)) {
                     Text(
-                        (movies.loadState.refresh as LoadState.Error).error.message ?: "Unable to search.",
-                        Modifier.padding(16.dp),
+                        append.error.message ?: "Unable to load more movies.",
                         color = MaterialTheme.colorScheme.error
                     )
                     MoversTextButton(onClick = movies::retry) { Text("Retry") }
                 }
 
-                movies.itemCount == 0 -> Text("No movies found.", Modifier.padding(16.dp))
-                else -> LazyColumn(state = scroll) {
-                    items(movies.itemCount, key = movies.itemKey { it.id }) { index ->
-                        val movie = movies[index] ?: return@items
-                        MovieSearchResult(
-                            movie,
-                            posterModifier = moviePosterTransitionModifier(movie.id, stackId),
-                            onOpen = {
-                                keyboard?.hide(); navigator.navigate(
-                                MovieDetailsKey(
-                                    movie.id,
-                                    targetListId = listId
-                                )
-                            )
-                            }) {
-                            if (listId == null) {
-                                AddToListButton(onClick = { keyboard?.hide(); navigator.navigate(AddToListsKey(movie.id)) })
-                            } else {
-                                val isAdded = movie.id in added
-                                MovieMembershipButton(
-                                    movieTitle = movie.title,
-                                    isAdded = isAdded,
-                                    onClick = { viewModel.setMembership(movie.id, !isAdded) },
-                                    enabled = !actions.membershipLoading && !actions.membershipReadFailed,
-                                    saving = movie.id in actions.saving,
-                                )
-                            }
-                        }
-                        HorizontalDivider()
-                    }
-                    item {
-                        when (val append = movies.loadState.append) {
-                            is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                            is LoadState.Error -> Column(Modifier.padding(16.dp)) {
-                                Text(
-                                    append.error.message ?: "Unable to load more movies.",
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                                MoversTextButton(onClick = movies::retry) { Text("Retry") }
-                            }
-
-                            else -> Unit
-                        }
-                    }
-                }
+                else -> Unit
             }
         }
     }
