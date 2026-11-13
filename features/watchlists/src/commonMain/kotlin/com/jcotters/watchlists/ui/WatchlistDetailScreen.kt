@@ -207,7 +207,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
             }
             state.sortError?.let { message ->
                 Text(message, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
-                MoversTextButton(onClick = viewModel::retryPreferences) { Text("Retry sorting") }
+                MoversTextButton(onClick = viewModel.sorting::retry) { Text("Retry sorting") }
             }
             if (!state.loading && state.error == null && state.content == null) Text(
                 "This list no longer exists.",
@@ -222,7 +222,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                     scrollState = headerScrollState,
                     query = state.query,
                     onQueryChange = {
-                        viewModel.changeQuery(it)
+                        viewModel.filmSearch.changeQuery(it)
                         headerScrollState.show()
                         listState.requestScrollToItem(0)
                         gridState.requestScrollToItem(0)
@@ -234,7 +234,7 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                             sharedInfo = content.watchlist.shared,
                             sort = state.sort,
                             sortEnabled = state.preferencesReady && !state.sortSaving,
-                            onSort = viewModel::changeSort,
+                            onSort = viewModel.sorting::change,
                             onMembers = { navigator.navigate(SharedListKey(listId, SharedSection.Members)) },
                         )
                     },
@@ -260,16 +260,22 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
                     else "No movies yet. Tap + to find films.",
                     listFooter = {
                         watchlistSuggestions(
-                            state, suggestions, stackId,
+                            state,
+                            suggestions,
+                            stackId,
                             onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
-                            onAdd = viewModel::addSuggestedMovie, onDismissError = viewModel::clearSuggestionError
+                            onAdd = viewModel.filmSearch::addSuggestedMovie,
+                            onDismissError = viewModel.filmSearch::clearSuggestionError
                         )
                     },
                     gridFooter = {
                         watchlistSuggestions(
-                            state, suggestions, stackId,
+                            state,
+                            suggestions,
+                            stackId,
                             onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
-                            onAdd = viewModel::addSuggestedMovie, onDismissError = viewModel::clearSuggestionError
+                            onAdd = viewModel.filmSearch::addSuggestedMovie,
+                            onDismissError = viewModel.filmSearch::clearSuggestionError
                         )
                     },
                 )

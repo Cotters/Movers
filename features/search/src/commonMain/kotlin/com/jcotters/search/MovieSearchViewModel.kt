@@ -129,15 +129,20 @@ internal class MovieSearchViewModel(
                     }.onFailure { error -> actions.update { it.copy(error = error.message) } }
                     return@launch
                 }
-                val result = if (added) lists.addMovieToLists(movieId, setOf(id)) else lists.removeMovie(id, movieId)
-                result.onSuccess {
-                    combine(addedIds, actionsState) { ids, state ->
-                        state.membershipReadFailed || (!state.membershipLoading && movieId in ids == added)
-                    }.first { it }
-                }.onFailure { error -> actions.update { it.copy(error = error.message) } }
+                updateLocalMembership(id, movieId, added)
             } finally {
                 actions.update { it.copy(saving = it.saving - movieId) }
             }
         }
     }
+
+    private suspend fun updateLocalMembership(id: String, movieId: Int, added: Boolean) {
+        val result = if (added) lists.addMovieToLists(movieId, setOf(id)) else lists.removeMovie(id, movieId)
+        result.onSuccess {
+            combine(addedIds, actionsState) { ids, state ->
+                state.membershipReadFailed || (!state.membershipLoading && movieId in ids == added)
+            }.first { it }
+        }.onFailure { error -> actions.update { it.copy(error = error.message) } }
+    }
+
 }
