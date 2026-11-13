@@ -1,6 +1,8 @@
 # Current handoff
 
-Updated 13 November 2026. **Full iOS Debug build and unsigned Release archive verified; minimum iOS 16.0.** Current task base: `b007aa9`. Kotlin source cleanup remains complete: **656 findings → zero**, with working title/catalogue edits preserved. [Cleanup evidence/history](kotlin-lint-cleanup.md), [prior feature handoff](history/2026-11-12-before-lint-cleanup.md).
+Updated 13 November 2026. **Apple shared-list notifications in progress**, task base `c040d7e`: durable backend/dispatcher implemented with enqueue and dispatch default off. See [design](../features/watchlist-notifications.md) and [deployment](../../supabase/NOTIFICATIONS.md). Native/shared app integration is next; no live provisioning. Disposable PostgreSQL migrations/deployment metadata and transaction/batching/recipient/lease scenarios pass; Deno typecheck/lint pass. Physical/APNs acceptance pending.
+
+Previous host checkpoint: **Full iOS Debug build and unsigned Release archive verified; minimum iOS 16.0.** Current task base: `b007aa9`. Kotlin source cleanup remains complete: **656 findings → zero**, with working title/catalogue edits preserved. [Cleanup evidence/history](kotlin-lint-cleanup.md), [prior feature handoff](history/2026-11-12-before-lint-cleanup.md).
 
 ## Current workflow and structure
 

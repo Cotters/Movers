@@ -5,7 +5,8 @@ declare
     v_signature text;
     v_function oid;
 begin
-    foreach v_name in array array['profiles','lists','members','entries','activity','invites','receipts'] loop
+    foreach v_name in array array['profiles','lists','members','entries','activity','invites','receipts',
+        'push_settings','push_devices','push_batches','push_items','push_deliveries','push_provider_tokens'] loop
         if not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
             where n.nspname='movers_private' and c.relname=v_name and c.relkind='r' and c.relrowsecurity) then
             raise exception 'Missing private table or RLS: %', v_name;
@@ -26,7 +27,8 @@ begin
     foreach v_signature in array array[
         'public.movers_profile(text,integer)', 'public.movers_snapshot(uuid)',
         'public.movers_preview(text)', 'public.movers_command(uuid,jsonb)', 'public.movers_import(uuid,jsonb)',
-        'public.movers_invite(uuid)', 'public.movers_activity(uuid,bigint)', 'public.movers_list_ids()'
+        'public.movers_invite(uuid)', 'public.movers_activity(uuid,bigint)', 'public.movers_list_ids()',
+        'public.movers_push_register(uuid,text,text,boolean)'
     ] loop
         v_function := to_regprocedure(v_signature);
         if v_function is null then
@@ -34,6 +36,15 @@ begin
         end if;
         if not has_function_privilege('authenticated',v_function,'execute') then
             raise exception 'Authenticated role cannot call RPC: %', v_signature;
+        end if;
+    end loop;
+    foreach v_signature in array array['public.movers_push_prepare()', 'public.movers_push_claim(text)',
+        'public.movers_push_finish(uuid,uuid,text,text,integer,bigint)',
+        'public.movers_push_provider_token(text,text,text)'] loop
+        v_function := to_regprocedure(v_signature);
+        if v_function is null or not has_function_privilege('service_role',v_function,'execute')
+            or has_function_privilege('authenticated',v_function,'execute') then
+            raise exception 'Missing or exposed notification worker RPC: %',v_signature;
         end if;
     end loop;
     if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace

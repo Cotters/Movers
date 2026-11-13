@@ -1,5 +1,7 @@
 # Sharing backend setup
 
+Apple push delivery is configured separately: [notification deployment](NOTIFICATIONS.md). Its migration is safe to apply with existing clients; enqueue/dispatch remain disabled until explicitly activated.
+
 Movers works with local lists without backend configuration. Sharing requires your own Supabase project; no project is provisioned automatically. See the [feature design](../docs/features/shared-watchlists.md) and [public-source guidance](../docs/workflow/open-source.md).
 
 ## Import/export update

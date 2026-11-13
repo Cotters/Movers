@@ -46,6 +46,8 @@ Use static checks during iteration. When requested or concretely necessary for s
 
 People validate two physical devices: join/publish, bidirectional changes and conflicts, interruption/retry, offline/reconnect, activity/avatars, cold/warm links, leave/rejoin, persistence and existing local-list/profile/navigation behavior. Never run emulators/simulators or connected tests as an agent.
 
-Deferred: recovery/device linking, HTTPS links/install fallback, push/comments/voting, and expanded automated coverage. Public source is not permission to expose an unrestricted anonymous signup service: apply CAPTCHA/abuse controls before public backend distribution. Free projects may pause when inactive.
+Apple push notifications follow the [notification design](watchlist-notifications.md); Android delivery remains deferred.
+
+Deferred: recovery/device linking, HTTPS links/install fallback, comments/voting, and expanded automated coverage. Public source is not permission to expose an unrestricted anonymous signup service: apply CAPTCHA/abuse controls before public backend distribution. Free projects may pause when inactive.
 
 Research: [Spotify collaboration](https://support.spotify.com/au/article/collaborative-playlists/), [Apple Notes activity](https://support.apple.com/en-gb/guide/iphone/iphe4d04f674/ios), [anonymous authentication](https://supabase.com/docs/guides/auth/auth-anonymous), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [Android deep links](https://developer.android.com/training/app-links/create-deeplinks), [Apple URL schemes](https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app), [Supabase Kotlin 3.9](https://github.com/supabase/supabase-kt/releases/tag/3.9.0). Living documentation reviewed during planning.

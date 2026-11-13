@@ -412,3 +412,7 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# This server-only endpoint validates PUSH_DISPATCH_SECRET itself, before accessing any work.
+[functions.watchlist-notifications]
+verify_jwt = false
