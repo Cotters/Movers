@@ -123,8 +123,8 @@ internal class MovieSearchViewModel(
                 if (current.lists.any { it.id == id && it.shared != null }) {
                     lists.setMembership(id, movieId, added).onSuccess { ack ->
                         actionsState.first { value ->
-                            value.error != null || value.lists.none { it.id == id } || (value.lists.firstOrNull { it.id == id }?.shared?.revision
-                                ?: -1) >= (ack.revision ?: 0)
+                            val list = value.lists.firstOrNull { it.id == id }
+                            value.error != null || list == null || (list.shared?.revision ?: -1) >= (ack.revision ?: 0)
                         }
                     }.onFailure { error -> actions.update { it.copy(error = error.message) } }
                     return@launch

@@ -6,7 +6,10 @@ import androidx.sqlite.execSQL
 
 val WatchlistMigration7To8 = object : Migration(7, 8) {
     override fun migrate(connection: SQLiteConnection) {
-        connection.execSQL("CREATE TABLE IF NOT EXISTS watchlists (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, createdAt INTEGER NOT NULL)")
+        connection.execSQL(
+            "CREATE TABLE IF NOT EXISTS watchlists (id TEXT NOT NULL PRIMARY KEY, " +
+                "name TEXT NOT NULL, createdAt INTEGER NOT NULL)"
+        )
         connection.execSQL(
             """
             CREATE TABLE IF NOT EXISTS watchlist_movies (

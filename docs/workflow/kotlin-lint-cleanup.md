@@ -40,3 +40,5 @@ Completion requires zero findings for the agreed Detekt profile, resolved releva
 - Constants slice: name existing timing, protocol and validation values, centralize the import batch size, and retain exactly the authorized retired database versions. Studio formatting validates 15 touched Kotlin files; strict lint reports **127 remaining**. No extra app build for constant-only edits; cumulative verification follows structural work.
 
 - Shared controls: separate actual styling/decoration/accessibility responsibilities without changing approved layout or behavior. Six changed files pass Studio formatting and the complete existing Android host suite passes. Strict lint reports **120 remaining**.
+
+- Membership/migration slice: explicit observed-list values and focused existing migration setup/assertions; SQL literals remain identical. Six Kotlin files pass Studio formatting; affected host suites pass with no new cases. Strict lint reports **101 remaining**.

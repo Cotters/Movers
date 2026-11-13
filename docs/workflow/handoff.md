@@ -12,7 +12,7 @@ Reviewed profile corrections extend default test exclusions to Android KMP host/
 
 First cleanup commit: `74dd5fb`. The next slice moves value types to matching files, fixes constant names/redundant syntax and keeps mapper validation as explicit guards. Conditional callback lambdas retain their function type; a first compile caught and corrected a semantic parentheses-removal mistake.
 
-Latest source-only scan: **120 findings remain**. Remaining slices cover actual long/complex functions, redundant syntax/naming, production constants and error boundaries. Do not present intermediate cleanup commits as lint-clean. Canonical pre-commit command is `scripts/check-code.sh`; formatting/import/diagnostic and manual architecture review remain separate requirements. See [code review](code-review.md).
+Latest source-only scan: **101 findings remain**. Remaining slices cover actual long/complex functions, redundant syntax/naming, production constants and error boundaries. Do not present intermediate cleanup commits as lint-clean. Canonical pre-commit command is `scripts/check-code.sh`; formatting/import/diagnostic and manual architecture review remain separate requirements. See [code review](code-review.md).
 
 ## Behavior to preserve
 
@@ -27,4 +27,5 @@ Latest source-only scan: **120 findings remain**. Remaining slices cover actual 
 - Document slice: decoding, CSV state/mapping, film references and export codecs are separated. All eight changed Kotlin files pass Studio formatting; mechanical checks pass. Existing watchlist/shared host tests pass. No dedicated import-parser tests exist; edge cases received source review, not a claim of runtime coverage.
 - Constants slice names existing protocol, migration, validation, animation and retry limits; the retired database reset range remains 1–6. A shared import batch limit now keeps feature/repository policy aligned. Studio formatting passes; source lint still fails with 127 findings.
 - Shared-control slice: focused button color policy, Material palette mapping, field decoration, swipe accessibility/background and image retry feedback. All six changed files pass Studio formatting; mechanical checks pass, source lint reports 120 remaining. The existing complete Android host suite passes (`testAndroidHostTest testDebugUnitTest`). No new cases/devices.
+- Membership/migration slice: name observed lists, retain acknowledgement waits, split existing migration setup/assertions and wrap SQL/fixture responses. SQL literals and existing case/assertion counts are preserved; six Kotlin files pass Studio formatting and affected shared/watchlist/search host suites pass. Strict lint still fails with 101 findings.
 - Next: fix focused remaining findings, run existing host/native checks when the refactor scope warrants it (explain first), reach a clean agreed profile, then wire CI. New tests remain deferred. Physical Android/iPhone acceptance stays user-owned; never use emulators/simulators.

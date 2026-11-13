@@ -27,6 +27,7 @@ internal data class AddToListsState(
     val createdId: String? = null,
 ) {
     val busy: Boolean get() = creating || saving.isNotEmpty()
+    val membershipUnavailable: Boolean get() = loading || readFailed || creating
 }
 
 internal class AddToListsViewModel(
@@ -62,7 +63,7 @@ internal class AddToListsViewModel(
     fun setMembership(listId: String, added: Boolean) {
         val id = movieId ?: return
         val current = state.value
-        if (current.loading || current.readFailed || current.creating || listId in current.saving) return
+        if (current.membershipUnavailable || listId in current.saving) return
         if (current.lists.none { it.id == listId } || listId in current.existing == added) return
         state.update { it.copy(saving = it.saving + listId, error = null) }
         viewModelScope.launch {
@@ -95,8 +96,8 @@ internal class AddToListsViewModel(
         if (state.value.lists.any { it.id == listId && it.shared != null }) {
             repository.setMembership(listId, movieId, added).onSuccess { ack ->
                 state.first { value ->
-                    value.readFailed || value.lists.none { it.id == listId } || (value.lists.firstOrNull { it.id == listId }?.shared?.revision
-                        ?: -1) >= (ack.revision ?: 0)
+                    val list = value.lists.firstOrNull { it.id == listId }
+                    value.readFailed || list == null || (list.shared?.revision ?: -1) >= (ack.revision ?: 0)
                 }
             }.onFailure { error -> state.update { it.copy(error = error.message) } }
             return
@@ -105,7 +106,10 @@ internal class AddToListsViewModel(
             if (added) repository.addMovieToLists(movieId, setOf(listId)) else repository.removeMovie(listId, movieId)
         result.onSuccess {
             // Keep the row busy until persisted observation confirms the new checkbox state.
-            state.first { it.readFailed || (previouslyListed && it.lists.none { list -> list.id == listId }) || listId in it.existing == added }
+            state.first { current ->
+                current.readFailed || (previouslyListed && current.lists.none { it.id == listId }) ||
+                    listId in current.existing == added
+            }
         }.onFailure { error -> state.update { it.copy(error = error.message) } }
     }
 
