@@ -51,12 +51,10 @@ fun MoversTextField(
     val tokens = MoversDesign.tokens
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val shape = RoundedCornerShape(tokens.cornerRadius)
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     val actions = keyboardActions ?: KeyboardActions(onDone = { focus.clearFocus(); keyboard?.hide() })
     val foreground = if (enabled) tokens.colors.content else tokens.colors.muted
-    val hasIcons = leadingIcon != null || trailingIcon != null
     CompositionLocalProvider(
         LocalContentColor provides foreground,
         LocalTextSelectionColors provides TextSelectionColors(
@@ -78,36 +76,52 @@ fun MoversTextField(
             cursorBrush = SolidColor(tokens.colors.accent),
             modifier = modifier.fillMaxWidth(),
             decorationBox = { input ->
-                Column(verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
-                    if (label != null) ProvideTextStyle(tokens.type.label, content = label)
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape).background(tokens.colors.surface)
-                            .border(
-                                if (focused) 2.dp else 1.dp,
-                                if (focused) tokens.colors.accent else tokens.colors.controlOutline,
-                                shape
-                            )
-                            .padding(
-                                horizontal = if (hasIcons) tokens.spacing * 1.5f else tokens.controlPadding,
-                                vertical = if (hasIcons) 0.dp else 12.dp,
-                            ),
-                        horizontalArrangement = Arrangement.spacedBy(tokens.spacing),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        leadingIcon?.invoke()
-                        Box(Modifier.weight(1f)) {
-                            if (value.isEmpty() && placeholder != null) {
-                                CompositionLocalProvider(
-                                    LocalContentColor provides tokens.colors.muted,
-                                    content = placeholder
-                                )
-                            }
-                            input()
-                        }
-                        trailingIcon?.invoke()
-                    }
-                }
+                TextFieldDecoration(value.isEmpty(), focused, label, placeholder, leadingIcon, trailingIcon, input)
             },
         )
+    }
+}
+
+@Composable
+private fun TextFieldDecoration(
+    empty: Boolean,
+    focused: Boolean,
+    label: (@Composable () -> Unit)?,
+    placeholder: (@Composable () -> Unit)?,
+    leadingIcon: (@Composable () -> Unit)?,
+    trailingIcon: (@Composable () -> Unit)?,
+    input: @Composable () -> Unit,
+) {
+    val tokens = MoversDesign.tokens
+    val shape = RoundedCornerShape(tokens.cornerRadius)
+    val hasIcons = leadingIcon != null || trailingIcon != null
+    Column(verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
+        if (label != null) ProvideTextStyle(tokens.type.label, content = label)
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape).background(tokens.colors.surface)
+                .border(
+                    if (focused) 2.dp else 1.dp,
+                    if (focused) tokens.colors.accent else tokens.colors.controlOutline,
+                    shape
+                )
+                .padding(
+                    horizontal = if (hasIcons) tokens.spacing * 1.5f else tokens.controlPadding,
+                    vertical = if (hasIcons) 0.dp else 12.dp,
+                ),
+            horizontalArrangement = Arrangement.spacedBy(tokens.spacing),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            leadingIcon?.invoke()
+            Box(Modifier.weight(1f)) {
+                if (empty && placeholder != null) {
+                    CompositionLocalProvider(
+                        LocalContentColor provides tokens.colors.muted,
+                        content = placeholder
+                    )
+                }
+                input()
+            }
+            trailingIcon?.invoke()
+        }
     }
 }

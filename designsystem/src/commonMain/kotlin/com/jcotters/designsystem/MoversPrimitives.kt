@@ -25,11 +25,11 @@ fun MoversText(
     maxLines: Int = Int.MAX_VALUE,
 ) {
     val tokens = MoversDesign.tokens
+    val foreground = if (color == Color.Unspecified) tokens.colors.content else color
     BasicText(
         text = text,
         modifier = modifier,
-        style = (style
-            ?: tokens.type.body).merge(TextStyle(color = if (color == Color.Unspecified) tokens.colors.content else color)),
+        style = (style ?: tokens.type.body).merge(TextStyle(color = foreground)),
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
     )

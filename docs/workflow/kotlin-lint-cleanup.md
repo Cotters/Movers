@@ -38,3 +38,5 @@ Completion requires zero findings for the agreed Detekt profile, resolved releva
 - Document slice: separate encoding, quoted-table reader, column mapping, reference parsing and export codecs. Preserve partial recovery and limits; JSON shape errors now catch `IllegalArgumentException`, preserving the root cause. Eight files pass Studio formatting, existing watchlist/shared host tests pass, strict lint reports **157 remaining**. No dedicated parser suite exists; that coverage remains deferred.
 
 - Constants slice: name existing timing, protocol and validation values, centralize the import batch size, and retain exactly the authorized retired database versions. Studio formatting validates 15 touched Kotlin files; strict lint reports **127 remaining**. No extra app build for constant-only edits; cumulative verification follows structural work.
+
+- Shared controls: separate actual styling/decoration/accessibility responsibilities without changing approved layout or behavior. Six changed files pass Studio formatting and the complete existing Android host suite passes. Strict lint reports **120 remaining**.

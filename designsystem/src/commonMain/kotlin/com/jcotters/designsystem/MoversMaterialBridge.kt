@@ -1,6 +1,7 @@
 package com.jcotters.designsystem
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
@@ -12,9 +13,35 @@ import androidx.compose.ui.unit.sp
 /** Maps retained layout/text infrastructure to Movers tokens. Controls own their styling. */
 @Composable
 internal fun MoversMaterialBridge(tokens: MoversDesignTokens, dark: Boolean, content: @Composable () -> Unit) {
-    val c = tokens.colors
+    val type = tokens.type
+    val typography = Typography(
+        displayLarge = type.headline,
+        displayMedium = type.headline,
+        displaySmall = type.headline,
+        headlineLarge = type.headline,
+        headlineMedium = type.headline,
+        headlineSmall = type.title,
+        titleLarge = type.title,
+        titleMedium = type.label.copy(fontSize = 16.sp, lineHeight = 22.sp),
+        titleSmall = type.label,
+        bodyLarge = type.body,
+        bodyMedium = type.body.copy(fontSize = 14.sp, lineHeight = 21.sp),
+        bodySmall = type.caption,
+        labelLarge = type.label,
+        labelMedium = type.caption,
+        labelSmall = type.caption,
+    )
+    val shape = RoundedCornerShape(tokens.cornerRadius)
+    MaterialTheme(
+        colorScheme = tokens.colors.materialColorScheme(dark), typography = typography,
+        shapes = Shapes(shape, shape, shape, shape, shape), content = content
+    )
+}
+
+private fun MoversColors.materialColorScheme(dark: Boolean): ColorScheme {
+    val c = this
     val base = if (dark) darkColorScheme() else lightColorScheme()
-    val colors = base.copy(
+    return base.copy(
         primary = c.accent,
         onPrimary = c.onAccent,
         primaryContainer = c.raised,
@@ -51,28 +78,5 @@ internal fun MoversMaterialBridge(tokens: MoversDesignTokens, dark: Boolean, con
         outline = c.controlOutline,
         outlineVariant = c.border,
         scrim = c.scrim,
-    )
-    val type = tokens.type
-    val typography = Typography(
-        displayLarge = type.headline,
-        displayMedium = type.headline,
-        displaySmall = type.headline,
-        headlineLarge = type.headline,
-        headlineMedium = type.headline,
-        headlineSmall = type.title,
-        titleLarge = type.title,
-        titleMedium = type.label.copy(fontSize = 16.sp, lineHeight = 22.sp),
-        titleSmall = type.label,
-        bodyLarge = type.body,
-        bodyMedium = type.body.copy(fontSize = 14.sp, lineHeight = 21.sp),
-        bodySmall = type.caption,
-        labelLarge = type.label,
-        labelMedium = type.caption,
-        labelSmall = type.caption,
-    )
-    val shape = RoundedCornerShape(tokens.cornerRadius)
-    MaterialTheme(
-        colorScheme = colors, typography = typography,
-        shapes = Shapes(shape, shape, shape, shape, shape), content = content
     )
 }

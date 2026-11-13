@@ -63,22 +63,10 @@ fun MoversButton(
     val pressed by interaction.collectIsPressedAsState()
     val focused by interaction.collectIsFocusedAsState()
     val shape = RoundedCornerShape(tokens.cornerRadius)
-    val fill = when {
-        !enabled -> colors.raised
-        pressed -> colors.border
-        variant == ButtonVariant.Primary -> colors.accent
-        variant == ButtonVariant.Destructive -> colors.dangerSurface
-        variant == ButtonVariant.Secondary -> colors.raised
-        else -> Color.Transparent
-    }
-    val background by animateColorAsState(fill, label = "Button surface")
-    val foreground = if (contentColor != Color.Unspecified) contentColor else when {
-        !enabled -> colors.muted
-        pressed -> colors.content
-        variant == ButtonVariant.Primary -> colors.onAccent
-        variant == ButtonVariant.Destructive -> colors.danger
-        else -> colors.content
-    }
+    val background by animateColorAsState(colors.buttonFill(variant, enabled, pressed), label = "Button surface")
+    val foreground = if (contentColor != Color.Unspecified) contentColor else colors.buttonForeground(
+        variant, enabled, pressed
+    )
     UnstyledButton(
         onClick = onClick,
         enabled = enabled && !loading,
@@ -113,4 +101,21 @@ fun MoversTextButton(
         onClick, modifier, variant = if (destructive) ButtonVariant.Destructive else ButtonVariant.Quiet,
         enabled = enabled, contentColor = contentColor, content = content
     )
+}
+
+private fun MoversColors.buttonFill(variant: ButtonVariant, enabled: Boolean, pressed: Boolean): Color = when {
+    !enabled -> raised
+    pressed -> border
+    variant == ButtonVariant.Primary -> accent
+    variant == ButtonVariant.Destructive -> dangerSurface
+    variant == ButtonVariant.Secondary -> raised
+    else -> Color.Transparent
+}
+
+private fun MoversColors.buttonForeground(variant: ButtonVariant, enabled: Boolean, pressed: Boolean): Color = when {
+    !enabled -> muted
+    pressed -> content
+    variant == ButtonVariant.Primary -> onAccent
+    variant == ButtonVariant.Destructive -> danger
+    else -> content
 }

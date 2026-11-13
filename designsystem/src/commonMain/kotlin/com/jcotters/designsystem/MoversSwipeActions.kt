@@ -20,7 +20,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -84,17 +84,7 @@ fun MoversSwipeActions(
         if (action != null) {
             SwipeAction(
                 action = action,
-                background = when {
-                    action === armedAction -> colors.accent
-                    action.destructive -> colors.dangerSurface
-                    else -> colors.raised
-                },
-                color = when {
-                    !action.enabled -> colors.muted
-                    action === armedAction -> colors.onAccent
-                    action.destructive -> colors.danger
-                    else -> colors.accent
-                },
+                armed = action === armedAction,
                 onClick = { state.close(scope, action.onClick) },
                 enabled = enabled && action.enabled,
                 modifier = Modifier.matchParentSize(),
@@ -105,14 +95,9 @@ fun MoversSwipeActions(
         val foreground = Modifier.offset { IntOffset(state.offset.roundToInt(), 0) }
             .background(colors.background)
             .semantics(mergeDescendants = true) {
-                customActions = if (!enabled) emptyList() else listOfNotNull(startAction, endAction)
-                    .filter { it.enabled }
-                    .map { action ->
-                        CustomAccessibilityAction(action.accessibilityLabel) {
-                            state.close(scope, action.onClick)
-                            true
-                        }
-                    }
+                customActions = if (enabled) {
+                    state.accessibilityActions(scope, listOfNotNull(startAction, endAction))
+                } else emptyList()
             }
         content(foreground) {
             if (abs(state.offset) > 0.5f) state.close(scope) else onOpen()
@@ -123,14 +108,25 @@ fun MoversSwipeActions(
 @Composable
 private fun SwipeAction(
     action: MoversSwipeAction,
-    background: Color,
-    color: Color,
+    armed: Boolean,
     onClick: () -> Unit,
     enabled: Boolean,
     alignment: Alignment,
     actionWidth: Dp,
     modifier: Modifier,
 ) {
+    val colors = MoversDesign.tokens.colors
+    val background = when {
+        armed -> colors.accent
+        action.destructive -> colors.dangerSurface
+        else -> colors.raised
+    }
+    val color = when {
+        !action.enabled -> colors.muted
+        armed -> colors.onAccent
+        action.destructive -> colors.danger
+        else -> colors.accent
+    }
     Box(modifier.background(background), contentAlignment = alignment) {
         Column(
             Modifier.width(actionWidth).fillMaxHeight()
@@ -141,5 +137,15 @@ private fun SwipeAction(
             action.icon(color)
             MoversText(action.label, color = color, style = MoversDesign.tokens.type.caption)
         }
+    }
+}
+
+private fun SwipeActionsState.accessibilityActions(
+    scope: CoroutineScope,
+    actions: List<MoversSwipeAction>,
+): List<CustomAccessibilityAction> = actions.filter { it.enabled }.map { action ->
+    CustomAccessibilityAction(action.accessibilityLabel) {
+        close(scope, action.onClick)
+        true
     }
 }

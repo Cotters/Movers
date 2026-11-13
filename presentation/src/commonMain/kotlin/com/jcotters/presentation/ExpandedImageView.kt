@@ -86,21 +86,25 @@ fun ExpandedImageView(
             )
         }
         if (failed) {
-            Column(
-                modifier = Modifier.align(Alignment.BottomCenter)
-                    .padding(16.dp)
-                    .background(Color.Black.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-                    .semantics { liveRegion = LiveRegionMode.Polite },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text("Couldn't load full-size image.", color = Color.White)
-                MoversTextButton(
-                    onClick = { loading = true; failed = false; retry++ },
-                    contentColor = Color.White,
-                ) { Text("Retry") }
-            }
+            ExpandedImageError(
+                onRetry = { loading = true; failed = false; retry++ },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
+    }
+}
+
+@Composable
+private fun ExpandedImageError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(16.dp)
+            .background(Color.Black.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
+            .padding(12.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text("Couldn't load full-size image.", color = Color.White)
+        MoversTextButton(onClick = onRetry, contentColor = Color.White) { Text("Retry") }
     }
 }
