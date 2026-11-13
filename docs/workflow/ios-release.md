@@ -23,7 +23,7 @@ For Swift-only source review without a build:
 xcrun swift-format lint --strict iosApp/MoversApp.swift
 ```
 
-The root `.swift-format` defines four-space indentation and 120-character lines. Use `xcrun swift-format format --in-place iosApp/MoversApp.swift` to apply it, then inspect the diff. Follow the normal [code review](code-review.md) too.
+The root `.swift-format` defines four-space indentation and 120-character lines. Include `iosApp/MoversNotificationDelegate.swift` and `iosApp/PushEnvironment.swift` when reviewing notification changes; `verify-ios.sh` lints all three host files. Use `xcrun swift-format format --in-place` on explicit task-owned files, then inspect the diff. Follow the normal [code review](code-review.md) too.
 
 ## Release delivery
 

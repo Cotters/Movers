@@ -6,7 +6,7 @@ The [agreed behavior](../docs/features/watchlist-notifications.md) uses the exis
 
 1. Apply reviewed migrations using the [existing backend helper](README.md). Notification tables/trigger are installed with enqueue disabled. Existing apps and RPC signatures remain compatible.
 2. In the Apple Developer account enable Push Notifications for `com.jcotters.movers` and refresh signing profiles. Supply environment-specific APNs signing keys, preferably topic-specific, for sandbox and production. Development signing uses sandbox; TestFlight/App Store signing uses production. The app reads its signed entitlement and fails registration visibly if it is missing.
-3. Configure the Edge Function secrets through the Supabase dashboard or CLI using an ignored, access-restricted environment file. Never paste keys into chat or command arguments. Discover installed CLI flags with `supabase secrets set --help` and `supabase functions deploy --help`. The platform supplies `SUPABASE_URL` and server-only `SUPABASE_SERVICE_ROLE_KEY` to the function.
+3. Configure the Edge Function secrets through the Supabase dashboard or CLI using ignored `supabase/.env.notifications.local`. Restrict its permissions to the owner (`chmod 600`) before adding values. Never paste keys into chat or command arguments. Discover installed CLI flags with `supabase secrets set --help` and `supabase functions deploy --help`. The platform supplies `SUPABASE_URL` and server-only `SUPABASE_SERVICE_ROLE_KEY` to the function.
 
 | Secret | Value |
 | --- | --- |

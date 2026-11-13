@@ -64,7 +64,9 @@ fun MoversApp(installers: Set<EntryProviderInstaller>) {
             SharedListSynchronization()
             MoversNavigationShell(
                 networkStatus, installers, snackbarEffects = { WatchlistUndoMessages() },
-                allowNotificationPrompt = tourFinished
+                navigationEffects = { navigation ->
+                    com.jcotters.movers.notifications.NotificationEffects(navigation, tourFinished, networkStatus)
+                }
             )
             FeatureTour(onFinish = { tourFinished = true })
         }
@@ -83,11 +85,11 @@ internal fun MoversNavigationShell(
     installers: Set<EntryProviderInstaller>,
     state: NavigationState = rememberNavigationState(),
     snackbarEffects: @Composable () -> Unit = {},
-    allowNotificationPrompt: Boolean = true,
+    navigationEffects: @Composable (NavigationState) -> Unit = {},
 ) {
     val navigator = remember(state) { AppNavigator(state) }
     IncomingInvitations(state, navigator)
-    com.jcotters.movers.notifications.NotificationEffects(state, allowNotificationPrompt, networkStatus)
+    navigationEffects(state)
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
     val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     val forwardTransition = remember { defaultTransitionSpec<NavKey>() }

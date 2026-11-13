@@ -92,7 +92,11 @@ returns void language plpgsql security definer set search_path = '' as $$ begin
     insert into movers_private.push_devices(id,environment,person_id,token,enabled)
         values(p_device,p_environment,auth.uid(),p_token,true)
         on conflict(id,environment) do update set person_id=excluded.person_id,token=excluded.token,
-            enabled=true,registered_at=clock_timestamp();
+            enabled=true,registered_at=clock_timestamp()
+        where movers_private.push_devices.person_id=auth.uid() or movers_private.push_devices.token=excluded.token;
+    if not found then
+        raise exception 'Push registration belongs to another device session' using errcode='42501';
+    end if;
 end $$;
 
 create function movers_private.push_activity() returns trigger
