@@ -13,7 +13,7 @@ Movers shares its screens, navigation, ViewModels, repositories, HTTP policy, ca
 | Existing feature modules and contracts | Shared screens/state/use cases and feature-owned NavKeys |
 | `:profile:contract`, `:profile` | Device-profile model/repository contract, local implementation, and Profile UI |
 | `:movie:contract`, `:movie:internal` | Public movie/search/list operations and neutral list storage API; Ktor transport, mapping, paging, freshness, and repository implementations |
-| `:database` | Room entities/DAOs, version 9 schema with preserving 7→8→9 migrations, bundled SQLite, and platform database paths |
+| `:database` | Room entities/DAOs, version 10 schema with preserving 7→8→9→10 migrations, bundled SQLite, and platform database paths |
 | `:backend:supabase` | Supabase SDK/remote operations, anonymous identity and native secure session storage behind neutral contracts |
 | `:presentation`, `:data:network` | Shared images/transitions/snackbars and network-status contract; native network observers |
 

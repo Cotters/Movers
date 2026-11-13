@@ -50,3 +50,5 @@ Completion requires zero findings for the agreed Detekt profile, resolved releva
 - Joining/screens slice: separate entry-owned invitation ViewModel from existing-list sharing, and extract focused choice/form/group/feedback/gallery sections. Nine files pass Studio formatting; affected host tasks pass. Strict lint reports **55 remaining**. No intended layout or interaction changes.
 
 - Import models: separate source parsing, cached concurrent lookup and pending-batch lifecycle, sharing the same observable state and ViewModel scope. Retain receipts, retries, duplicate checks and cancellation generations. Six files pass Studio formatting; affected host tasks pass after review fixes. Strict lint reports **46 remaining**. Dedicated import coverage remains absent/deferred.
+
+- Commands/resolution: separate receipt lifecycle from remote application and exact movie IDs from title fallback; keep permanent-error cleanup, transport retries and cache enrichment. Nine files pass Studio formatting; affected host tasks pass. Strict lint reports **34 remaining**; native observer wrapping awaits cumulative iOS compilation.

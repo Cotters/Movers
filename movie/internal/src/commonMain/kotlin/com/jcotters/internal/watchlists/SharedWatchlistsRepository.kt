@@ -160,7 +160,9 @@ internal class SharedWatchlistsRepository(
             val command = SharedCommand.ImportFilms(listId, films)
             val payload = json.encodeToString<SharedCommand>(command)
             val operation = outbox.operations().firstOrNull { it.id == requestId }?.also {
-                check(it.participantId == owner && it.payload == payload) { "Import request changed. Reopen the import." }
+                check(it.participantId == owner && it.payload == payload) {
+                    "Import request changed. Reopen the import."
+                }
             } ?: DbSharedOperation(requestId, listId, owner, payload).also { outbox.insert(it) }
             checkNotNull(execute(operation))
         }
@@ -216,35 +218,40 @@ internal class SharedWatchlistsRepository(
 
     private suspend fun execute(operation: DbSharedOperation): ImportBatchResult? {
         val command = json.decodeFromString<SharedCommand>(operation.payload)
-        try {
-            val importResult =
-                if (command is SharedCommand.ImportFilms) remote.executeImport(operation.id, command).also { result ->
-                    check(result.outcomes.map { it.movieId }.toSet() == command.films.map { it.id }
-                        .toSet() && result.outcomes.size == command.films.size) {
-                        "Import confirmation is incomplete. Retry when connected."
-                    }
-                } else {
-                    remote.execute(operation.id, command)
-                    null
+        return recoverableResult {
+            val result = applyRemoteCommand(operation, command)
+            outbox.complete(operation.id)
+            result
+        }.getOrElse { error ->
+            when (error) {
+                is SharedAccessDeniedException -> {
+                    if (cache.get(command.listId) != null) persisted.purge(command.listId)
+                    outbox.complete(operation.id)
                 }
-            if (command is SharedCommand.Leave) persisted.purge(command.listId) else fetch(
-                command.listId,
-                operation.participantId
-            )
-            outbox.complete(operation.id)
-            return importResult
-        } catch (e: SharedAccessDeniedException) {
-            if (cache.get(command.listId) != null) persisted.purge(command.listId)
-            outbox.complete(operation.id)
-            throw e
-        } catch (e: IllegalArgumentException) {
-            outbox.complete(operation.id)
-            throw e
-        } catch (e: ImportUnavailableException) {
-            outbox.complete(operation.id)
-            throw e
+
+                is IllegalArgumentException, is ImportUnavailableException -> outbox.complete(operation.id)
+            }
+            // Transport failure retains the receipt; reconciliation repeats the exact command.
+            throw error
         }
-        // A transport failure retains the request ID. Reconciliation repeats that exact command.
+    }
+
+    private suspend fun applyRemoteCommand(operation: DbSharedOperation, command: SharedCommand): ImportBatchResult? {
+        val importResult =
+            if (command is SharedCommand.ImportFilms) remote.executeImport(operation.id, command).also { result ->
+                check(result.outcomes.map { it.movieId }.toSet() == command.films.map { it.id }
+                    .toSet() && result.outcomes.size == command.films.size) {
+                    "Import confirmation is incomplete. Retry when connected."
+                }
+            } else {
+                remote.execute(operation.id, command)
+                null
+            }
+        if (command is SharedCommand.Leave) persisted.purge(command.listId) else fetch(
+            command.listId,
+            operation.participantId
+        )
+        return importResult
     }
 
     private suspend fun fetch(id: String, owner: String) {

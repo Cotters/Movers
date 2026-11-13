@@ -37,7 +37,9 @@ val movieDependencies = module {
             get()
         )
     }
-    single<com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository> { get<com.jcotters.internal.watchlists.SharedWatchlistsRepository>() }
+    single<com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository> {
+        get<com.jcotters.internal.watchlists.SharedWatchlistsRepository>()
+    }
     single<WatchlistDatabase> { com.jcotters.internal.watchlists.CollaborativeWatchlistDatabase(get(), get(), get()) }
     single<IWatchlistsRepository> { WatchlistsRepository(get(), get()) }
     single<IMovieSearchRepository> { MovieSearchRepository(get(), get<MoversDatabase>().movieDao(), get()) }

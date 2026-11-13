@@ -25,27 +25,12 @@ internal class TmdbMovieImportResolver(
     private val clock: AppClock,
 ) : MovieImportResolver {
     override suspend fun resolve(reference: FilmReference): FilmResolution = lookup {
-        val byId = reference.movieId?.let { id ->
-            dao.getMovieById(id)?.let(mapper::toDomainModel) ?: try {
-                api.getMovieById(id).let { dto ->
-                    mapper.toDatabaseModel(dto, clock.millis())?.takeIf { it.id == id }?.let { row ->
-                        dao.saveMovieDetails(row)
-                        dao.getMovieById(id)?.let(mapper::toDomainModel)
-                    }
-                }
-            } catch (error: ClientRequestException) {
-                if (error.response.status == HttpStatusCode.NotFound) null else throw error
-            }
-        }
-        val byImdb = reference.imdbId?.let { imdbId ->
-            try {
-                save(api.findMovie(imdbId).movies).firstOrNull()
-            } catch (error: ClientRequestException) {
-                if (error.response.status == HttpStatusCode.NotFound) null else throw error
-            }
-        }
+        val byId = reference.movieId?.let { findById(it) }
+        val byImdb = reference.imdbId?.let { findByImdb(it) }
         if (reference.movieId != null || reference.imdbId != null) {
-            if (reference.movieId != null && reference.imdbId != null && (byId == null || byImdb == null || byId.id != byImdb.id)) {
+            val bothIdsSupplied = reference.movieId != null && reference.imdbId != null
+            val sameFilm = byId != null && byImdb != null && byId.id == byImdb.id
+            if (bothIdsSupplied && !sameFilm) {
                 return@lookup FilmResolution.Review(
                     listOfNotNull(byId, byImdb).distinctBy { it.id },
                     "Movie IDs don't agree."
@@ -53,12 +38,33 @@ internal class TmdbMovieImportResolver(
             }
             (byId ?: byImdb)?.let { return@lookup FilmResolution.Matched(it) }
         }
-        if (reference.title.isBlank()) return@lookup FilmResolution.Review(emptyList(), "No film found for this ID.")
+        resolveTitle(reference)
+    }
+
+    private suspend fun resolveTitle(reference: FilmReference): FilmResolution {
+        if (reference.title.isBlank()) return FilmResolution.Review(emptyList(), "No film found for this ID.")
         var candidates = save(api.searchMovies(reference.title, 1, reference.year).results.orEmpty())
         if (candidates.isEmpty() && reference.year != null) candidates =
             save(api.searchMovies(reference.title, 1).results.orEmpty())
-        candidates.firstOrNull()?.let { FilmResolution.Matched(it) }
+        return candidates.firstOrNull()?.let { FilmResolution.Matched(it) }
             ?: FilmResolution.Review(emptyList(), "No matching film.")
+    }
+
+    private suspend fun findById(id: Int): Movie? = dao.getMovieById(id)?.let(mapper::toDomainModel) ?: try {
+        api.getMovieById(id).let { dto ->
+            mapper.toDatabaseModel(dto, clock.millis())?.takeIf { it.id == id }?.let { row ->
+                dao.saveMovieDetails(row)
+                dao.getMovieById(id)?.let(mapper::toDomainModel)
+            }
+        }
+    } catch (error: ClientRequestException) {
+        if (error.response.status == HttpStatusCode.NotFound) null else throw error
+    }
+
+    private suspend fun findByImdb(id: String): Movie? = try {
+        save(api.findMovie(id).movies).firstOrNull()
+    } catch (error: ClientRequestException) {
+        if (error.response.status == HttpStatusCode.NotFound) null else throw error
     }
 
     override suspend fun search(query: String): List<Movie> = lookup {

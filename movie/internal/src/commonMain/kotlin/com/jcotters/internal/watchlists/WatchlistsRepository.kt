@@ -46,7 +46,9 @@ internal class WatchlistsRepository(private val database: WatchlistDatabase, pri
         listId: String,
         films: List<com.jcotters.contract.watchlists.data.SharedFilm>
     ) = write("Unable to import these films. Retry when connected.") {
-        require(films.size in 1..MAX_IMPORT_BATCH_SIZE && films.all { it.id > 0 }) { "Choose up to 50 valid films per batch." }
+        require(films.size in 1..MAX_IMPORT_BATCH_SIZE && films.all { it.id > 0 }) {
+            "Choose up to 50 valid films per batch."
+        }
         database.importMovies(requestId, listId, films.distinctBy { it.id }, clock.millis())
     }
 

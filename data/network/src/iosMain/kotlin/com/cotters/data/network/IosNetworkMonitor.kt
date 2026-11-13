@@ -18,7 +18,9 @@ class IosNetworkMonitor : NetworkMonitor {
     override val networkStatus = callbackFlow {
         val monitor = nw_path_monitor_create()
         nw_path_monitor_set_update_handler(monitor) { path ->
-            trySend(if (nw_path_get_status(path) == nw_path_status_satisfied) NetworkStatus.Online else NetworkStatus.Offline)
+            val status = if (nw_path_get_status(path) == nw_path_status_satisfied) NetworkStatus.Online
+            else NetworkStatus.Offline
+            trySend(status)
         }
         nw_path_monitor_set_queue(monitor, dispatch_queue_create("com.jcotters.movers.network", null))
         nw_path_monitor_start(monitor)

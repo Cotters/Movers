@@ -17,7 +17,9 @@ fun initializeAndroidMovers(context: Context, backendUrl: String = "", backendKe
         val backend = com.jcotters.backend.supabase.createAndroidBackend(context, backendUrl, backendKey)
         single<com.jcotters.profile.domain.ParticipantIdentity> { backend }
         single<com.jcotters.contract.watchlists.data.SharedWatchlistRemote> { backend }
-        single<com.jcotters.contract.watchlists.domain.InvitationSharing> { AndroidInvitationSharing(context.applicationContext) }
+        single<com.jcotters.contract.watchlists.domain.InvitationSharing> {
+            AndroidInvitationSharing(context.applicationContext)
+        }
         single<com.jcotters.watchlists.preferences.WatchlistPreferenceStorage> {
             com.jcotters.watchlists.preferences.AndroidWatchlistPreferenceStorage(context)
         }

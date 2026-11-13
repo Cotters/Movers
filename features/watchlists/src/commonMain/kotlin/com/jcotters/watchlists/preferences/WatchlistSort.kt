@@ -4,6 +4,7 @@ import com.jcotters.contract.detail.domain.models.Movie
 
 private const val MAX_MOVIE_RATING = 10.0
 private const val RELEASE_YEAR_LENGTH = 4
+private const val MONTHS_PER_YEAR = 12
 
 private val releaseDatePattern = Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
@@ -50,10 +51,12 @@ internal data class WatchlistSort(
         val year = date.take(RELEASE_YEAR_LENGTH).toInt()
         val month = date.substring(5, 7).toInt()
         val day = date.takeLast(2).toInt()
-        if (year == 0 || month !in 1..12) return null
+        if (year == 0 || month !in 1..MONTHS_PER_YEAR) return null
         val leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
         val days = when (month) {
-            2 -> if (leapYear) 29 else 28; 4, 6, 9, 11 -> 30; else -> 31
+            2 -> if (leapYear) 29 else 28
+            4, 6, 9, 11 -> 30
+            else -> 31
         }
         return date.takeIf { day in 1..days }
     }

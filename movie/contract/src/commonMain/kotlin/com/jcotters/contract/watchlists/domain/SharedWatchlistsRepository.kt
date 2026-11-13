@@ -25,7 +25,9 @@ interface ISharedWatchlistsRepository {
 object WatchlistInvitation {
     fun token(value: String): String {
         val token = value.trim().removePrefix("movers://join/")
-        require(token.length == INVITATION_TOKEN_LENGTH && token.all { it in '0'..'9' || it in 'a'..'f' }) { "Enter a valid Movers invitation link." }
+        require(token.length == INVITATION_TOKEN_LENGTH && token.all { it in '0'..'9' || it in 'a'..'f' }) {
+            "Enter a valid Movers invitation link."
+        }
         return token
     }
 

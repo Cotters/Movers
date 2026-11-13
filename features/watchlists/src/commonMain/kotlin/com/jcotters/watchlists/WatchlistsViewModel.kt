@@ -51,7 +51,9 @@ internal class WatchlistsViewModel(
 
     init {
         retry()
-        viewModelScope.launch { sharing.syncStatus.collect { status -> state.update { it.copy(syncError = status.error) } } }
+        viewModelScope.launch {
+            sharing.syncStatus.collect { status -> state.update { it.copy(syncError = status.error) } }
+        }
     }
 
     fun refreshShared() {
