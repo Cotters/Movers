@@ -55,10 +55,11 @@ expect object MoversDatabaseConstructor : RoomDatabaseConstructor<MoversDatabase
     override fun initialize(): MoversDatabase
 }
 
-fun createDatabase(builder: RoomDatabase.Builder<MoversDatabase>, queryContext: CoroutineContext): MoversDatabase = builder
-    .setDriver(BundledSQLiteDriver())
-    .setQueryCoroutineContext(queryContext)
-    .addMigrations(WatchlistMigration7To8, SharedMigration8To9, RemoveBookmarksMigration9To10)
-    // One-time, explicitly authorized reset from the retired account-based app.
-    .fallbackToDestructiveMigrationFrom(true, 1, 2, 3, 4, 5, 6)
-    .build()
+fun createDatabase(builder: RoomDatabase.Builder<MoversDatabase>, queryContext: CoroutineContext): MoversDatabase =
+    builder
+        .setDriver(BundledSQLiteDriver())
+        .setQueryCoroutineContext(queryContext)
+        .addMigrations(WatchlistMigration7To8, SharedMigration8To9, RemoveBookmarksMigration9To10)
+        // One-time, explicitly authorized reset from the retired account-based app.
+        .fallbackToDestructiveMigrationFrom(true, 1, 2, 3, 4, 5, 6)
+        .build()

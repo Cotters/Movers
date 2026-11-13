@@ -29,7 +29,13 @@ fun ParticipantAvatar(name: String, color: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ParticipantAvatarButton(name: String, color: Int, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun ParticipantAvatarButton(
+    name: String,
+    color: Int,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     com.jcotters.designsystem.MoversAvatarButton(
         name = name,
         label = label,

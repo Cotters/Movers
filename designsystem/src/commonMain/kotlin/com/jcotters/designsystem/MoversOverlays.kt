@@ -62,13 +62,26 @@ data class MoversMenuAction(
 @Composable
 fun MoversMenu(actions: List<MoversMenuAction>, modifier: Modifier = Modifier, label: String = "List options") {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    MoversDropdownMenu(expanded, { expanded = it }, modifier = modifier,
+    MoversDropdownMenu(
+        expanded, { expanded = it }, modifier = modifier,
         anchor = { MoversIconButton(MoversSymbol.More, label, { expanded = !expanded }) }) {
         actions.forEach { action ->
-            MoversDropdownMenuItem(text = { MoversText(action.label, style = MoversDesign.tokens.type.label,
-                color = androidx.compose.material3.LocalContentColor.current) },
+            MoversDropdownMenuItem(
+                text = {
+                    MoversText(
+                        action.label, style = MoversDesign.tokens.type.label,
+                        color = androidx.compose.material3.LocalContentColor.current
+                    )
+                },
                 onClick = action.onClick, enabled = action.enabled, destructive = action.destructive,
-                leadingIcon = action.symbol?.let { symbol -> { MoversIcon(symbol, tint = androidx.compose.material3.LocalContentColor.current) } })
+                leadingIcon = action.symbol?.let { symbol ->
+                    {
+                        MoversIcon(
+                            symbol,
+                            tint = androidx.compose.material3.LocalContentColor.current
+                        )
+                    }
+                })
         }
     }
 }
@@ -115,7 +128,13 @@ internal fun MoversDialogSurface(
 }
 
 @Composable
-fun MoversSheet(title: String, visible: Boolean, onDismiss: () -> Unit, scrollContent: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
+fun MoversSheet(
+    title: String,
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    scrollContent: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit
+) {
     val tokens = MoversDesign.tokens
     val shape = RoundedCornerShape(topStart = tokens.cornerRadius + 8.dp, topEnd = tokens.cornerRadius + 8.dp)
     val state = rememberModalBottomSheetState(
@@ -144,9 +163,11 @@ fun MoversSheet(title: String, visible: Boolean, onDismiss: () -> Unit, scrollCo
                         Modifier.align(Alignment.CenterHorizontally).size(64.dp, 48.dp).drawBehind {
                             val width = 40.dp.toPx()
                             val height = 4.dp.toPx()
-                            drawRoundRect(tokens.colors.border,
+                            drawRoundRect(
+                                tokens.colors.border,
                                 topLeft = Offset((size.width - width) / 2, (size.height - height) / 2),
-                                size = Size(width, height), cornerRadius = CornerRadius(2.dp.toPx()))
+                                size = Size(width, height), cornerRadius = CornerRadius(2.dp.toPx())
+                            )
                         },
                     )
                     if (title.isNotBlank()) OverlayHeader(title, onDismiss)

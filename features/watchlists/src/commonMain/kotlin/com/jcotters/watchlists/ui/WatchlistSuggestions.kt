@@ -49,9 +49,18 @@ internal fun LazyGridScope.watchlistSuggestions(
     onDismissError: () -> Unit,
 ) {
     if (state.query.isBlank()) return
-    item(key = "suggestions-heading", span = { GridItemSpan(maxLineSpan) }) { SuggestionHeader(state, movies, onDismissError) }
+    item(key = "suggestions-heading", span = { GridItemSpan(maxLineSpan) }) {
+        SuggestionHeader(
+            state,
+            movies,
+            onDismissError
+        )
+    }
     if (!state.waitingForSuggestions) {
-        items(movies.itemCount, key = movies.itemKey { "suggestion-${it.id}" }, span = { GridItemSpan(maxLineSpan) }) { index ->
+        items(
+            movies.itemCount,
+            key = movies.itemKey { "suggestion-${it.id}" },
+            span = { GridItemSpan(maxLineSpan) }) { index ->
             movies[index]?.let { SuggestionRow(it, state, stackId, onOpen, onAdd) }
         }
         item(key = "suggestions-footer", span = { GridItemSpan(maxLineSpan) }) { SuggestionFooter(movies) }
@@ -69,22 +78,38 @@ private fun SuggestionHeader(state: WatchlistDetailState, movies: LazyPagingItem
         when {
             state.waitingForSuggestions || movies.loadState.refresh is LoadState.Loading -> Text("Finding films…")
             movies.loadState.refresh is LoadState.Error -> {
-                Text((movies.loadState.refresh as LoadState.Error).error.message ?: "Couldn't find films.", color = MaterialTheme.colorScheme.error)
+                Text(
+                    (movies.loadState.refresh as LoadState.Error).error.message ?: "Couldn't find films.",
+                    color = MaterialTheme.colorScheme.error
+                )
                 MoversTextButton(onClick = movies::retry) { Text("Retry search") }
             }
+
             movies.itemCount == 0 -> Text("No new films found.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
-private fun SuggestionRow(movie: Movie, state: WatchlistDetailState, stackId: String, onOpen: (Int) -> Unit, onAdd: (Int) -> Unit) {
+private fun SuggestionRow(
+    movie: Movie,
+    state: WatchlistDetailState,
+    stackId: String,
+    onOpen: (Int) -> Unit,
+    onAdd: (Int) -> Unit
+) {
     if (movie.id in state.excludedSuggestionIds) return
     Column {
-        MovieSearchResult(movie, compact = true,
+        MovieSearchResult(
+            movie, compact = true,
             posterModifier = moviePosterTransitionModifier(movie.id, stackId), onOpen = { onOpen(movie.id) }) {
-            MovieMembershipButton(movie.title, isAdded = false, onClick = { onAdd(movie.id) },
-                enabled = state.canAddSuggestions && movie.id !in state.excludedSuggestionIds, saving = movie.id in state.adding)
+            MovieMembershipButton(
+                movie.title,
+                isAdded = false,
+                onClick = { onAdd(movie.id) },
+                enabled = state.canAddSuggestions && movie.id !in state.excludedSuggestionIds,
+                saving = movie.id in state.adding
+            )
         }
         HorizontalDivider()
     }

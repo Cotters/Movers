@@ -31,12 +31,14 @@ internal fun OverlaysGallery() {
     var feedback by rememberSaveable { mutableStateOf("Try the list menu, dialog or sheet.") }
     GalleryHeading("List menu", "Anchored actions · keyboard navigation · destructive styling")
     MoversPanel(Modifier.fillMaxWidth()) {
-        MoversMenu(listOf(
-            MoversMenuAction("Change layout", { feedback = "Demo layout changed." }, MoversSymbol.Grid),
-            MoversMenuAction("Rename list", { sheet = true }, MoversSymbol.More),
-            MoversMenuAction("Unavailable action", {}, enabled = false),
-            MoversMenuAction("Delete list", { dialog = true }, MoversSymbol.Trash, destructive = true),
-        ))
+        MoversMenu(
+            listOf(
+                MoversMenuAction("Change layout", { feedback = "Demo layout changed." }, MoversSymbol.Grid),
+                MoversMenuAction("Rename list", { sheet = true }, MoversSymbol.More),
+                MoversMenuAction("Unavailable action", {}, enabled = false),
+                MoversMenuAction("Delete list", { dialog = true }, MoversSymbol.Trash, destructive = true),
+            )
+        )
         MoversText(feedback)
     }
     GalleryHeading("Modals", "Tap outside, Back/Escape or Close to dismiss")
@@ -46,25 +48,34 @@ internal fun OverlaysGallery() {
     }
     GalleryHeading("Feedback", "Information, success and failure")
     var removed by rememberSaveable { mutableStateOf(true) }
-    MoversNotice(if (removed) "Film removed from the demo list." else "Demo removal undone.",
-        actionLabel = if (removed) "Undo" else null, onAction = if (removed) ({ removed = false }) else null)
+    MoversNotice(
+        if (removed) "Film removed from the demo list." else "Demo removal undone.",
+        actionLabel = if (removed) "Undo" else null, onAction = if (removed) ({ removed = false }) else null
+    )
     MoversNotice("Invitation copied.", kind = NoticeKind.Success)
     var failed by rememberSaveable { mutableStateOf(true) }
-    MoversNotice(if (failed) "Couldn't save. Try again." else "Demo retry complete.",
+    MoversNotice(
+        if (failed) "Couldn't save. Try again." else "Demo retry complete.",
         kind = if (failed) NoticeKind.Error else NoticeKind.Success,
         actionLabel = if (failed) "Retry" else null, onAction = { failed = false })
 
     MoversDialog("Delete demo list?", dialog, onDismiss = { dialog = false }) {
         MoversText("This is a preview. Your watchlists stay unchanged.")
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            MoversButton("Delete list", { dialog = false; feedback = "Demo list deleted." }, variant = ButtonVariant.Destructive)
+            MoversButton(
+                "Delete list",
+                { dialog = false; feedback = "Demo list deleted." },
+                variant = ButtonVariant.Destructive
+            )
             MoversButton("Cancel", { dialog = false }, variant = ButtonVariant.Secondary)
         }
     }
     val name = rememberTextFieldState("Friday films")
     MoversSheet("Rename demo list", sheet, onDismiss = { sheet = false }) {
         MoversTextField(name, "List name", placeholder = "Friday films")
-        MoversButton("Save", { feedback = "Demo list renamed to ${name.text.toString().trim()}."; sheet = false },
-            enabled = name.text.isNotBlank())
+        MoversButton(
+            "Save", { feedback = "Demo list renamed to ${name.text.toString().trim()}."; sheet = false },
+            enabled = name.text.isNotBlank()
+        )
     }
 }

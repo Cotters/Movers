@@ -24,12 +24,29 @@ import com.jcotters.designsystem.MoversTextField
 fun NameEntryScreen(busy: Boolean, error: String?, initialName: String, onSave: (String) -> Unit) {
     var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
     Scaffold { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).safeDrawingPadding().imePadding().padding(24.dp), verticalArrangement = Arrangement.Center) {
+        Column(
+            Modifier.fillMaxSize().padding(padding).safeDrawingPadding().imePadding().padding(24.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
             Text("What should we call you?", style = MaterialTheme.typography.headlineMedium)
-            Text("Your name appears beside films you add to shared lists. No account or password needed.", Modifier.padding(vertical = 16.dp))
-            MoversTextField(value = name, onValueChange = { name = it }, label = { Text("Your name") }, singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
+            Text(
+                "Your name appears beside films you add to shared lists. No account or password needed.",
+                Modifier.padding(vertical = 16.dp)
+            )
+            MoversTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Your name") },
+                singleLine = true,
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth()
+            )
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            MoversButton(onClick = { onSave(name) }, enabled = !busy && name.isNotBlank(), modifier = Modifier.padding(top = 16.dp)) { Text(if (busy) "Saving…" else "Continue") }
+            MoversButton(
+                onClick = { onSave(name) },
+                enabled = !busy && name.isNotBlank(),
+                modifier = Modifier.padding(top = 16.dp)
+            ) { Text(if (busy) "Saving…" else "Continue") }
         }
     }
 }

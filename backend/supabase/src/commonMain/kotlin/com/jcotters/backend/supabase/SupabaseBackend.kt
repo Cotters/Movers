@@ -53,18 +53,26 @@ internal class SecureSessions(private val store: SecureCredentialStore) : Sessio
     private val mutex = Mutex()
     var failure: Exception? = null
         private set
+
     override suspend fun saveSession(session: UserSession) = protect { store.write(json.encodeToString(session)) }
     override suspend fun loadSession(): UserSession = loadSessionOrNull() ?: throw NoSessionFoundException()
-    override suspend fun loadSessionOrNull(): UserSession? = protect { store.read()?.let { json.decodeFromString<UserSession>(it) } }
+    override suspend fun loadSessionOrNull(): UserSession? =
+        protect { store.read()?.let { json.decodeFromString<UserSession>(it) } }
+
     override suspend fun deleteSession() = protect { store.clear() }
-    private suspend fun <T> protect(block: suspend () -> T): T = try { mutex.withLock { block().also { failure = null } } } catch (e: CancellationException) { throw e } catch (e: Exception) {
+    private suspend fun <T> protect(block: suspend () -> T): T = try {
+        mutex.withLock { block().also { failure = null } }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
         failure = e
         throw IllegalStateException("Unable to read or save this device's sharing identity.")
     }
 }
 
 /** Provider implementation. Applications bind its neutral interfaces at composition. */
-class SupabaseBackend internal constructor(url: String, key: String, store: SecureCredentialStore) : SharedWatchlistRemote, ParticipantIdentity {
+class SupabaseBackend internal constructor(url: String, key: String, store: SecureCredentialStore) :
+    SharedWatchlistRemote, ParticipantIdentity {
     override val configured = url.startsWith("https://") && key.isNotBlank() && !key.startsWith("$(")
     private val sessions = SecureSessions(store)
     private val identityMutex = Mutex()
@@ -78,69 +86,114 @@ class SupabaseBackend internal constructor(url: String, key: String, store: Secu
     private fun backend() = client ?: throw SharingUnavailableException()
     override suspend fun currentId(): String? {
         val client = backend()
-        try { client.auth.awaitInitialization() }
-        catch (e: CancellationException) { throw e }
-        catch (_: Exception) { throw IllegalStateException("Unable to restore your sharing identity. Reopen the app to retry.") }
+        try {
+            client.auth.awaitInitialization()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            throw IllegalStateException("Unable to restore your sharing identity. Reopen the app to retry.")
+        }
         if (sessions.failure != null) throw IllegalStateException("Unable to restore your sharing identity. Reopen the app to retry; do not clear app data.")
         val saved = sessions.loadSessionOrNull()
         if (saved != null && client.auth.currentUserOrNull() == null) {
-            try { client.auth.importSession(saved) }
-            catch (e: CancellationException) { throw e }
-            catch (_: Exception) { throw IllegalStateException("Unable to restore your sharing identity. Reconnect and retry.") }
+            try {
+                client.auth.importSession(saved)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                throw IllegalStateException("Unable to restore your sharing identity. Reconnect and retry.")
+            }
         }
         val id = client.auth.currentUserOrNull()?.id
         if (saved != null && id == null) throw IllegalStateException("Unable to restore your sharing identity. Reconnect and retry.")
         return id
     }
+
     override suspend fun ensure(name: String, color: Int): String = identityMutex.withLock {
         val client = backend()
         val id = currentId() ?: run {
-            try { client.auth.signInAnonymously() }
-            catch (e: CancellationException) { throw e }
-            catch (_: Exception) { throw IllegalStateException("Unable to create this device's sharing identity. Check your connection and retry later.") }
+            try {
+                client.auth.signInAnonymously()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                throw IllegalStateException("Unable to create this device's sharing identity. Check your connection and retry later.")
+            }
             currentId() ?: error("Unable to create this device's sharing identity.")
         }
         update(name, color)
         id
     }
+
     override suspend fun update(name: String, color: Int) {
         rpc("movers_profile", buildJsonObject { put("p_name", name); put("p_color", color) })
     }
-    override suspend fun snapshot(listId: String): SharedSnapshot = json.decodeFromJsonElement(rpc("movers_snapshot", params(listId)))
-    override suspend fun listIds(): List<String> = json.decodeFromJsonElement(rpc("movers_list_ids", buildJsonObject {}))
+
+    override suspend fun snapshot(listId: String): SharedSnapshot =
+        json.decodeFromJsonElement(rpc("movers_snapshot", params(listId)))
+
+    override suspend fun listIds(): List<String> =
+        json.decodeFromJsonElement(rpc("movers_list_ids", buildJsonObject {}))
+
     override suspend fun execute(requestId: String, command: SharedCommand) {
-        rpc("movers_command", buildJsonObject { put("p_request", requestId); put("p_command", json.encodeToJsonElement(command)) })
+        rpc(
+            "movers_command",
+            buildJsonObject { put("p_request", requestId); put("p_command", json.encodeToJsonElement(command)) })
     }
+
     override suspend fun executeImport(requestId: String, command: SharedCommand.ImportFilms): ImportBatchResult =
         json.decodeFromJsonElement(rpc("movers_import", buildJsonObject {
             put("p_request", requestId); put("p_command", json.encodeToJsonElement<SharedCommand>(command))
         }))
-    override suspend fun preview(token: String): InvitePreview = json.decodeFromJsonElement(rpc("movers_preview", buildJsonObject { put("p_token", token) }))
-    override suspend fun createInvite(listId: String): String = rpc("movers_invite", params(listId)).jsonPrimitive.content
-    override suspend fun activity(listId: String, before: Long?): ActivityPage = json.decodeFromJsonElement(rpc("movers_activity", buildJsonObject {
-        put("p_list", listId); put("p_before", before?.let(::JsonPrimitive) ?: JsonNull)
-    }))
+
+    override suspend fun preview(token: String): InvitePreview =
+        json.decodeFromJsonElement(rpc("movers_preview", buildJsonObject { put("p_token", token) }))
+
+    override suspend fun createInvite(listId: String): String =
+        rpc("movers_invite", params(listId)).jsonPrimitive.content
+
+    override suspend fun activity(listId: String, before: Long?): ActivityPage =
+        json.decodeFromJsonElement(rpc("movers_activity", buildJsonObject {
+            put("p_list", listId); put("p_before", before?.let(::JsonPrimitive) ?: JsonNull)
+        }))
+
     override fun invalidations(): Flow<Unit> = channelFlow {
         val channel = backend().channel("movers-lists")
         try {
             coroutineScope {
-                val collection = launch { channel.postgresChangeFlow<PostgresAction>(schema = "public") { table = "movers_list_signals" }.collect { send(Unit) } }
+                val collection = launch {
+                    channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                        table = "movers_list_signals"
+                    }.collect { send(Unit) }
+                }
                 channel.subscribe(blockUntilSubscribed = true)
                 send(Unit)
                 collection.join()
             }
-        } finally { kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { backend().realtime.removeChannel(channel) } }
+        } finally {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { backend().realtime.removeChannel(channel) }
+        }
     }
+
     private fun params(id: String) = buildJsonObject { put("p_list", id) }
     private suspend fun rpc(name: String, params: JsonObject): JsonElement = try {
         val data = backend().postgrest.rpc(name, params).data
         if (data.isBlank()) JsonNull else json.parseToJsonElement(data)
-    } catch (e: CancellationException) { throw e } catch (e: io.github.jan.supabase.postgrest.exception.PostgrestRestException) {
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: io.github.jan.supabase.postgrest.exception.PostgrestRestException) {
         when (e.code) {
-            "PGRST202" -> if (name == "movers_import") throw ImportUnavailableException() else throw IllegalStateException("This backend needs updating.")
+            "PGRST202" -> if (name == "movers_import") throw ImportUnavailableException() else throw IllegalStateException(
+                "This backend needs updating."
+            )
+
             "42501" -> throw SharedAccessDeniedException()
             "22023", "23514", "23502", "23505", "22P02", "22001" -> throw IllegalArgumentException("This change or invitation is invalid. Check the name or request a new invitation.")
             else -> throw IllegalStateException("Unable to save this shared change. Retry when connected.")
         }
-    } catch (e: SharingUnavailableException) { throw e } catch (e: Exception) { throw SharedConnectionException() }
+    } catch (e: SharingUnavailableException) {
+        throw e
+    } catch (e: Exception) {
+        throw SharedConnectionException()
+    }
 }

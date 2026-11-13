@@ -41,10 +41,16 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
         }
     }
     LaunchedEffect(state.createdId) {
-        if (state.createdId != null) { creating = false; name = ""; viewModel.consumeCreated() }
+        if (state.createdId != null) {
+            creating = false; name = ""; viewModel.consumeCreated()
+        }
     }
     Column(Modifier.fillMaxWidth().heightIn(max = 680.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text("Add to list", style = MaterialTheme.typography.headlineSmall)
             MoversTextButton(onClick = navigator::goBack, enabled = !state.busy) { Text("Close") }
         }
@@ -75,11 +81,20 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
         if (creating) {
             ListNameFields(name, { name = it }, state.lists, error = state.error, enabled = !state.busy)
             Row {
-                MoversTextButton(onClick = { viewModel.create(name) }, enabled = !state.busy && name.isNotBlank()) { Text("Create") }
-                MoversTextButton(onClick = { creating = false; viewModel.clearError() }, enabled = !state.busy) { Text("Cancel") }
+                MoversTextButton(
+                    onClick = { viewModel.create(name) },
+                    enabled = !state.busy && name.isNotBlank()
+                ) { Text("Create") }
+                MoversTextButton(
+                    onClick = { creating = false; viewModel.clearError() },
+                    enabled = !state.busy
+                ) { Text("Cancel") }
             }
         } else {
-            MoversTextButton(onClick = { viewModel.clearError(); creating = true }, enabled = !state.busy && !state.loading && !state.readFailed) { Text("Create new list") }
+            MoversTextButton(
+                onClick = { viewModel.clearError(); creating = true },
+                enabled = !state.busy && !state.loading && !state.readFailed
+            ) { Text("Create new list") }
         }
     }
 }

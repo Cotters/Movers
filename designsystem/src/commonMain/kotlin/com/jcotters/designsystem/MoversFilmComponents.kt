@@ -65,12 +65,15 @@ fun MoversFilmCard(
             poster(Modifier.matchParentSize())
             posterOverlay()
             onAdd?.let { add ->
-                Box(Modifier.align(Alignment.TopEnd).padding(4.dp).background(tokens.colors.surface, RoundedCornerShape(tokens.cornerRadius))) {
+                Box(
+                    Modifier.align(Alignment.TopEnd).padding(4.dp)
+                        .background(tokens.colors.surface, RoundedCornerShape(tokens.cornerRadius))
+                ) {
                     MoversIconButton(MoversSymbol.Add, "Add $title to list", add)
                 }
             }
         }
-        MoversText(title, style = tokens.type.label, maxLines = 2)
+        MoversText(title, style = tokens.type.title, maxLines = 2)
         FilmMetadata(year)
         if (footerContent != null) FilmFooter(content = footerContent)
     }
@@ -100,16 +103,28 @@ fun MoversFilmRow(
         // Explicit widths retain a 2:3 poster; other rows keep their text-height sizing.
         val imageWidth = posterWidth ?: if (compact) 56.dp else 96.dp
         val imageSizing = if (posterWidth != null) Modifier.aspectRatio(2f / 3f) else Modifier.fillMaxHeight()
-        Box(Modifier.width(imageWidth).then(imageSizing).align(Alignment.Bottom).clip(RoundedCornerShape(tokens.imageCornerRadius))) {
+        Box(
+            Modifier
+                .width(imageWidth).then(imageSizing)
+                .align(Alignment.Bottom)
+                .clip(RoundedCornerShape(tokens.imageCornerRadius))
+        ) {
             poster(Modifier.matchParentSize())
         }
         Column(
-            Modifier.weight(1f).fillMaxHeight().heightIn(min = posterWidth?.let { it * 1.5f } ?: if (compact) 96.dp else 144.dp),
+            Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .heightIn(min = posterWidth?.let { it * 1.5f } ?: if (compact) 96.dp else 144.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(tokens.spacing)) {
-                MoversText(title, style = tokens.type.label, maxLines = 2)
+                MoversText(title, style = tokens.type.title, maxLines = 2)
                 FilmMetadata(metadata)
-                if (synopsis.isNotBlank()) MoversText(synopsis, style = tokens.type.caption, maxLines = if (compact) 2 else 4)
+                if (synopsis.isNotBlank()) MoversText(
+                    synopsis,
+                    style = tokens.type.caption,
+                    maxLines = if (compact) 2 else 4
+                )
             }
             if (footerContent != null) {
                 Spacer(Modifier.weight(1f))
@@ -194,21 +209,36 @@ fun MoversWatchlistSummary(name: String, filmCount: Int, participants: List<Stri
         MoversText(name, style = tokens.type.title)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             MoversText("$filmCount films", style = tokens.type.caption, color = tokens.colors.muted)
-            participants.take(3).forEachIndexed { index, person -> MoversAvatar(person,
-                background = if (index % 2 == 0) tokens.colors.accent else tokens.colors.raised,
-                contentColor = if (index % 2 == 0) tokens.colors.onAccent else tokens.colors.content) }
+            participants.take(3).forEachIndexed { index, person ->
+                MoversAvatar(
+                    person,
+                    background = if (index % 2 == 0) tokens.colors.accent else tokens.colors.raised,
+                    contentColor = if (index % 2 == 0) tokens.colors.onAccent else tokens.colors.content
+                )
+            }
             if (participants.size > 3) MoversText("+${participants.size - 3}", style = tokens.type.caption)
         }
     }
 }
 
 @Composable
-fun MoversActivity(name: String, filmTitle: String, action: String, time: String, removed: Boolean, modifier: Modifier = Modifier) {
+fun MoversActivity(
+    name: String,
+    filmTitle: String,
+    action: String,
+    time: String,
+    removed: Boolean,
+    modifier: Modifier = Modifier
+) {
     val tokens = MoversDesign.tokens
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         MoversAvatar(name)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            MoversText("$name $action", style = tokens.type.label, color = if (removed) tokens.colors.danger else tokens.colors.success)
+            MoversText(
+                "$name $action",
+                style = tokens.type.label,
+                color = if (removed) tokens.colors.danger else tokens.colors.success
+            )
             MoversText(filmTitle, style = tokens.type.body.copy(fontStyle = FontStyle.Italic))
             MoversText(time, style = tokens.type.caption, color = tokens.colors.muted)
         }
@@ -221,8 +251,10 @@ private fun filmAction(title: String, onOpen: () -> Unit): Modifier {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val pressed by interaction.collectIsPressedAsState()
-    return Modifier.clickable(interactionSource = interaction, indication = null,
-        role = Role.Button, onClickLabel = "Open $title", onClick = onOpen)
+    return Modifier.clickable(
+        interactionSource = interaction, indication = null,
+        role = Role.Button, onClickLabel = "Open $title", onClick = onOpen
+    )
         .drawWithContent {
             drawContent()
             if (pressed) drawRect(tokens.colors.accent.copy(alpha = 0.12f))

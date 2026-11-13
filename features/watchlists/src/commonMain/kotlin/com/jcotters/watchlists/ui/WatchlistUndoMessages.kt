@@ -20,7 +20,7 @@ fun WatchlistUndoMessages() {
         coordinator.removals.map { it.pending }.distinctUntilChanged().collectLatest { pending ->
             if (pending == null) return@collectLatest
             val message = if (pending.targets.size == 1) "Removed “${pending.targets.single().title}”."
-                else "Removed ${pending.targets.size} films."
+            else "Removed ${pending.targets.size} films."
             val result = snackbar.showSnackbar(
                 message = message,
                 actionLabel = "Undo",

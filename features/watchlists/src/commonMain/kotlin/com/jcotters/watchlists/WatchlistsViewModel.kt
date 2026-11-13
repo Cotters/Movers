@@ -41,8 +41,10 @@ internal class WatchlistsViewModel(
 ) : ViewModel() {
     private val state = MutableStateFlow(WatchlistsState())
     val uiState = combine(state, preferences.state) { content, saved ->
-        content.copy(pinnedIds = saved.pinnedIds, preferencesReady = saved.ready,
-            loading = content.loading || (!saved.ready && content.preferenceError == null))
+        content.copy(
+            pinnedIds = saved.pinnedIds, preferencesReady = saved.ready,
+            loading = content.loading || (!saved.ready && content.preferenceError == null)
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state.value)
     private var observation: Job? = null
     private var failedPin: Pair<String, Boolean>? = null
@@ -52,16 +54,20 @@ internal class WatchlistsViewModel(
         viewModelScope.launch { sharing.syncStatus.collect { status -> state.update { it.copy(syncError = status.error) } } }
     }
 
-    fun refreshShared() { viewModelScope.launch { sharing.refresh() } }
+    fun refreshShared() {
+        viewModelScope.launch { sharing.refresh() }
+    }
 
     fun retryPreferences() {
         failedPin?.let { (id, pinned) ->
-            if (state.value.lists.any { it.id == id }) { setPinned(id, pinned); return }
+            if (state.value.lists.any { it.id == id }) {
+                setPinned(id, pinned); return
+            }
             failedPin = null
         }
         viewModelScope.launch {
             val result = if (state.value.loading || state.value.error != null) preferences.load()
-                else preferences.retainLists(state.value.lists.map { it.id }.toSet())
+            else preferences.retainLists(state.value.lists.map { it.id }.toSet())
             result.onSuccess { state.update { it.copy(preferenceError = null) } }
                 .onFailure { state.update { it.copy(preferenceError = "Couldn't read saved pins. Try again.") } }
         }
@@ -93,10 +99,13 @@ internal class WatchlistsViewModel(
             try {
                 preferences.setPinned(id, pinned).onSuccess { failedPin = null }.onFailure { error ->
                     failedPin = id to pinned
-                    val message = if (error is IllegalArgumentException) error.message else "Couldn't save pins. Try again."
+                    val message =
+                        if (error is IllegalArgumentException) error.message else "Couldn't save pins. Try again."
                     state.update { it.copy(preferenceError = message) }
                 }
-            } finally { state.update { it.copy(pinning = it.pinning - id) } }
+            } finally {
+                state.update { it.copy(pinning = it.pinning - id) }
+            }
         }
     }
 
@@ -107,10 +116,17 @@ internal class WatchlistsViewModel(
             try {
                 repository.create(name).onSuccess { id -> state.update { it.copy(createdId = id) } }
                     .onFailure { error -> state.update { it.copy(error = error.message) } }
-            } finally { state.update { it.copy(busy = false) } }
+            } finally {
+                state.update { it.copy(busy = false) }
+            }
         }
     }
 
-    fun consumeCreated() { state.update { it.copy(createdId = null) } }
-    fun clearError() { state.update { it.copy(error = null) } }
+    fun consumeCreated() {
+        state.update { it.copy(createdId = null) }
+    }
+
+    fun clearError() {
+        state.update { it.copy(error = null) }
+    }
 }

@@ -45,8 +45,17 @@ if formatter is None:
 command = [str(formatter.resolve()), "-allowDefaults"]
 if mode == "--check":
     command.append("-dry")
+environment = dict(os.environ)
+if "STUDIO_PROPERTIES" not in environment:
+    runtime = root / "build/quality/studio-formatter"
+    runtime.mkdir(parents=True, exist_ok=True)
+    properties = runtime / "studio.properties"
+    properties.write_text("\n".join(
+        f"idea.{directory}.path={runtime / directory}" for directory in ("config", "system", "log")
+    ) + "\n", encoding="utf-8")
+    environment["STUDIO_PROPERTIES"] = str(properties)
 try:
-    result = subprocess.run([*command, *files], cwd=root, timeout=120)
+    result = subprocess.run([*command, *files], cwd=root, env=environment, timeout=120)
 except (OSError, subprocess.TimeoutExpired):
     print("Formatter could not finish. Use the running IDE; do not close another person's IDE session.", file=sys.stderr)
     sys.exit(2)

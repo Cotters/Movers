@@ -80,10 +80,25 @@ fun MoversDesignTheme(settings: MoversStyleSettings = MoversStyleSettings(), con
     val tokens = MoversDesignTokens(
         colors = if (dark) darkColors else lightColors,
         type = MoversTypography(
-            headline = TextStyle(fontFamily = family, fontSize = 26.sp, lineHeight = 32.sp, fontWeight = FontWeight.SemiBold),
-            title = TextStyle(fontFamily = family, fontSize = 19.sp, lineHeight = 25.sp, fontWeight = FontWeight.SemiBold),
+            headline = TextStyle(
+                fontFamily = family,
+                fontSize = 26.sp,
+                lineHeight = 32.sp,
+                fontWeight = FontWeight.SemiBold
+            ),
+            title = TextStyle(
+                fontFamily = family,
+                fontSize = 19.sp,
+                lineHeight = 25.sp,
+                fontWeight = FontWeight.SemiBold
+            ),
             body = TextStyle(fontFamily = family, fontSize = 16.sp, lineHeight = 23.sp),
-            label = TextStyle(fontFamily = family, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium),
+            label = TextStyle(
+                fontFamily = family,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Medium
+            ),
             caption = TextStyle(fontFamily = family, fontSize = 13.sp, lineHeight = 19.sp),
         ),
         cornerRadius = settings.cornerRadius,

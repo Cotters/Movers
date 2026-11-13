@@ -50,7 +50,10 @@ internal fun FoundationsGallery() {
     GalleryHeading("Icons", "Original strokes · 48 dp action targets")
     FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         MoversSymbol.entries.forEach { symbol ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 MoversIcon(symbol)
                 MoversText(symbol.name, style = tokens.type.caption)
             }
@@ -68,7 +71,13 @@ internal fun FoundationsGallery() {
 internal fun GalleryHeading(title: String, subtitle: String? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         MoversText(title, Modifier.semantics { heading() }, style = MoversDesign.tokens.type.title)
-        subtitle?.let { MoversText(it, style = MoversDesign.tokens.type.caption, color = MoversDesign.tokens.colors.muted) }
+        subtitle?.let {
+            MoversText(
+                it,
+                style = MoversDesign.tokens.type.caption,
+                color = MoversDesign.tokens.colors.muted
+            )
+        }
     }
 }
 

@@ -43,7 +43,10 @@ internal fun ListNameFields(
             keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
         )
         if (name.isNotBlank() && lists.any { it.id != excludedId && it.name.equals(name.trim(), ignoreCase = true) }) {
-            Text("A list with this name already exists. You can still use this name.", style = MaterialTheme.typography.bodySmall)
+            Text(
+                "A list with this name already exists. You can still use this name.",
+                style = MaterialTheme.typography.bodySmall
+            )
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }

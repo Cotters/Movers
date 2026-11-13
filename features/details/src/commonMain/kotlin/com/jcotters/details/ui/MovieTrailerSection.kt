@@ -39,7 +39,8 @@ internal fun MovieTrailerSection(movieId: Int) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var active by remember(lifecycle) { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
     DisposableEffect(lifecycle) {
-        val observer = LifecycleEventObserver { _, _ -> active = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
+        val observer =
+            LifecycleEventObserver { _, _ -> active = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
@@ -55,16 +56,26 @@ internal fun MovieTrailerSection(movieId: Int) {
                     Text(checkNotNull(state.error), color = MaterialTheme.colorScheme.error)
                     MoversTextButton(onClick = viewModel::load) { Text("Retry") }
                 }
+
                 trailer != null -> {
-                    Text(trailer.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        trailer.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     if (active) {
                         key(trailer.embedUrl) {
                             BoxWithConstraints(Modifier.fillMaxWidth()) {
-                                TrailerPlayer(trailer.embedUrl, Modifier.fillMaxWidth().height((maxWidth * 9f / 16f).coerceAtLeast(200.dp)))
+                                TrailerPlayer(
+                                    trailer.embedUrl,
+                                    Modifier.fillMaxWidth().height((maxWidth * 9f / 16f).coerceAtLeast(200.dp))
+                                )
                             }
                         }
                     }
                 }
+
                 state.loaded -> Text("No trailer available.")
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

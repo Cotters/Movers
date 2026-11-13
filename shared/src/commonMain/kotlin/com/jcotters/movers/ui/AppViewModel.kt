@@ -16,7 +16,8 @@ import kotlinx.coroutines.launch
 
 internal enum class StartupState { Loading, NameRequired, Ready, Failed }
 
-internal class AppViewModel(private val profiles: DeviceProfileRepository, networkMonitor: NetworkMonitor) : ViewModel() {
+internal class AppViewModel(private val profiles: DeviceProfileRepository, networkMonitor: NetworkMonitor) :
+    ViewModel() {
     private val startup = MutableStateFlow(StartupState.Loading)
     internal val startupState = startup.asStateFlow()
     private var initialization: Job? = null
@@ -27,14 +28,27 @@ internal class AppViewModel(private val profiles: DeviceProfileRepository, netwo
         if (savingName.value) return
         savingName.value = true
         viewModelScope.launch {
-            try { profiles.saveName(name); startup.value = StartupState.Ready; nameError.value = null }
-            catch (e: CancellationException) { throw e }
-            catch (e: Exception) { nameError.value = e.message ?: "Unable to save your name." }
-            finally { savingName.value = false }
+            try {
+                profiles.saveName(name); startup.value = StartupState.Ready; nameError.value = null
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                nameError.value = e.message ?: "Unable to save your name."
+            } finally {
+                savingName.value = false
+            }
         }
     }
-    val networkStatus = networkMonitor.networkStatus.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NetworkStatus.Unknown)
-    init { initializeProfile() }
+
+    val networkStatus = networkMonitor.networkStatus.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        NetworkStatus.Unknown
+    )
+
+    init {
+        initializeProfile()
+    }
 
     fun initializeProfile() {
         if (initialization?.isActive == true) return

@@ -36,10 +36,12 @@ fun MoversTopBar(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val tokens = MoversDesign.tokens
-    Row(modifier.fillMaxWidth().background(tokens.colors.background)
-        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
-        .heightIn(min = 64.dp).padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier.fillMaxWidth().background(tokens.colors.background)
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+            .heightIn(min = 64.dp).padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         navigationIcon()
         Column(Modifier.weight(1f).padding(horizontal = 8.dp, vertical = 12.dp)) {
             ProvideTextStyle(tokens.type.title, content = title)
@@ -58,8 +60,10 @@ fun MoversListItem(
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val tokens = MoversDesign.tokens
-    Row(modifier.fillMaxWidth().padding(horizontal = tokens.controlPadding, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier.fillMaxWidth().padding(horizontal = tokens.controlPadding, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically
+    ) {
         leadingContent?.invoke()
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             ProvideTextStyle(tokens.type.label, content = headlineContent)
@@ -83,7 +87,17 @@ fun MoversCard(
 }
 
 @Composable
-fun MoversFilterChip(selected: Boolean, onClick: () -> Unit, label: @Composable () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    MoversButton(onClick, modifier.semantics { this.selected = selected }, variant = if (selected) ButtonVariant.Primary else ButtonVariant.Secondary,
-        enabled = enabled) { label() }
+fun MoversFilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    MoversButton(
+        onClick,
+        modifier.semantics { this.selected = selected },
+        variant = if (selected) ButtonVariant.Primary else ButtonVariant.Secondary,
+        enabled = enabled
+    ) { label() }
 }

@@ -5,10 +5,15 @@ plugins {
     id("movers.android.compose")
     id("movers.android.unit-testing")
 }
+
 val backendProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
-fun backendString(name: String): String = "\"" + backendProperties.getProperty(name, "").replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
+
+fun backendString(name: String): String =
+    "\"" + backendProperties.getProperty(name, "").replace("\\", "\\\\").replace("\"", "\\\"")
+        .replace("\n", "\\n") + "\""
+
 android {
     buildFeatures { buildConfig = true }
     namespace = "com.jcotters.movers"

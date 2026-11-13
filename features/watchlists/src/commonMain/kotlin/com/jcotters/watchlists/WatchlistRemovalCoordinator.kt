@@ -41,7 +41,12 @@ internal class WatchlistRemovalCoordinator(private val repository: IWatchlistsRe
         val id = Uuid.random().toString()
         state.update { current ->
             if (key in current.committing || current.pending?.targets?.any { it.key == key } == true) current
-            else current.copy(pending = PendingRemoval(id, current.pending?.targets.orEmpty() + RemovalTarget(key, movie.title)))
+            else current.copy(
+                pending = PendingRemoval(
+                    id,
+                    current.pending?.targets.orEmpty() + RemovalTarget(key, movie.title)
+                )
+            )
         }
     }
 

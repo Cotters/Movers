@@ -32,25 +32,45 @@ internal fun ControlsGallery() {
         MoversButton("Create list", { action = "Demo list created." })
         MoversButton("Share", { action = "Demo share selected." }, variant = ButtonVariant.Secondary)
         MoversButton("Cancel", { action = "Demo action cancelled." }, variant = ButtonVariant.Quiet)
-        MoversButton("Delete list", { action = "Demo deletion selected. No real data changed." }, variant = ButtonVariant.Destructive)
+        MoversButton(
+            "Delete list",
+            { action = "Demo deletion selected. No real data changed." },
+            variant = ButtonVariant.Destructive
+        )
         MoversButton("Unavailable", {}, enabled = false)
         MoversButton("Saving", {}, loading = true)
     }
     MoversText(action, style = MoversDesign.tokens.type.caption, color = MoversDesign.tokens.colors.muted)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         MoversIconButton(MoversSymbol.Add, "Add a demo film", { action = "Demo film added." })
-        MoversIconButton(MoversSymbol.Trash, "Remove a demo film", { action = "Demo film removed." }, destructive = true)
+        MoversIconButton(
+            MoversSymbol.Trash,
+            "Remove a demo film",
+            { action = "Demo film removed." },
+            destructive = true
+        )
         MoversIconButton(MoversSymbol.Search, "Search demo films", { action = "Demo search selected." })
         MoversIconButton(MoversSymbol.More, "Unavailable options", {}, enabled = false)
     }
     GalleryHeading("Fields", "Labelled forms and inline search · try focus, paste and keyboard actions")
     MoversTextField(rememberTextFieldState(), "List name", placeholder = "Friday films")
     var search by rememberSaveable { mutableStateOf("") }
-    MoversSearchField(search, { search = it }, "Search films",
+    MoversSearchField(
+        search, { search = it }, "Search films",
         onSearch = { action = "Demo search submitted." })
-    MoversTextField(rememberTextFieldState(""), "Name with an error", placeholder = "Your list", error = "Enter a list name.")
+    MoversTextField(
+        rememberTextFieldState(""),
+        "Name with an error",
+        placeholder = "Your list",
+        error = "Enter a list name."
+    )
     MoversTextField(rememberTextFieldState("Saved locally"), "Disabled field", enabled = false)
-    MoversTextField(rememberTextFieldState(), "Paste titles or CSV", placeholder = "A film title, 2026", multiline = true)
+    MoversTextField(
+        rememberTextFieldState(),
+        "Paste titles or CSV",
+        placeholder = "A film title, 2026",
+        multiline = true
+    )
     GalleryHeading("Selections", "Immediate feedback · no confirmation step")
     var selected by rememberSaveable { mutableStateOf("All films") }
     FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -61,6 +81,11 @@ internal fun ControlsGallery() {
     var checked by rememberSaveable { mutableStateOf(true) }
     MoversPanel(Modifier.fillMaxWidth()) {
         MoversCheckboxRow("Friday films", checked, { checked = it }, description = "A shared demo list")
-        MoversCheckboxRow("A very long watchlist name that should wrap without losing its selection control", false, {}, enabled = false)
+        MoversCheckboxRow(
+            "A very long watchlist name that should wrap without losing its selection control",
+            false,
+            {},
+            enabled = false
+        )
     }
 }

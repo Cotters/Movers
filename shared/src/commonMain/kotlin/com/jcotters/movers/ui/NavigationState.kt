@@ -143,14 +143,23 @@ internal val navigationSavedState = androidx.savedstate.serialization.SavedState
         polymorphic(NavKey::class) {
             subclass(CatalogueKey::class, CatalogueKey.serializer())
             subclass(WatchlistsKey::class, WatchlistsKey.serializer())
-            subclass(com.jcotters.watchlists.navigation.JoinWatchlistKey::class, com.jcotters.watchlists.navigation.JoinWatchlistKey.serializer())
-            subclass(com.jcotters.watchlists.navigation.SharedListKey::class, com.jcotters.watchlists.navigation.SharedListKey.serializer())
+            subclass(
+                com.jcotters.watchlists.navigation.JoinWatchlistKey::class,
+                com.jcotters.watchlists.navigation.JoinWatchlistKey.serializer()
+            )
+            subclass(
+                com.jcotters.watchlists.navigation.SharedListKey::class,
+                com.jcotters.watchlists.navigation.SharedListKey.serializer()
+            )
             subclass(ProfileKey::class, ProfileKey.serializer())
             subclass(StyleGuideKey::class, StyleGuideKey.serializer())
             subclass(MovieDetailsKey::class, MovieDetailsKey.serializer())
             subclass(MovieImageKey::class, MovieImageKey.serializer())
             subclass(WatchlistDetailKey::class, WatchlistDetailKey.serializer())
-            subclass(com.jcotters.watchlists.navigation.FilmImportKey::class, com.jcotters.watchlists.navigation.FilmImportKey.serializer())
+            subclass(
+                com.jcotters.watchlists.navigation.FilmImportKey::class,
+                com.jcotters.watchlists.navigation.FilmImportKey.serializer()
+            )
             subclass(ListTransferKey::class, ListTransferKey.serializer())
             subclass(AddToListsKey::class, AddToListsKey.serializer())
             subclass(MovieSearchKey::class, MovieSearchKey.serializer())

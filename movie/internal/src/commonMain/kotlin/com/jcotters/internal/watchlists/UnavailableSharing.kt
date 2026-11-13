@@ -17,7 +17,11 @@ internal object UnavailableSharing : SharedWatchlistRemote, ParticipantIdentity 
     override suspend fun snapshot(listId: String): SharedSnapshot = throw SharingUnavailableException()
     override suspend fun listIds(): List<String> = throw SharingUnavailableException()
     override suspend fun execute(requestId: String, command: SharedCommand): Unit = throw SharingUnavailableException()
-    override suspend fun executeImport(requestId: String, command: SharedCommand.ImportFilms): com.jcotters.contract.watchlists.data.ImportBatchResult = throw SharingUnavailableException()
+    override suspend fun executeImport(
+        requestId: String,
+        command: SharedCommand.ImportFilms
+    ): com.jcotters.contract.watchlists.data.ImportBatchResult = throw SharingUnavailableException()
+
     override suspend fun preview(token: String): InvitePreview = throw SharingUnavailableException()
     override suspend fun createInvite(listId: String): String = throw SharingUnavailableException()
     override suspend fun activity(listId: String, before: Long?): ActivityPage = throw SharingUnavailableException()

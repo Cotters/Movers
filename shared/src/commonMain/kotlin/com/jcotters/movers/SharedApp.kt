@@ -22,8 +22,10 @@ fun SharedApp() {
     } else null
     val entries = remember(developmentTools) {
         setOf(
-            CatalogueNavigationModule.provideEntries(), MovieDetailsNavigationModule.provideEntries(),
-            ProfileNavigationModule.provideEntries(onOpenStyleGuide = openStyleGuide), WatchlistsNavigationModule.provideEntries(),
+            CatalogueNavigationModule.provideEntries(),
+            MovieDetailsNavigationModule.provideEntries(),
+            ProfileNavigationModule.provideEntries(onOpenStyleGuide = openStyleGuide),
+            WatchlistsNavigationModule.provideEntries(),
             SearchNavigationModule.provideEntries(),
             StyleGuideNavigationModule.provideEntries(enabled = developmentTools),
         )

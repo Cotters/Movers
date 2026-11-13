@@ -44,7 +44,11 @@ internal class AddToListsViewModel(
         movieId = id
         state.update { it.copy(loading = true, readFailed = false, error = null) }
         observation = viewModelScope.launch {
-            combine(repository.observeWatchlists(), repository.observeListIds(id), movies.observeMovieWithId(id)) { lists, existing, movie ->
+            combine(
+                repository.observeWatchlists(),
+                repository.observeListIds(id),
+                movies.observeMovieWithId(id)
+            ) { lists, existing, movie ->
                 Triple(lists, existing, movie?.title.orEmpty())
             }.catch { error ->
                 if (error is CancellationException || error !is Exception) throw error
@@ -89,18 +93,27 @@ internal class AddToListsViewModel(
     private suspend fun updateMembership(movieId: Int, listId: String, added: Boolean) {
         val previouslyListed = state.value.lists.any { it.id == listId }
         if (state.value.lists.any { it.id == listId && it.shared != null }) {
-            repository.setMembership(listId,movieId,added).onSuccess { ack ->
-                state.first { value -> value.readFailed || value.lists.none { it.id == listId } || (value.lists.firstOrNull { it.id == listId }?.shared?.revision ?: -1) >= (ack.revision ?: 0) }
+            repository.setMembership(listId, movieId, added).onSuccess { ack ->
+                state.first { value ->
+                    value.readFailed || value.lists.none { it.id == listId } || (value.lists.firstOrNull { it.id == listId }?.shared?.revision
+                        ?: -1) >= (ack.revision ?: 0)
+                }
             }.onFailure { error -> state.update { it.copy(error = error.message) } }
             return
         }
-        val result = if (added) repository.addMovieToLists(movieId, setOf(listId)) else repository.removeMovie(listId, movieId)
+        val result =
+            if (added) repository.addMovieToLists(movieId, setOf(listId)) else repository.removeMovie(listId, movieId)
         result.onSuccess {
             // Keep the row busy until persisted observation confirms the new checkbox state.
             state.first { it.readFailed || (previouslyListed && it.lists.none { list -> list.id == listId }) || (listId in it.existing) == added }
         }.onFailure { error -> state.update { it.copy(error = error.message) } }
     }
 
-    fun consumeCreated() { state.update { it.copy(createdId = null) } }
-    fun clearError() { state.update { it.copy(error = null) } }
+    fun consumeCreated() {
+        state.update { it.copy(createdId = null) }
+    }
+
+    fun clearError() {
+        state.update { it.copy(error = null) }
+    }
 }

@@ -52,11 +52,13 @@ fun MoversApp(installers: Set<EntryProviderInstaller>) {
             val suggestedName by viewModel.suggestedName.collectAsStateWithLifecycle()
             com.jcotters.profile.ui.NameEntryScreen(busy, error, suggestedName, viewModel::saveName)
         }
+
         StartupState.Ready -> {
             SharedListSynchronization()
             MoversNavigationShell(networkStatus, installers, snackbarEffects = { WatchlistUndoMessages() })
             FeatureTour()
         }
+
         StartupState.Failed -> androidx.compose.foundation.layout.Column {
             Text("Unable to open local app data.")
             com.jcotters.designsystem.MoversButton(onClick = viewModel::initializeProfile) { Text("Retry") }
@@ -96,7 +98,10 @@ internal fun MoversNavigationShell(
         Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
             key(state) {
                 SharedTransitionLayout {
-                    CompositionLocalProvider(LocalMovieTransitionScope provides this, com.jcotters.presentation.LocalSnackbarHostState provides snackbar) {
+                    CompositionLocalProvider(
+                        LocalMovieTransitionScope provides this,
+                        com.jcotters.presentation.LocalSnackbarHostState provides snackbar
+                    ) {
                         snackbarEffects()
                         val entries = state.decoratedEntries(installers, navigator)
                         NavDisplay(

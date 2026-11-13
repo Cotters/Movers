@@ -43,7 +43,9 @@ class AddToListsViewModelTest {
     }
 
     @After
-    fun tearDown() { store.clear(); dispatcher.scheduler.runCurrent(); Dispatchers.resetMain() }
+    fun tearDown() {
+        store.clear(); dispatcher.scheduler.runCurrent(); Dispatchers.resetMain()
+    }
 
     @Test
     fun failedWritesKeepThePreviousCheckboxStateAndCanBeRetried() = runTest {
@@ -85,7 +87,12 @@ class AddToListsViewModelTest {
         assertTrue(model.uiState.value.lists.any { it.id == "new" })
         assertFalse("new" in model.uiState.value.existing)
         assertFalse(model.uiState.value.busy)
-        coEvery { lists.addMovieToLists(12, setOf("new")) } coAnswers { memberships.value += "new"; Result.success(Unit) }
+        coEvery {
+            lists.addMovieToLists(
+                12,
+                setOf("new")
+            )
+        } coAnswers { memberships.value += "new"; Result.success(Unit) }
         model.setMembership("new", true)
         runCurrent()
         assertTrue("new" in model.uiState.value.existing)

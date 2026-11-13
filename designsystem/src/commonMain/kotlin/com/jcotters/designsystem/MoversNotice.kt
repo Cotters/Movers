@@ -38,7 +38,8 @@ fun MoversNotice(
     FlowRow(
         modifier.fillMaxWidth().background(background, RoundedCornerShape(tokens.cornerRadius))
             .padding(tokens.controlPadding).semantics { liveRegion = LiveRegionMode.Polite },
-        horizontalArrangement = Arrangement.spacedBy(tokens.spacing), verticalArrangement = Arrangement.spacedBy(tokens.spacing),
+        horizontalArrangement = Arrangement.spacedBy(tokens.spacing),
+        verticalArrangement = Arrangement.spacedBy(tokens.spacing),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         MoversText(message, Modifier.weight(1f), style = tokens.type.label, color = foreground)

@@ -86,16 +86,29 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                 query.trim() != searchedQuery -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 movies.loadState.refresh is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 movies.loadState.refresh is LoadState.Error && movies.itemCount == 0 -> {
-                    Text((movies.loadState.refresh as LoadState.Error).error.message ?: "Unable to search.", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
+                    Text(
+                        (movies.loadState.refresh as LoadState.Error).error.message ?: "Unable to search.",
+                        Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.error
+                    )
                     MoversTextButton(onClick = movies::retry) { Text("Retry") }
                 }
+
                 movies.itemCount == 0 -> Text("No movies found.", Modifier.padding(16.dp))
                 else -> LazyColumn(state = scroll) {
                     items(movies.itemCount, key = movies.itemKey { it.id }) { index ->
                         val movie = movies[index] ?: return@items
-                        MovieSearchResult(movie,
+                        MovieSearchResult(
+                            movie,
                             posterModifier = moviePosterTransitionModifier(movie.id, stackId),
-                            onOpen = { keyboard?.hide(); navigator.navigate(MovieDetailsKey(movie.id, targetListId = listId)) }) {
+                            onOpen = {
+                                keyboard?.hide(); navigator.navigate(
+                                MovieDetailsKey(
+                                    movie.id,
+                                    targetListId = listId
+                                )
+                            )
+                            }) {
                             if (listId == null) {
                                 AddToListButton(onClick = { keyboard?.hide(); navigator.navigate(AddToListsKey(movie.id)) })
                             } else {
@@ -115,9 +128,13 @@ internal fun MovieSearchRoute(listId: String?, navigator: Navigator, stackId: St
                         when (val append = movies.loadState.append) {
                             is LoadState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
                             is LoadState.Error -> Column(Modifier.padding(16.dp)) {
-                                Text(append.error.message ?: "Unable to load more movies.", color = MaterialTheme.colorScheme.error)
+                                Text(
+                                    append.error.message ?: "Unable to load more movies.",
+                                    color = MaterialTheme.colorScheme.error
+                                )
                                 MoversTextButton(onClick = movies::retry) { Text("Retry") }
                             }
+
                             else -> Unit
                         }
                     }

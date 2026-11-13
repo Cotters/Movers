@@ -52,7 +52,11 @@ internal fun SharedListRoute(listId: String, section: SharedSection, navigator: 
     val sharing: InvitationSharing = koinInject()
     var revoking by rememberSaveable(listId) { mutableStateOf(false) }
     LaunchedEffect(listId, section) {
-        viewModel.load(listId, includeActivity = section == SharedSection.Activity, sharingRequested = section == SharedSection.Sharing)
+        viewModel.load(
+            listId,
+            includeActivity = section == SharedSection.Activity,
+            sharingRequested = section == SharedSection.Sharing
+        )
     }
     LaunchedEffect(state.inviteUrl) {
         state.inviteUrl?.let { sharing.share(it); viewModel.consumeInvite() }
@@ -68,8 +72,10 @@ internal fun SharedListRoute(listId: String, section: SharedSection, navigator: 
             state.error?.let {
                 Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
                 MoversTextButton(onClick = {
-                    viewModel.load(listId, includeActivity = section == SharedSection.Activity,
-                        sharingRequested = section == SharedSection.Sharing)
+                    viewModel.load(
+                        listId, includeActivity = section == SharedSection.Activity,
+                        sharingRequested = section == SharedSection.Sharing
+                    )
                 }, enabled = !state.busy) { Text("Retry") }
             }
             state.message?.let { Text(it, Modifier.padding(16.dp)) }
@@ -87,8 +93,10 @@ internal fun SharedListRoute(listId: String, section: SharedSection, navigator: 
                     onOpenMovie = { navigator.navigate(MovieDetailsKey(it)) },
                     modifier = Modifier.weight(1f),
                 )
+
                 SharedSection.Sharing -> state.list?.let { list ->
-                    SharingActions(list, state.busy,
+                    SharingActions(
+                        list, state.busy,
                         onShare = { viewModel.invite(listId) }, onRevoke = { revoking = true })
                 }
             }
@@ -99,8 +107,10 @@ internal fun SharedListRoute(listId: String, section: SharedSection, navigator: 
         title = { Text("Revoke all links?") },
         text = { Text("Existing members keep access.") },
         confirmButton = {
-            MoversTextButton(onClick = { revoking = false; viewModel.revoke(listId) }, enabled = !state.busy,
-                destructive = true) { Text("Revoke") }
+            MoversTextButton(
+                onClick = { revoking = false; viewModel.revoke(listId) }, enabled = !state.busy,
+                destructive = true
+            ) { Text("Revoke") }
         },
         dismissButton = { MoversTextButton(onClick = { revoking = false }) { Text("Cancel") } },
     )
@@ -136,7 +146,13 @@ private fun SharedListActivity(
         MoversTextButton(onClick = onRefresh, enabled = !busy) { Text("Refresh activity") }
         LazyColumn(Modifier.weight(1f)) {
             events.groupBy { formatActivityDay(it.at) }.forEach { (day, dayEvents) ->
-                item(key = "day-$day") { Text(day, Modifier.padding(16.dp), style = MaterialTheme.typography.titleSmall) }
+                item(key = "day-$day") {
+                    Text(
+                        day,
+                        Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
                 items(dayEvents, key = { it.id }) { event ->
                     val action = if (!event.added) "removed" else if (event.imported) "imported" else "added"
                     MoversListItem(
@@ -172,7 +188,9 @@ private fun SharingActions(list: Watchlist, busy: Boolean, onShare: () -> Unit, 
         Text(list.name, style = MaterialTheme.typography.headlineSmall)
         Text("Anyone with the link can join and edit. Links expire in 7 days.")
         MoversButton(onClick = onShare, enabled = !busy && list.shared != null) { Text("Share link") }
-        if (list.shared != null) MoversTextButton(onClick = onRevoke, enabled = !busy,
-            destructive = true) { Text("Revoke links") }
+        if (list.shared != null) MoversTextButton(
+            onClick = onRevoke, enabled = !busy,
+            destructive = true
+        ) { Text("Revoke links") }
     }
 }

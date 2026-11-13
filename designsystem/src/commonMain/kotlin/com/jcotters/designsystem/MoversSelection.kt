@@ -36,12 +36,26 @@ fun MoversChoice(label: String, selected: Boolean, onClick: () -> Unit, modifier
     Box(
         modifier.heightIn(min = 48.dp).widthIn(min = 48.dp).clip(shape)
             .background(if (selected) tokens.colors.accent else tokens.colors.surface)
-            .border(if (focused) 2.dp else 1.dp, if (focused) tokens.colors.accent else tokens.colors.controlOutline, shape)
-            .selectable(selected, interactionSource = interaction, indication = null, role = Role.RadioButton, onClick = onClick)
+            .border(
+                if (focused) 2.dp else 1.dp,
+                if (focused) tokens.colors.accent else tokens.colors.controlOutline,
+                shape
+            )
+            .selectable(
+                selected,
+                interactionSource = interaction,
+                indication = null,
+                role = Role.RadioButton,
+                onClick = onClick
+            )
             .padding(horizontal = tokens.controlPadding, vertical = tokens.spacing),
         contentAlignment = Alignment.Center,
     ) {
-        MoversText(label, style = tokens.type.label, color = if (selected) tokens.colors.onAccent else tokens.colors.content)
+        MoversText(
+            label,
+            style = tokens.type.label,
+            color = if (selected) tokens.colors.onAccent else tokens.colors.content
+        )
     }
 }
 
@@ -63,7 +77,14 @@ fun MoversCheckboxRow(
         modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape)
             .background(if (pressed) tokens.colors.raised else Color.Transparent)
             .border(1.dp, if (focused) tokens.colors.accent else Color.Transparent, shape)
-            .toggleable(checked, interactionSource = interaction, indication = null, enabled = enabled, role = Role.Checkbox, onValueChange = onCheckedChange)
+            .toggleable(
+                checked,
+                interactionSource = interaction,
+                indication = null,
+                enabled = enabled,
+                role = Role.Checkbox,
+                onValueChange = onCheckedChange
+            )
             .padding(horizontal = tokens.spacing, vertical = tokens.spacing),
         horizontalArrangement = Arrangement.spacedBy(tokens.spacing * 1.5f),
         verticalAlignment = Alignment.CenterVertically,
@@ -78,7 +99,12 @@ fun MoversCheckboxRow(
 
 /** A passive glyph when a parent row owns the checkbox action. */
 @Composable
-fun MoversCheckbox(checked: Boolean, onCheckedChange: ((Boolean) -> Unit)?, modifier: Modifier = Modifier, enabled: Boolean = true) {
+fun MoversCheckbox(
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
     val tokens = MoversDesign.tokens
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
@@ -86,8 +112,21 @@ fun MoversCheckbox(checked: Boolean, onCheckedChange: ((Boolean) -> Unit)?, modi
     Box(
         modifier.size(48.dp).clip(RoundedCornerShape(tokens.cornerRadius))
             .background(if (pressed) tokens.colors.raised else Color.Transparent)
-            .border(1.dp, if (focused) tokens.colors.accent else Color.Transparent, RoundedCornerShape(tokens.cornerRadius))
-            .then(if (onCheckedChange == null) Modifier else Modifier.toggleable(checked, interaction, null, enabled, Role.Checkbox, onCheckedChange)),
+            .border(
+                1.dp,
+                if (focused) tokens.colors.accent else Color.Transparent,
+                RoundedCornerShape(tokens.cornerRadius)
+            )
+            .then(
+                if (onCheckedChange == null) Modifier else Modifier.toggleable(
+                    checked,
+                    interaction,
+                    null,
+                    enabled,
+                    Role.Checkbox,
+                    onCheckedChange
+                )
+            ),
         contentAlignment = Alignment.Center,
     ) {
         CheckboxGlyph(checked, enabled)
@@ -100,7 +139,8 @@ private fun CheckboxGlyph(checked: Boolean, enabled: Boolean) {
     val color = if (enabled) colors.accent else colors.muted
     val shape = RoundedCornerShape(6.dp)
     Box(
-        Modifier.size(24.dp).clip(shape).background(if (checked) color else colors.surface).border(1.5.dp, color, shape),
+        Modifier.size(24.dp).clip(shape).background(if (checked) color else colors.surface)
+            .border(1.5.dp, color, shape),
         contentAlignment = Alignment.Center,
     ) {
         if (checked) MoversIcon(MoversSymbol.Check, Modifier.size(18.dp), colors.onAccent)

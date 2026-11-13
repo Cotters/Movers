@@ -4,9 +4,25 @@ config:
 
 naming:
   FunctionNaming:
-    ignoreAnnotated: ['Composable']
+    # JUnit's backtick test names describe scenarios; Compose uses PascalCase.
+    ignoreAnnotated: ['Composable', 'Test']
 
 complexity:
+  TooManyFunctions:
+    # Implementing an existing contract does not add independent responsibilities.
+    ignoreOverridden: true
+    # Extend Detekt's standard test exclusions to modern Android KMP source sets.
+    excludes:
+      - '**/test/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
   LongParameterList:
     ignoreDefaultParameters: true
     ignoreAnnotated: ['Composable']
@@ -14,5 +30,23 @@ complexity:
 style:
   UnnecessaryParentheses:
     active: true
+    # Keep grouping that makes mixed operator precedence easier to read.
+    allowForUnclearPrecedence: true
+  ReturnCount:
+    # Early validation exits are preferable to nesting the entire operation.
+    excludeGuardClauses: true
   MagicNumber:
     ignoreAnnotated: ['Composable']
+    # Fixture values are meaningful test inputs, not production configuration.
+    excludes:
+      - '**/test/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+      - '**/*.kts'

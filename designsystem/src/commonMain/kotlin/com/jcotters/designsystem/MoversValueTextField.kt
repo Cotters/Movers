@@ -59,7 +59,10 @@ fun MoversTextField(
     val hasIcons = leadingIcon != null || trailingIcon != null
     CompositionLocalProvider(
         LocalContentColor provides foreground,
-        LocalTextSelectionColors provides TextSelectionColors(tokens.colors.accent, tokens.colors.accent.copy(alpha = 0.25f)),
+        LocalTextSelectionColors provides TextSelectionColors(
+            tokens.colors.accent,
+            tokens.colors.accent.copy(alpha = 0.25f)
+        ),
     ) {
         BasicTextField(
             value = value,
@@ -79,7 +82,11 @@ fun MoversTextField(
                     if (label != null) ProvideTextStyle(tokens.type.label, content = label)
                     Row(
                         Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape).background(tokens.colors.surface)
-                            .border(if (focused) 2.dp else 1.dp, if (focused) tokens.colors.accent else tokens.colors.controlOutline, shape)
+                            .border(
+                                if (focused) 2.dp else 1.dp,
+                                if (focused) tokens.colors.accent else tokens.colors.controlOutline,
+                                shape
+                            )
                             .padding(
                                 horizontal = if (hasIcons) tokens.spacing * 1.5f else tokens.controlPadding,
                                 vertical = if (hasIcons) 0.dp else 12.dp,
@@ -90,7 +97,10 @@ fun MoversTextField(
                         leadingIcon?.invoke()
                         Box(Modifier.weight(1f)) {
                             if (value.isEmpty() && placeholder != null) {
-                                CompositionLocalProvider(LocalContentColor provides tokens.colors.muted, content = placeholder)
+                                CompositionLocalProvider(
+                                    LocalContentColor provides tokens.colors.muted,
+                                    content = placeholder
+                                )
                             }
                             input()
                         }

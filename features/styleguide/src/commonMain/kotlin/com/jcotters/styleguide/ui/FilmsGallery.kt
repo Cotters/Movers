@@ -44,12 +44,18 @@ internal fun FilmsGallery() {
     var contributorVisible by rememberSaveable { mutableStateOf(false) }
     var fridayFilms by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var weekendFilms by rememberSaveable { mutableStateOf(listOf(demoTitles[0])) }
-    fun openDetail(title: String) { detailTitle = title; detailVisible = true }
-    fun openPicker(title: String) { addingTitle = title; addingVisible = true }
+    fun openDetail(title: String) {
+        detailTitle = title; detailVisible = true
+    }
+
+    fun openPicker(title: String) {
+        addingTitle = title; addingVisible = true
+    }
     GalleryHeading("Posters", "Synthetic films and original placeholder artwork")
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         demoTitles.forEachIndexed { index, title ->
-            MoversFilmCard(title, "2026", { openDetail(title) }, poster = { DemoPoster(index, it) },
+            MoversFilmCard(
+                title, "2026", { openDetail(title) }, poster = { DemoPoster(index, it) },
                 modifier = Modifier.weight(1f), onAdd = { openPicker(title) },
                 footerContent = {
                     MoversAvatarButton("Avery", "Added by Avery", { contributorVisible = true })
@@ -57,8 +63,13 @@ internal fun FilmsGallery() {
         }
     }
     GalleryHeading("Watchlist row", "Long title, synopsis and bottom-right contributor")
-    MoversFilmRow(demoTitles[1], "2026 · 114 min", "Two friends follow a forgotten route across the places that shaped them.",
-        onOpen = { openDetail(demoTitles[1]) }, poster = { DemoPoster(1, it) }, posterWidth = 96.dp * 1.2f,
+    MoversFilmRow(
+        demoTitles[1],
+        "2026 · 114 min",
+        "Two friends follow a forgotten route across the places that shaped them.",
+        onOpen = { openDetail(demoTitles[1]) },
+        poster = { DemoPoster(1, it) },
+        posterWidth = 96.dp * 1.2f,
         footerContent = {
             MoversAvatarButton("Avery", "Added by Avery", { contributorVisible = true })
         })
@@ -96,16 +107,26 @@ internal fun FilmsGallery() {
 
 @Composable
 private fun DemoPoster(index: Int, modifier: Modifier) {
-    val palette = if (index == 0) listOf(Color(0xFF143E3F), Color(0xFF16252E)) else listOf(Color(0xFF493641), Color(0xFF201E32))
+    val palette =
+        if (index == 0) listOf(Color(0xFF143E3F), Color(0xFF16252E)) else listOf(Color(0xFF493641), Color(0xFF201E32))
     Box(
         modifier.background(Brush.verticalGradient(palette)).drawBehind {
-            drawCircle(Color(0xFFB6E4D4).copy(alpha = 0.22f), size.width * 0.55f,
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.7f, size.height * 0.35f))
-            drawLine(Color.White.copy(alpha = 0.35f), androidx.compose.ui.geometry.Offset(0f, size.height * 0.8f),
-                androidx.compose.ui.geometry.Offset(size.width, size.height * 0.3f), strokeWidth = size.width * 0.03f)
+            drawCircle(
+                Color(0xFFB6E4D4).copy(alpha = 0.22f), size.width * 0.55f,
+                center = androidx.compose.ui.geometry.Offset(size.width * 0.7f, size.height * 0.35f)
+            )
+            drawLine(
+                Color.White.copy(alpha = 0.35f), androidx.compose.ui.geometry.Offset(0f, size.height * 0.8f),
+                androidx.compose.ui.geometry.Offset(size.width, size.height * 0.3f), strokeWidth = size.width * 0.03f
+            )
         }.padding(12.dp),
         contentAlignment = Alignment.BottomStart,
     ) {
-        MoversText(if (index == 0) "MIDNIGHT\nBLOOM" else "THE LONG\nWAY HOME", style = MoversDesign.tokens.type.label, color = Color.White, maxLines = 2)
+        MoversText(
+            if (index == 0) "MIDNIGHT\nBLOOM" else "THE LONG\nWAY HOME",
+            style = MoversDesign.tokens.type.label,
+            color = Color.White,
+            maxLines = 2
+        )
     }
 }

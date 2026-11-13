@@ -41,8 +41,15 @@ internal fun WatchlistSearchHeader(
     }
     AnimatedVisibility(
         visible = scrollState.visible,
-        enter = expandVertically(tween(240, easing = FastOutSlowInEasing), expandFrom = Alignment.Top) + fadeIn(tween(200)),
-        exit = shrinkVertically(tween(240, easing = FastOutSlowInEasing), shrinkTowards = Alignment.Top) + fadeOut(tween(160)),
+        enter = expandVertically(tween(240, easing = FastOutSlowInEasing), expandFrom = Alignment.Top) + fadeIn(
+            tween(
+                200
+            )
+        ),
+        exit = shrinkVertically(
+            tween(240, easing = FastOutSlowInEasing),
+            shrinkTowards = Alignment.Top
+        ) + fadeOut(tween(160)),
     ) {
         Column {
             WatchlistSearchField(

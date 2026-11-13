@@ -72,7 +72,8 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
     LaunchedEffect(listId) { viewModel.load(listId) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle, viewModel) {
-        val observer = LifecycleEventObserver { _, _ -> viewModel.active(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
+        val observer =
+            LifecycleEventObserver { _, _ -> viewModel.active(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer); viewModel.active(false) }
     }
@@ -98,17 +99,26 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
         detectTapGestures(onTap = { dismissKeyboard() })
     }, topBar = {
         MoversTopBar(title = { Text("Import films") }, navigationIcon = {
-            MoversIconButton(onClick = { viewModel.pause(); navigator.goBack() }) { Icon(painterResource(Res.drawable.arrow_back), "Back") }
+            MoversIconButton(onClick = { viewModel.pause(); navigator.goBack() }) {
+                Icon(
+                    painterResource(Res.drawable.arrow_back),
+                    "Back"
+                )
+            }
         }, actions = { MoversTextButton(onClick = { help = !help }) { Text("Help") } })
     }) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(
+            Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             item { Text(state.listName, style = MaterialTheme.typography.titleMedium) }
             if (help) item {
                 MoversCard {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Choose a file or paste titles. We'll add matches and flag anything not found.")
                         Row(
-                           horizontalArrangement = Arrangement.End,
+                            horizontalArrangement = Arrangement.End,
                         ) {
                             MoversTextButton(onClick = { preference.dismiss(); help = false }) { Text("Got it") }
                         }
@@ -120,14 +130,28 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
             if (!state.started) {
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        MoversButton(onClick = { dismissKeyboard(); documents.open() }, enabled = !state.parsing) { Text("Choose file") }
-                        state.filename?.let { Text(it, Modifier.padding(start = 12.dp).weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis) }
+                        MoversButton(
+                            onClick = { dismissKeyboard(); documents.open() },
+                            enabled = !state.parsing
+                        ) { Text("Choose file") }
+                        state.filename?.let {
+                            Text(
+                                it,
+                                Modifier.padding(start = 12.dp).weight(1f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
                 if (state.filename == null) item {
                     MoversTextField(
-                        value = state.text, onValueChange = viewModel::sourceChanged,
-                        label = { Text("Paste titles or CSV") }, modifier = Modifier.fillMaxWidth(), minLines = 4, maxLines = 7,
+                        value = state.text,
+                        onValueChange = viewModel::sourceChanged,
+                        label = { Text("Paste titles or CSV") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 4,
+                        maxLines = 7,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { dismissKeyboard() }),
                     )
@@ -138,15 +162,35 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                     item { Text("${parsed.films.size} entries · ${parsed.format.label}") }
                     items(parsed.films.take(5)) { film ->
                         Column {
-                            Text(film.reference.title.ifBlank { film.original }.take(200), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(
+                                film.reference.title.ifBlank { film.original }.take(200),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
                             film.reference.year?.let { Text(it.toString(), style = MaterialTheme.typography.bodySmall) }
-                            film.issue?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                            film.issue?.let {
+                                Text(
+                                    it,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
                     }
                 }
-                item { MoversButton(onClick = { dismissKeyboard(); viewModel.start() }, enabled = !state.parsing && !state.unavailable && !state.parsed?.films.isNullOrEmpty()) { Text("Import") } }
+                item {
+                    MoversButton(
+                        onClick = { dismissKeyboard(); viewModel.start() },
+                        enabled = !state.parsing && !state.unavailable && !state.parsed?.films.isNullOrEmpty()
+                    ) { Text("Import") }
+                }
             } else {
-                item { Text("${state.importedCount} imported · ${state.skippedCount} skipped · ${state.remainingCount} ${if (state.running) "remaining" else "need attention"}", style = MaterialTheme.typography.titleSmall) }
+                item {
+                    Text(
+                        "${state.importedCount} imported · ${state.skippedCount} skipped · ${state.remainingCount} ${if (state.running) "remaining" else "need attention"}",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
                 if (state.running) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -154,22 +198,32 @@ internal fun FilmImportRoute(listId: String, navigator: Navigator) {
                         else if (state.canResume) {
                             MoversButton(onClick = viewModel::start) { Text(if (state.error != null) "Retry failed" else "Resume") }
                         }
-                        if (state.remainingCount > 0) MoversTextButton(onClick = viewModel::saveRemaining,
-                            enabled = !state.running && !state.savingRemaining) { Text("Save remaining") }
+                        if (state.remainingCount > 0) MoversTextButton(
+                            onClick = viewModel::saveRemaining,
+                            enabled = !state.running && !state.savingRemaining
+                        ) { Text("Save remaining") }
                     }
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MoversFilterChip(selected = !state.showAllRows, onClick = { viewModel.showAllRows(false) }, label = { Text("Needs attention") })
-                        MoversFilterChip(selected = state.showAllRows, onClick = { viewModel.showAllRows(true) }, label = { Text("All") })
+                        MoversFilterChip(
+                            selected = !state.showAllRows,
+                            onClick = { viewModel.showAllRows(false) },
+                            label = { Text("Needs attention") })
+                        MoversFilterChip(
+                            selected = state.showAllRows,
+                            onClick = { viewModel.showAllRows(true) },
+                            label = { Text("All") })
                     }
                 }
                 items(state.visibleRows, key = { it.id }) { row ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(row.displayTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Text(row.statusLabel, style = MaterialTheme.typography.bodySmall,
-                                color = if (row.remaining && !state.running) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                row.statusLabel, style = MaterialTheme.typography.bodySmall,
+                                color = if (row.remaining && !state.running) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                         if (row.remaining && row.status != ImportRowState.Pending) MoversTextButton(
                             onClick = { viewModel.openResolution(row.id) },
@@ -208,9 +262,17 @@ private fun ImportFormatControls(state: FilmImportState, viewModel: FilmImportVi
             MoversDropdownMenu(expanded = menu, onExpandedChange = { menu = it }, anchor = {
                 MoversTextButton(onClick = { menu = !menu }) { Text("Format: ${state.format.label}") }
             }) {
-                InputFormat.entries.forEach { format -> MoversDropdownMenuItem(text = { Text(format.label) }, onClick = { menu = false; viewModel.formatChanged(format) }) }
+                InputFormat.entries.forEach { format ->
+                    MoversDropdownMenuItem(
+                        text = { Text(format.label) },
+                        onClick = { menu = false; viewModel.formatChanged(format) })
+                }
             }
-            if (state.parsed?.headings?.isNotEmpty() == true) MoversTextButton(onClick = { columns = !columns }) { Text("Columns") }
+            if (state.parsed?.headings?.isNotEmpty() == true) MoversTextButton(onClick = { columns = !columns }) {
+                Text(
+                    "Columns"
+                )
+            }
         }
         val parsed = state.parsed
         if (columns && parsed != null && parsed.headings.isNotEmpty()) {
@@ -221,8 +283,16 @@ private fun ImportFormatControls(state: FilmImportState, viewModel: FilmImportVi
             val mapping = state.mappingOverride ?: parsed.mapping
             ColumnPicker("Title", parsed.headings, mapping.title) { viewModel.mappingChanged(mapping.copy(title = it)) }
             ColumnPicker("Year", parsed.headings, mapping.year) { viewModel.mappingChanged(mapping.copy(year = it)) }
-            ColumnPicker("TMDB ID", parsed.headings, mapping.movieId) { viewModel.mappingChanged(mapping.copy(movieId = it)) }
-            ColumnPicker("IMDb ID", parsed.headings, mapping.imdbId) { viewModel.mappingChanged(mapping.copy(imdbId = it)) }
+            ColumnPicker(
+                "TMDB ID",
+                parsed.headings,
+                mapping.movieId
+            ) { viewModel.mappingChanged(mapping.copy(movieId = it)) }
+            ColumnPicker(
+                "IMDb ID",
+                parsed.headings,
+                mapping.imdbId
+            ) { viewModel.mappingChanged(mapping.copy(imdbId = it)) }
         }
     }
 }
@@ -232,10 +302,16 @@ private fun ColumnPicker(label: String, headings: List<String>, selected: Int?, 
     var expanded by remember { mutableStateOf(false) }
     Row {
         MoversDropdownMenu(expanded, onExpandedChange = { expanded = it }, anchor = {
-            MoversTextButton(onClick = { expanded = !expanded }) { Text("$label: ${selected?.let { headings.getOrNull(it) } ?: "None"}") }
+            MoversTextButton(onClick = {
+                expanded = !expanded
+            }) { Text("$label: ${selected?.let { headings.getOrNull(it) } ?: "None"}") }
         }) {
             MoversDropdownMenuItem(text = { Text("None") }, onClick = { expanded = false; onSelect(null) })
-            headings.forEachIndexed { index, heading -> MoversDropdownMenuItem(text = { Text(heading) }, onClick = { expanded = false; onSelect(index) }) }
+            headings.forEachIndexed { index, heading ->
+                MoversDropdownMenuItem(
+                    text = { Text(heading) },
+                    onClick = { expanded = false; onSelect(index) })
+            }
         }
     }
 }

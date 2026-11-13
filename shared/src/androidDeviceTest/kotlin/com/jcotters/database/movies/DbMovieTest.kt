@@ -53,25 +53,44 @@ class DbMovieTest {
         assertEquals(movie, movieById)
     }
 
-@Test
-fun deviceProfileKeepsItsOriginalInstallationId() = runTest {
-    val dao = database.profileDao()
-    dao.insert(com.jcotters.database.profile.DeviceProfile(installationId = "first", displayName = "Josh"))
-    dao.insert(com.jcotters.database.profile.DeviceProfile(installationId = "second", displayName = "Josh"))
-    assertEquals("first", dao.get()?.installationId)
-}
+    @Test
+    fun deviceProfileKeepsItsOriginalInstallationId() = runTest {
+        val dao = database.profileDao()
+        dao.insert(com.jcotters.database.profile.DeviceProfile(installationId = "first", displayName = "Josh"))
+        dao.insert(com.jcotters.database.profile.DeviceProfile(installationId = "second", displayName = "Josh"))
+        assertEquals("first", dao.get()?.installationId)
+    }
 
     @Test
     fun catalogueUpdatesPreserveEnrichmentAndRelationships() = runTest {
-        val enriched = DbMovie(7, "Original", "Overview", "2026", posterUrl = "poster.jpg",
+        val enriched = DbMovie(
+            7, "Original", "Overview", "2026", posterUrl = "poster.jpg",
             tagline = "Saved tagline", runtimeMinutes = 125, genres = listOf(DbMovieGenre(18, "Drama")),
-            voteAverage = 7.8, voteCount = 50, status = "Released", originalLanguage = "en", detailsFetchedAt = 123)
+            voteAverage = 7.8, voteCount = 50, status = "Released", originalLanguage = "en", detailsFetchedAt = 123
+        )
         movieDao.saveMovieDetails(enriched)
         database.watchlistDao().insert(DbWatchlist("saved", "Saved list", 1))
         database.watchlistDao().insertMovie(DbWatchlistMovie("saved", 7, 2))
         database.movieCatalogueDao().insertCatalogueEntries(listOf(DbMovieCatalogueEntry("popular", 7, 1, 0)))
-        movieDao.upsertCatalogueMovies(listOf(DbMovie(7, "New title", "New overview", "2027", voteAverage = 8.1, voteCount = 100)))
-        val expected = enriched.copy(title = "New title", synopsis = "New overview", releaseDate = "2027", voteAverage = 8.1, voteCount = 100)
+        movieDao.upsertCatalogueMovies(
+            listOf(
+                DbMovie(
+                    7,
+                    "New title",
+                    "New overview",
+                    "2027",
+                    voteAverage = 8.1,
+                    voteCount = 100
+                )
+            )
+        )
+        val expected = enriched.copy(
+            title = "New title",
+            synopsis = "New overview",
+            releaseDate = "2027",
+            voteAverage = 8.1,
+            voteCount = 100
+        )
         assertEquals(expected, movieDao.getMovieById(7))
         assertEquals(expected, database.watchlistDao().observeContent("saved").first()?.entries?.single()?.movie)
         val page = movieDao.getPopularMoviesPagingSource("popular").load(
@@ -82,9 +101,13 @@ fun deviceProfileKeepsItsOriginalInstallationId() = runTest {
 
     @Test
     fun sparseDetailsPreserveKnownBasicsAndCanClearUnavailableExtras() = runTest {
-        movieDao.insertMovie(DbMovie(7, "Old title", "Known overview", "2026", "poster.jpg", "backdrop.jpg",
-            tagline = "Old tagline", runtimeMinutes = 125, voteAverage = 7.8, voteCount = 50,
-            originalLanguage = "en", detailsFetchedAt = 1))
+        movieDao.insertMovie(
+            DbMovie(
+                7, "Old title", "Known overview", "2026", "poster.jpg", "backdrop.jpg",
+                tagline = "Old tagline", runtimeMinutes = 125, voteAverage = 7.8, voteCount = 50,
+                originalLanguage = "en", detailsFetchedAt = 1
+            )
+        )
         movieDao.saveMovieDetails(DbMovie(7, "New title", "", "", genres = emptyList(), detailsFetchedAt = 2))
         val movie = movieDao.getMovieById(7)!!
         assertEquals("New title", movie.title)

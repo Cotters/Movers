@@ -76,7 +76,8 @@ internal class WatchlistHeaderScrollState(
             return Offset.Zero
         }
         // An unconsumed drag can dismiss the header even when a short list cannot scroll.
-        val delta = if (consumed.y != 0f) consumed.y else if (source == NestedScrollSource.UserInput) available.y else 0f
+        val delta =
+            if (consumed.y != 0f) consumed.y else if (source == NestedScrollSource.UserInput) available.y else 0f
         if (delta < 0f) {
             upwardTravel = 0f
             downwardTravel = (downwardTravel - delta).coerceAtMost(hideDistance)

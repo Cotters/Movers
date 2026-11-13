@@ -23,4 +23,8 @@ data class ListTransferKey(val listId: String) : NavKey
 data class FilmImportKey(val listId: String, val instanceId: String = Uuid.random().toString()) : NavKey
 
 @Serializable
-data class AddToListsKey(val movieId: Int, val initialListId: String? = null, val instanceId: String = Uuid.random().toString()) : NavKey
+data class AddToListsKey(
+    val movieId: Int,
+    val initialListId: String? = null,
+    val instanceId: String = Uuid.random().toString()
+) : NavKey

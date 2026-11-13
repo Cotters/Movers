@@ -15,7 +15,8 @@ internal class LocalDeviceProfileRepository(
     private val identity: ParticipantIdentity? = null,
 ) : DeviceProfileRepository {
     private val edits = Mutex()
-    override val profile = dao.observe().map { it?.let { Profile(it.installationId, it.displayName, it.color, it.nameConfirmed) } }
+    override val profile =
+        dao.observe().map { it?.let { Profile(it.installationId, it.displayName, it.color, it.nameConfirmed) } }
 
     override suspend fun saveName(name: String): Unit = edits.withLock {
         val valid = name.trim()
@@ -38,7 +39,13 @@ internal class LocalDeviceProfileRepository(
 
     override suspend fun initialize() {
         if (dao.get() == null) {
-            dao.insert(DeviceProfile(installationId = Uuid.random().toString(), displayName = "", color = kotlin.random.Random.nextInt(8)))
+            dao.insert(
+                DeviceProfile(
+                    installationId = Uuid.random().toString(),
+                    displayName = "",
+                    color = kotlin.random.Random.nextInt(8)
+                )
+            )
         }
     }
 }

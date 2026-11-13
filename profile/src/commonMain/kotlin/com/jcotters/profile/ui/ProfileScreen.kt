@@ -35,7 +35,11 @@ fun ProfileScreen(
     onOpenStyleGuide: (() -> Unit)? = null,
 ) {
     var editing by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-    var name by androidx.compose.runtime.saveable.rememberSaveable(viewState.profile?.displayName) { androidx.compose.runtime.mutableStateOf(viewState.profile?.displayName.orEmpty()) }
+    var name by androidx.compose.runtime.saveable.rememberSaveable(viewState.profile?.displayName) {
+        androidx.compose.runtime.mutableStateOf(
+            viewState.profile?.displayName.orEmpty()
+        )
+    }
     Scaffold(topBar = { com.jcotters.designsystem.MoversTopBar(title = { Text("Profile") }) }) { innerPadding ->
         if (viewState.isLoading) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -53,12 +57,32 @@ fun ProfileScreen(
             )
         }
     }
-    if (editing) com.jcotters.designsystem.MoversAlertDialog(onDismissRequest = { if (!savingName) editing = false },
-        title = { Text("Your name") }, text = { Column {
-            com.jcotters.designsystem.MoversTextField(value = name,onValueChange = { name = it },enabled = !savingName,singleLine = true)
-            nameError?.let { Text(it,color = MaterialTheme.colorScheme.error) }
-        } }, confirmButton = { com.jcotters.designsystem.MoversTextButton(onClick = { onSaveName(name) }, enabled = !savingName && name.isNotBlank()) { Text(if (savingName) "Saving…" else "Save") } },
-        dismissButton = { com.jcotters.designsystem.MoversTextButton(onClick = { editing = false },enabled = !savingName) { Text("Close") } })
+    if (editing) com.jcotters.designsystem.MoversAlertDialog(
+        onDismissRequest = { if (!savingName) editing = false },
+        title = { Text("Your name") },
+        text = {
+            Column {
+                com.jcotters.designsystem.MoversTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    enabled = !savingName,
+                    singleLine = true
+                )
+                nameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            }
+        },
+        confirmButton = {
+            com.jcotters.designsystem.MoversTextButton(
+                onClick = { onSaveName(name) },
+                enabled = !savingName && name.isNotBlank()
+            ) { Text(if (savingName) "Saving…" else "Save") }
+        },
+        dismissButton = {
+            com.jcotters.designsystem.MoversTextButton(
+                onClick = { editing = false },
+                enabled = !savingName
+            ) { Text("Close") }
+        })
 }
 
 @Composable
@@ -79,10 +103,16 @@ fun ProfileView(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         viewState.profile?.let {
-            androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(12.dp),verticalAlignment = Alignment.CenterVertically) {
-                com.jcotters.presentation.ParticipantAvatar(it.displayName,it.color)
+            androidx.compose.foundation.layout.Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                com.jcotters.presentation.ParticipantAvatar(it.displayName, it.color)
                 ProfileDetailsView(it, Modifier.weight(1f))
-                com.jcotters.designsystem.MoversTextButton(onClick = onEditName, enabled = !savingName && !savingColor) { Text("Edit name") }
+                com.jcotters.designsystem.MoversTextButton(
+                    onClick = onEditName,
+                    enabled = !savingName && !savingColor
+                ) { Text("Edit name") }
             }
             Text("Avatar colour", style = MaterialTheme.typography.titleSmall)
             AvatarColorPicker(selected = it.color, enabled = !savingName && !savingColor, onSelect = onSaveColor)

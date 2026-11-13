@@ -29,18 +29,22 @@ interface MovieApi {
 }
 
 class KtorMovieApi(private val client: HttpClient) : MovieApi {
-    override suspend fun searchMovies(query: String, page: Int, year: Int?): CataloguePageResponse = client.get("search/movie") {
-        parameter("query", query)
-        parameter("page", page)
-        parameter("include_adult", false)
-        year?.let { parameter("primary_release_year", it) }
-    }.body()
+    override suspend fun searchMovies(query: String, page: Int, year: Int?): CataloguePageResponse =
+        client.get("search/movie") {
+            parameter("query", query)
+            parameter("page", page)
+            parameter("include_adult", false)
+            year?.let { parameter("primary_release_year", it) }
+        }.body()
+
     override suspend fun findMovie(imdbId: String): ExternalMovieResponse = client.get("find/$imdbId") {
         parameter("external_source", "imdb_id")
     }.body()
+
     override suspend fun getMovieVideos(movieId: Int): MovieVideosResponse = client.get("movie/$movieId/videos") {
         parameter("language", "en-US")
     }.body()
+
     override suspend fun getMovieById(movieId: Int): MovieDto = client.get("movie/$movieId").body()
     override suspend fun getPopularMovies(page: Int, sortBy: String): CataloguePageResponse =
         client.get("discover/movie") { parameter("page", page); parameter("sort_by", sortBy) }.body()

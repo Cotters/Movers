@@ -63,7 +63,10 @@ fun MoversTextField(
             textColor = if (enabled) tokens.colors.content else tokens.colors.muted,
             cursorBrush = SolidColor(tokens.colors.accent),
             selectionColors = TextSelectionColors(tokens.colors.accent, tokens.colors.accent.copy(alpha = 0.25f)),
-            lineLimits = if (multiline) TextFieldLineLimits.MultiLine(minHeightInLines = 3, maxHeightInLines = 6) else TextFieldLineLimits.SingleLine,
+            lineLimits = if (multiline) TextFieldLineLimits.MultiLine(
+                minHeightInLines = 3,
+                maxHeightInLines = 6
+            ) else TextFieldLineLimits.SingleLine,
             keyboardOptions = KeyboardOptions(imeAction = imeAction),
             onKeyboardAction = { focus.clearFocus(); keyboard?.hide(); onSubmit?.invoke() },
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape).background(tokens.colors.surface)

@@ -16,8 +16,18 @@ data class DbWatchlist(@PrimaryKey val id: String, val name: String, val created
     primaryKeys = ["watchlistId", "movieId"],
     indices = [Index("movieId")],
     foreignKeys = [
-        ForeignKey(entity = DbWatchlist::class, parentColumns = ["id"], childColumns = ["watchlistId"], onDelete = ForeignKey.CASCADE),
-        ForeignKey(entity = DbMovie::class, parentColumns = ["id"], childColumns = ["movieId"], onDelete = ForeignKey.NO_ACTION),
+        ForeignKey(
+            entity = DbWatchlist::class,
+            parentColumns = ["id"],
+            childColumns = ["watchlistId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = DbMovie::class,
+            parentColumns = ["id"],
+            childColumns = ["movieId"],
+            onDelete = ForeignKey.NO_ACTION
+        ),
     ],
 )
 data class DbWatchlistMovie(val watchlistId: String, val movieId: Int, val addedAt: Long)

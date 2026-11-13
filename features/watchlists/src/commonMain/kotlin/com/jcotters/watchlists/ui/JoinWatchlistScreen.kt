@@ -47,22 +47,39 @@ internal fun JoinWatchlistRoute(navigator: Navigator) {
             navigator.navigate(WatchlistDetailKey(it))
         }
     }
-    Scaffold(topBar = { MoversTopBar(title = { Text("Join list") },navigationIcon = { MoversTextButton(onClick = navigator::goBack) { Text("Back") } }) }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Scaffold(topBar = {
+        MoversTopBar(
+            title = { Text("Join list") },
+            navigationIcon = { MoversTextButton(onClick = navigator::goBack) { Text("Back") } })
+    }) { padding ->
+        Column(
+            Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             val openedFromLink = incoming != null || state.openedFromLink
             if (!openedFromLink) {
-                MoversTextField(value = state.invitation,onValueChange = viewModel::changeInvitation,label = { Text("Invitation link") },enabled = !state.busy,singleLine = true,modifier = Modifier.fillMaxWidth())
+                MoversTextField(
+                    value = state.invitation,
+                    onValueChange = viewModel::changeInvitation,
+                    label = { Text("Invitation link") },
+                    enabled = !state.busy,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
             if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (openedFromLink && state.error == null) Text("Joining…")
-            state.error?.let { Text(it,color = MaterialTheme.colorScheme.error) }
+            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             if (!openedFromLink || state.error != null) {
-                MoversButton(onClick = viewModel::join,enabled = !state.busy && state.invitation.isNotBlank()) {
+                MoversButton(onClick = viewModel::join, enabled = !state.busy && state.invitation.isNotBlank()) {
                     Text(if (openedFromLink) "Retry" else if (state.busy) "Joining…" else "Join list")
                 }
             }
             if (openedFromLink && state.error != null) {
-                MoversTextButton(onClick = viewModel::editInvitation, enabled = !state.busy) { Text("Use another link") }
+                MoversTextButton(
+                    onClick = viewModel::editInvitation,
+                    enabled = !state.busy
+                ) { Text("Use another link") }
             }
         }
     }

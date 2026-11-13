@@ -64,34 +64,37 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
     }
 
     override suspend fun retainLists(listIds: Set<String>): Result<Unit> = change { current ->
-        current.copy(pinnedIds = current.pinnedIds.filter { it in listIds }, sorts = current.sorts.filterKeys { it in listIds })
+        current.copy(
+            pinnedIds = current.pinnedIds.filter { it in listIds },
+            sorts = current.sorts.filterKeys { it in listIds })
     }
 
     private fun requireAvailable(listId: String) {
         require(listId.isNotBlank()) { "This list is no longer available." }
     }
 
-    private suspend fun change(transform: (WatchlistPreferenceState) -> WatchlistPreferenceState): Result<Unit> = mutex.withLock {
-        try {
-            if (!mutableState.value.ready) mutableState.value = decode(storage.read()).copy(ready = true)
-            val current = mutableState.value
-            val next = transform(current)
-            if (next != current) {
-                currentCoroutineContext().ensureActive()
-                // Finish a started native write and its state publication as one small critical section.
-                withContext(NonCancellable) {
-                    storage.write(encode(next))
-                    mutableState.value = next
+    private suspend fun change(transform: (WatchlistPreferenceState) -> WatchlistPreferenceState): Result<Unit> =
+        mutex.withLock {
+            try {
+                if (!mutableState.value.ready) mutableState.value = decode(storage.read()).copy(ready = true)
+                val current = mutableState.value
+                val next = transform(current)
+                if (next != current) {
+                    currentCoroutineContext().ensureActive()
+                    // Finish a started native write and its state publication as one small critical section.
+                    withContext(NonCancellable) {
+                        storage.write(encode(next))
+                        mutableState.value = next
+                    }
+                    currentCoroutineContext().ensureActive()
                 }
-                currentCoroutineContext().ensureActive()
+                Result.success(Unit)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Result.failure(error)
             }
-            Result.success(Unit)
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Result.failure(error)
         }
-    }
 
     private fun decode(value: String?): WatchlistPreferenceState {
         if (value == null) return WatchlistPreferenceState()
@@ -100,8 +103,9 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
             .filter(String::isNotBlank).distinct().take(MaximumPinnedWatchlists)
         val sorts = root["sorts"]?.jsonObject.orEmpty().mapValues { (_, value) ->
             val setting = value.jsonObject
-            val field = WatchlistSortField.entries.firstOrNull { it.name == setting["field"]?.jsonPrimitive?.contentOrNull }
-                ?: WatchlistSortField.Added
+            val field =
+                WatchlistSortField.entries.firstOrNull { it.name == setting["field"]?.jsonPrimitive?.contentOrNull }
+                    ?: WatchlistSortField.Added
             WatchlistSort(field, setting["ascending"]?.jsonPrimitive?.booleanOrNull ?: false)
         }
         return WatchlistPreferenceState(pinnedIds = pins, sorts = sorts)

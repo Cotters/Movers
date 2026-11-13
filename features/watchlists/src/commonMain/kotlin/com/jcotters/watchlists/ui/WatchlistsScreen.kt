@@ -57,14 +57,21 @@ internal fun WatchlistsRoute(navigator: Navigator) {
     }
     Scaffold(topBar = {
         MoversTopBar(title = { Text("Watchlists") }, actions = {
-            MoversTextButton(onClick = { navigator.navigate(com.jcotters.watchlists.navigation.JoinWatchlistKey) }) { Text("Join list") }
-            MoversTextButton(onClick = { viewModel.clearError(); creating = true }, enabled = !state.loading && !state.busy) { Text("Create list") }
+            MoversTextButton(onClick = { navigator.navigate(com.jcotters.watchlists.navigation.JoinWatchlistKey) }) {
+                Text(
+                    "Join list"
+                )
+            }
+            MoversTextButton(
+                onClick = { viewModel.clearError(); creating = true },
+                enabled = !state.loading && !state.busy
+            ) { Text("Create list") }
         })
     }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             if (state.loading) LinearProgressIndicator()
             state.syncError?.let {
-                Text("Shared updates unavailable. Cached lists remain readable.",Modifier.padding(16.dp))
+                Text("Shared updates unavailable. Cached lists remain readable.", Modifier.padding(16.dp))
                 MoversTextButton(onClick = viewModel::refreshShared) { Text("Retry shared updates") }
             }
             state.error?.let {
@@ -74,7 +81,9 @@ internal fun WatchlistsRoute(navigator: Navigator) {
             if (!state.loading && state.error == null && state.lists.isEmpty()) {
                 Column(Modifier.padding(24.dp)) {
                     Text("Create a list for your next movie night.")
-                    MoversButton(onClick = { viewModel.clearError(); creating = true }) { Text("Create your first list") }
+                    MoversButton(onClick = {
+                        viewModel.clearError(); creating = true
+                    }) { Text("Create your first list") }
                 }
             }
             state.preferenceError?.let { message ->
@@ -84,21 +93,37 @@ internal fun WatchlistsRoute(navigator: Navigator) {
             LazyColumn(Modifier.weight(1f)) {
                 if (state.pinnedLists.isNotEmpty()) {
                     item(key = "pinned-heading") {
-                        Text("Pinned · ${state.pinnedLists.size}/$MaximumPinnedWatchlists", Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "Pinned · ${state.pinnedLists.size}/$MaximumPinnedWatchlists",
+                            Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    watchlistRows(state.pinnedLists, state, viewModel::setPinned) { navigator.navigate(WatchlistDetailKey(it)) }
+                    watchlistRows(state.pinnedLists, state, viewModel::setPinned) {
+                        navigator.navigate(
+                            WatchlistDetailKey(it)
+                        )
+                    }
                     if (state.otherLists.isNotEmpty()) item(key = "other-heading") {
-                        Text("Other lists", Modifier.padding(16.dp), style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "Other lists", Modifier.padding(16.dp), style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
-                watchlistRows(state.otherLists, state, viewModel::setPinned) { navigator.navigate(WatchlistDetailKey(it)) }
+                watchlistRows(
+                    state.otherLists,
+                    state,
+                    viewModel::setPinned
+                ) { navigator.navigate(WatchlistDetailKey(it)) }
             }
         }
     }
-    if (creating) ListNameDialog("Create list", state.lists, busy = state.busy, error = state.error,
-        onDismiss = { creating = false; viewModel.clearError() }, onSave = viewModel::create)
+    if (creating) ListNameDialog(
+        "Create list", state.lists, busy = state.busy, error = state.error,
+        onDismiss = { creating = false; viewModel.clearError() }, onSave = viewModel::create
+    )
 }
 
 private fun LazyListScope.watchlistRows(
@@ -126,10 +151,25 @@ private fun LazyListScope.watchlistRows(
             Column(swipeModifier) {
                 MoversListItem(
                     headlineContent = { Text(list.name) },
-                    supportingContent = { Text("${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}" +
-                        (list.shared?.let { " · Shared · ${it.members.size} members" } ?: "")) },
-                    leadingContent = list.shared?.let { info -> { com.jcotters.presentation.ParticipantAvatar(info.creator.name, info.creator.color) } },
-                    trailingContent = if (pinned) ({ MoversIcon(MoversSymbol.Pin, tint = MoversDesign.tokens.colors.accent) }) else null,
+                    supportingContent = {
+                        Text(
+                            "${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}" +
+                                (list.shared?.let { " · Shared · ${it.members.size} members" } ?: ""))
+                    },
+                    leadingContent = list.shared?.let { info ->
+                        {
+                            com.jcotters.presentation.ParticipantAvatar(
+                                info.creator.name,
+                                info.creator.color
+                            )
+                        }
+                    },
+                    trailingContent = if (pinned) ({
+                        MoversIcon(
+                            MoversSymbol.Pin,
+                            tint = MoversDesign.tokens.colors.accent
+                        )
+                    }) else null,
                     modifier = Modifier.heightIn(min = 72.dp).clickable(onClick = open).semantics {
                         if (pinned) stateDescription = "Pinned"
                     },

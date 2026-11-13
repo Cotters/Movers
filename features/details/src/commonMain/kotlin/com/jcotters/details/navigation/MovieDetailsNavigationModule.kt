@@ -39,7 +39,15 @@ object MovieDetailsNavigationModule {
                     movieImageExpansionModifier(moviePosterKey(key.movieId), key.instanceId, stackId),
                 ),
                 backdropModifier = movieImageExpansionModifier(movieBackdropKey(key.movieId), key.instanceId, stackId),
-                onImageTapped = { imageType -> navigator.navigate(MovieImageKey(key.movieId, imageType, key.instanceId)) },
+                onImageTapped = { imageType ->
+                    navigator.navigate(
+                        MovieImageKey(
+                            key.movieId,
+                            imageType,
+                            key.instanceId
+                        )
+                    )
+                },
                 trailerContent = { MovieTrailerSection(key.movieId) },
                 onBack = navigator::goBack,
                 onAddToList = { navigator.navigate(AddToListsKey(key.movieId, key.targetListId)) },

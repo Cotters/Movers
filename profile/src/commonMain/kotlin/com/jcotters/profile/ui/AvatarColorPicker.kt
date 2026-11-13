@@ -38,7 +38,11 @@ internal fun AvatarColorPicker(selected: Int, enabled: Boolean, onSelect: (Int) 
             ) {
                 Box(
                     Modifier.size(40.dp)
-                        .border(2.dp, if (selected == index) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape)
+                        .border(
+                            2.dp,
+                            if (selected == index) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                            CircleShape
+                        )
                         .padding(4.dp)
                         .background(color.background, CircleShape),
                 )

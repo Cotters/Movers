@@ -91,7 +91,12 @@ internal fun MoversBottomBar(selectedTab: TopLevelDestination, onSelectTab: (Top
                             .background(tileColor),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(painterResource(tab.iconRes), contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
+                        Icon(
+                            painterResource(tab.iconRes),
+                            contentDescription = null,
+                            tint = iconColor,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             }
@@ -99,17 +104,19 @@ internal fun MoversBottomBar(selectedTab: TopLevelDestination, onSelectTab: (Top
     }
 }
 
-private val TopLevelDestination.labelRes: StringResource get() = when (this) {
-    TopLevelDestination.Home -> Res.string.navigation_home
-    TopLevelDestination.Watchlists -> Res.string.navigation_watchlists
-    TopLevelDestination.Profile -> Res.string.navigation_profile
-}
+private val TopLevelDestination.labelRes: StringResource
+    get() = when (this) {
+        TopLevelDestination.Home -> Res.string.navigation_home
+        TopLevelDestination.Watchlists -> Res.string.navigation_watchlists
+        TopLevelDestination.Profile -> Res.string.navigation_profile
+    }
 
-private val TopLevelDestination.iconRes: DrawableResource get() = when (this) {
-    TopLevelDestination.Home -> Res.drawable.navigation_home
-    TopLevelDestination.Watchlists -> Res.drawable.navigation_watchlists
-    TopLevelDestination.Profile -> Res.drawable.navigation_profile
-}
+private val TopLevelDestination.iconRes: DrawableResource
+    get() = when (this) {
+        TopLevelDestination.Home -> Res.drawable.navigation_home
+        TopLevelDestination.Watchlists -> Res.drawable.navigation_watchlists
+        TopLevelDestination.Profile -> Res.drawable.navigation_profile
+    }
 
 @Preview(widthDp = 360, heightDp = 56)
 @Composable

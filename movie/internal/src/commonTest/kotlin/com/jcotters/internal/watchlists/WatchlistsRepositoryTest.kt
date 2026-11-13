@@ -59,13 +59,31 @@ class WatchlistsRepositoryTest {
             failure?.let { throw it }
             rows.value += WatchlistRecord(id, name, createdAt, 0)
         }
-        override suspend fun rename(id: String, name: String) { rows.value = rows.value.map { if (it.id == id) it.copy(name = name) else it } }
-        override suspend fun delete(id: String) { rows.value = rows.value.filterNot { it.id == id } }
-        override suspend fun addMovieToLists(movieId: Int, listIds: Set<String>, addedAt: Long) { additions += Triple(movieId, listIds, addedAt) }
+
+        override suspend fun rename(id: String, name: String) {
+            rows.value = rows.value.map { if (it.id == id) it.copy(name = name) else it }
+        }
+
+        override suspend fun delete(id: String) {
+            rows.value = rows.value.filterNot { it.id == id }
+        }
+
+        override suspend fun addMovieToLists(movieId: Int, listIds: Set<String>, addedAt: Long) {
+            additions += Triple(movieId, listIds, addedAt)
+        }
+
         override suspend fun removeMovie(listId: String, movieId: Int) = Unit
-        override suspend fun importMovies(requestId: String, listId: String, films: List<com.jcotters.contract.watchlists.data.SharedFilm>, addedAt: Long) =
+        override suspend fun importMovies(
+            requestId: String,
+            listId: String,
+            films: List<com.jcotters.contract.watchlists.data.SharedFilm>,
+            addedAt: Long
+        ) =
             com.jcotters.contract.watchlists.data.ImportBatchResult(films.map {
-                com.jcotters.contract.watchlists.data.FilmImportOutcome(it.id, com.jcotters.contract.watchlists.data.ImportDisposition.Imported)
+                com.jcotters.contract.watchlists.data.FilmImportOutcome(
+                    it.id,
+                    com.jcotters.contract.watchlists.data.ImportDisposition.Imported
+                )
             })
     }
 }

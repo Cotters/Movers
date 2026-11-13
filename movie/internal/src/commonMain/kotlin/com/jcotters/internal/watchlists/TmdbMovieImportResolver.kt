@@ -34,20 +34,25 @@ internal class TmdbMovieImportResolver(
             }
         }
         val byImdb = reference.imdbId?.let { imdbId ->
-            try { save(api.findMovie(imdbId).movies).firstOrNull() }
-            catch (error: ClientRequestException) {
+            try {
+                save(api.findMovie(imdbId).movies).firstOrNull()
+            } catch (error: ClientRequestException) {
                 if (error.response.status == HttpStatusCode.NotFound) null else throw error
             }
         }
         if (reference.movieId != null || reference.imdbId != null) {
             if (reference.movieId != null && reference.imdbId != null && (byId == null || byImdb == null || byId.id != byImdb.id)) {
-                return@lookup FilmResolution.Review(listOfNotNull(byId, byImdb).distinctBy { it.id }, "Movie IDs don't agree.")
+                return@lookup FilmResolution.Review(
+                    listOfNotNull(byId, byImdb).distinctBy { it.id },
+                    "Movie IDs don't agree."
+                )
             }
             (byId ?: byImdb)?.let { return@lookup FilmResolution.Matched(it) }
         }
         if (reference.title.isBlank()) return@lookup FilmResolution.Review(emptyList(), "No film found for this ID.")
         var candidates = save(api.searchMovies(reference.title, 1, reference.year).results.orEmpty())
-        if (candidates.isEmpty() && reference.year != null) candidates = save(api.searchMovies(reference.title, 1).results.orEmpty())
+        if (candidates.isEmpty() && reference.year != null) candidates =
+            save(api.searchMovies(reference.title, 1).results.orEmpty())
         candidates.firstOrNull()?.let { FilmResolution.Matched(it) }
             ?: FilmResolution.Review(emptyList(), "No matching film.")
     }
@@ -58,18 +63,24 @@ internal class TmdbMovieImportResolver(
     }
 
     private suspend fun save(results: List<CatalogueMovieDto?>): List<Movie> {
-        val rows = mapper.toDatabaseModel(results.filterNotNull().filter { (it.id ?: 0) > 0 && !it.title.isNullOrBlank() }
-            .map { it.copy(overview = it.overview.orEmpty()) })
+        val rows =
+            mapper.toDatabaseModel(results.filterNotNull().filter { (it.id ?: 0) > 0 && !it.title.isNullOrBlank() }
+                .map { it.copy(overview = it.overview.orEmpty()) })
         dao.upsertCatalogueMovies(rows)
         return rows.map { row -> mapper.toDomainModel(dao.getMovieById(row.id) ?: row) }.distinctBy { it.id }
     }
-    private suspend fun <T> lookup(block: suspend () -> T): T = try { block() }
-    catch (error: CancellationException) { throw error }
-    catch (error: ClientRequestException) {
+
+    private suspend fun <T> lookup(block: suspend () -> T): T = try {
+        block()
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: ClientRequestException) {
         if (error.response.status == HttpStatusCode.TooManyRequests) {
             val wait = error.response.headers["Retry-After"]?.toLongOrNull()?.times(1000)?.coerceIn(1000, 30_000)
             throw MovieLookupException("Movie search is busy. Retry shortly.", wait ?: 2000)
         }
         throw MovieLookupException("Unable to look up films. Retry when connected.")
-    } catch (_: Exception) { throw MovieLookupException("Unable to look up films. Retry when connected.") }
+    } catch (_: Exception) {
+        throw MovieLookupException("Unable to look up films. Retry when connected.")
+    }
 }

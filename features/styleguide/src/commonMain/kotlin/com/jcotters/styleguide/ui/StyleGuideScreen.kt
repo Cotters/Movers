@@ -47,7 +47,15 @@ import org.koin.compose.viewmodel.koinViewModel
 internal fun StyleGuideRoute(navigator: Navigator) {
     val viewModel: StyleGuideViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    StyleGuideScreen(state, viewModel::theme, viewModel::corners, viewModel::density, viewModel::section, viewModel::reset, navigator::goBack)
+    StyleGuideScreen(
+        state,
+        viewModel::theme,
+        viewModel::corners,
+        viewModel::density,
+        viewModel::section,
+        viewModel::reset,
+        navigator::goBack
+    )
 }
 
 @Composable
@@ -68,7 +76,10 @@ internal fun StyleGuideScreen(
     }) { padding ->
         MoversDesignTheme(state.settings) {
             val tokens = MoversDesign.tokens
-            Column(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).background(tokens.colors.background)) {
+            Column(
+                Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)
+                    .background(tokens.colors.background)
+            ) {
                 Row(
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).selectableGroup().padding(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(tokens.spacing),
@@ -108,10 +119,18 @@ private fun StyleControls(
     onReset: () -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    MoversButton(if (expanded) "Hide styling controls" else "Adjust style", { expanded = !expanded }, variant = ButtonVariant.Quiet)
+    MoversButton(
+        if (expanded) "Hide styling controls" else "Adjust style",
+        { expanded = !expanded },
+        variant = ButtonVariant.Quiet
+    )
     if (expanded) {
         MoversPanel(Modifier.fillMaxWidth()) {
-            MoversText("Preview only · local demo data", style = MoversDesign.tokens.type.caption, color = MoversDesign.tokens.colors.muted)
+            MoversText(
+                "Preview only · local demo data",
+                style = MoversDesign.tokens.type.caption,
+                color = MoversDesign.tokens.colors.muted
+            )
             MoversText("Theme", style = MoversDesign.tokens.type.label)
             FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ThemeMode.entries.forEach { MoversChoice(it.name, state.settings.theme == it, { onTheme(it) }) }
@@ -119,12 +138,20 @@ private fun StyleControls(
             MoversText("Corners", style = MoversDesign.tokens.type.label)
             FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(8.dp, 12.dp, 16.dp).forEach { radius ->
-                    MoversChoice("${radius.value.toInt()} dp", state.settings.cornerRadius == radius, { onCorners(radius) })
+                    MoversChoice(
+                        "${radius.value.toInt()} dp",
+                        state.settings.cornerRadius == radius,
+                        { onCorners(radius) })
                 }
             }
             MoversText("Spacing", style = MoversDesign.tokens.type.label)
             FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ComponentDensity.entries.forEach { MoversChoice(it.name, state.settings.density == it, { onDensity(it) }) }
+                ComponentDensity.entries.forEach {
+                    MoversChoice(
+                        it.name,
+                        state.settings.density == it,
+                        { onDensity(it) })
+                }
             }
             MoversButton("Reset examples and style", onReset, variant = ButtonVariant.Secondary)
         }

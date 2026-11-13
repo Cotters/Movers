@@ -53,11 +53,18 @@ class WatchlistsUiTest {
             shadowOf(Looper.getMainLooper()).idle()
         }
     }
-    @get:Rule(order = 1) val compose = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule(order = 1)
+    val compose = createAndroidComposeRule<ComponentActivity>()
     private lateinit var fixture: MoversUiFixture
 
-    @Before fun setUp() { fixture = MoversUiFixture() }
-    @After fun tearDown() {
+    @Before
+    fun setUp() {
+        fixture = MoversUiFixture()
+    }
+
+    @After
+    fun tearDown() {
         compose.activityRule.scenario.close()
         fixture.close()
     }
@@ -82,7 +89,8 @@ class WatchlistsUiTest {
         awaitText("Classics")
         compose.waitUntil("Rename dialog closes and list controls become editable", 10_000) {
             compose.onAllNodesWithText("List name").fetchSemanticsNodes().isEmpty() &&
-                compose.onAllNodes(hasContentDescription("List options") and isEnabled()).fetchSemanticsNodes().isNotEmpty()
+                compose.onAllNodes(hasContentDescription("List options") and isEnabled()).fetchSemanticsNodes()
+                    .isNotEmpty()
         }
         compose.onNodeWithContentDescription("List options").performClick()
         compose.onNodeWithText("Delete list").performClick()
@@ -147,7 +155,14 @@ class WatchlistsUiTest {
         compose.onNodeWithContentDescription("Add Search Movie to list").performClick()
         awaitAction("Remove Search Movie from list")
         compose.onNodeWithContentDescription("Add Another Movie to list").performClick()
-        compose.waitUntil(10_000) { compose.onAllNodes(hasContentDescription("Remove ", substring = true) and isEnabled()).fetchSemanticsNodes().size == 2 }
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(
+                hasContentDescription(
+                    "Remove ",
+                    substring = true
+                ) and isEnabled()
+            ).fetchSemanticsNodes().size == 2
+        }
         compose.onNodeWithContentDescription("Search films").assertTextContains("test")
         compose.onNodeWithContentDescription("Back").performClick()
         awaitText("2 movies")
@@ -164,9 +179,11 @@ class WatchlistsUiTest {
     @Test
     fun globalSearchSupportsInlineCreationAndRetainsQueryAfterAdding() {
         runBlocking {
-            fixture.database.movieDao().insertMovie(DbMovie(
-                25, "Search Movie", "Cached details", "2026-02-01", runtimeMinutes = 120, detailsFetchedAt = 1234L,
-            ))
+            fixture.database.movieDao().insertMovie(
+                DbMovie(
+                    25, "Search Movie", "Cached details", "2026-02-01", runtimeMinutes = 120, detailsFetchedAt = 1234L,
+                )
+            )
         }
         compose.setContent { SharedApp() }
         awaitText("Test Movie")
@@ -217,9 +234,13 @@ class WatchlistsUiTest {
 
     private fun awaitText(text: String) {
         try {
-            compose.waitUntil("Text '$text' appears", 10_000) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil("Text '$text' appears", 10_000) {
+                compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+            }
         } catch (error: ComposeTimeoutException) {
-            val tree = runCatching { compose.onRoot(useUnmergedTree = true).printToString() }.getOrDefault("No single root available")
+            val tree = runCatching {
+                compose.onRoot(useUnmergedTree = true).printToString()
+            }.getOrDefault("No single root available")
             throw AssertionError("Expected '$text'.\n$tree", error)
         }
     }

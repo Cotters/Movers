@@ -28,7 +28,8 @@ fun MoversText(
     BasicText(
         text = text,
         modifier = modifier,
-        style = (style ?: tokens.type.body).merge(TextStyle(color = if (color == Color.Unspecified) tokens.colors.content else color)),
+        style = (style
+            ?: tokens.type.body).merge(TextStyle(color = if (color == Color.Unspecified) tokens.colors.content else color)),
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
     )

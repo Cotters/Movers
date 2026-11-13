@@ -70,16 +70,35 @@ internal class MovieSearchViewModel(
             actions.update { it.copy(membershipLoading = false) }
         }.catch { error ->
             if (error is CancellationException || error !is Exception) throw error
-            actions.update { it.copy(membershipLoading = false, membershipReadFailed = true, error = "Unable to read list membership.") }
+            actions.update {
+                it.copy(
+                    membershipLoading = false,
+                    membershipReadFailed = true,
+                    error = "Unable to read list membership."
+                )
+            }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
-    init { retryLists() }
+    init {
+        retryLists()
+    }
 
-    fun setTarget(id: String?) { target.value = id }
-    fun changeQuery(value: String) { savedState["query"] = value }
-    fun submit() { query.value.trim().takeIf { it.isNotEmpty() }?.let(submissions::tryEmit) }
-    fun clearError() { actions.update { it.copy(error = null) } }
+    fun setTarget(id: String?) {
+        target.value = id
+    }
+
+    fun changeQuery(value: String) {
+        savedState["query"] = value
+    }
+
+    fun submit() {
+        query.value.trim().takeIf { it.isNotEmpty() }?.let(submissions::tryEmit)
+    }
+
+    fun clearError() {
+        actions.update { it.copy(error = null) }
+    }
 
     fun retryLists() {
         membershipRetries.update { it + 1 }
@@ -102,8 +121,11 @@ internal class MovieSearchViewModel(
         viewModelScope.launch {
             try {
                 if (current.lists.any { it.id == id && it.shared != null }) {
-                    lists.setMembership(id,movieId,added).onSuccess { ack ->
-                        actionsState.first { value -> value.error != null || value.lists.none { it.id == id } || (value.lists.firstOrNull { it.id == id }?.shared?.revision ?: -1) >= (ack.revision ?: 0) }
+                    lists.setMembership(id, movieId, added).onSuccess { ack ->
+                        actionsState.first { value ->
+                            value.error != null || value.lists.none { it.id == id } || (value.lists.firstOrNull { it.id == id }?.shared?.revision
+                                ?: -1) >= (ack.revision ?: 0)
+                        }
                     }.onFailure { error -> actions.update { it.copy(error = error.message) } }
                     return@launch
                 }
@@ -113,7 +135,9 @@ internal class MovieSearchViewModel(
                         state.membershipReadFailed || (!state.membershipLoading && (movieId in ids) == added)
                     }.first { it }
                 }.onFailure { error -> actions.update { it.copy(error = error.message) } }
-            } finally { actions.update { it.copy(saving = it.saving - movieId) } }
+            } finally {
+                actions.update { it.copy(saving = it.saving - movieId) }
+            }
         }
     }
 }

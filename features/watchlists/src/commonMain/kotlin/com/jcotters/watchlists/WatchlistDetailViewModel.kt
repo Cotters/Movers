@@ -74,8 +74,15 @@ internal class WatchlistDetailViewModel(
     private val state = MutableStateFlow(WatchlistDetailState())
     private val query = savedState.getStateFlow("query", "")
     val uiState = combine(state, query, preferences.state) { content, query, saved ->
-        content.copy(query = query, sort = content.listId?.let { saved.sorts[it] } ?: WatchlistSort(), preferencesReady = saved.ready)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), state.value.copy(query = savedState["query"] ?: ""))
+        content.copy(
+            query = query,
+            sort = content.listId?.let { saved.sorts[it] } ?: WatchlistSort(),
+            preferencesReady = saved.ready)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        state.value.copy(query = savedState["query"] ?: "")
+    )
 
     private val candidates = query.map(String::trim).distinctUntilChanged().flatMapLatest { value ->
         flow {
@@ -87,14 +94,16 @@ internal class WatchlistDetailViewModel(
         }
     }.cachedIn(viewModelScope)
 
-    val suggestions = combine(candidates, state.map { it.excludedSuggestionIds }.distinctUntilChanged()) { page, excluded ->
-        page.filter { it.id !in excluded }
-    }.cachedIn(viewModelScope)
+    val suggestions =
+        combine(candidates, state.map { it.excludedSuggestionIds }.distinctUntilChanged()) { page, excluded ->
+            page.filter { it.id !in excluded }
+        }.cachedIn(viewModelScope)
 
     fun changeQuery(query: String) {
         state.update { it.copy(suggestionError = null) }
         savedState["query"] = query
     }
+
     private var listId: String? = null
     private var observation: Job? = null
 
@@ -105,7 +114,11 @@ internal class WatchlistDetailViewModel(
         listId = id
         state.update { it.copy(listId = id, loading = true, error = null) }
         observation = viewModelScope.launch {
-            combine(repository.observeWatchlist(id), repository.observeWatchlists(), removals.removals) { content, lists, pending ->
+            combine(
+                repository.observeWatchlist(id),
+                repository.observeWatchlists(),
+                removals.removals
+            ) { content, lists, pending ->
                 val hidden = pending.hiddenMovieIds(id)
                 ObservedWatchlist(
                     content?.copy(movies = content.movies.filterNot { it.id in hidden }), lists,
@@ -113,10 +126,20 @@ internal class WatchlistDetailViewModel(
                 )
             }.catch { error ->
                 if (error is CancellationException || error !is Exception) throw error
-                state.update { it.copy(loading = false, membershipReadFailed = true, error = "Unable to read this list.") }
+                state.update {
+                    it.copy(
+                        loading = false,
+                        membershipReadFailed = true,
+                        error = "Unable to read this list."
+                    )
+                }
             }.collect { observed ->
-                state.update { it.copy(content = observed.content, lists = observed.lists, memberIds = observed.memberIds,
-                    hiddenIds = observed.hiddenIds, membershipReadFailed = false, loading = false) }
+                state.update {
+                    it.copy(
+                        content = observed.content, lists = observed.lists, memberIds = observed.memberIds,
+                        hiddenIds = observed.hiddenIds, membershipReadFailed = false, loading = false
+                    )
+                }
             }
         }
     }
@@ -141,11 +164,15 @@ internal class WatchlistDetailViewModel(
                 }.onFailure {
                     state.update { it.copy(suggestionError = "Couldn't add this film. Try again.") }
                 }
-            } finally { state.update { it.copy(adding = it.adding - movieId) } }
+            } finally {
+                state.update { it.copy(adding = it.adding - movieId) }
+            }
         }
     }
 
-    fun clearSuggestionError() { state.update { it.copy(suggestionError = null) } }
+    fun clearSuggestionError() {
+        state.update { it.copy(suggestionError = null) }
+    }
 
     private var failedSort: WatchlistSort? = null
 
@@ -167,7 +194,9 @@ internal class WatchlistDetailViewModel(
                 preferences.setSort(id, sort).onSuccess { failedSort = null }.onFailure {
                     state.update { it.copy(sortError = "Couldn't save sorting. Try again.") }
                 }
-            } finally { state.update { it.copy(sortSaving = false) } }
+            } finally {
+                state.update { it.copy(sortSaving = false) }
+            }
         }
     }
 
@@ -186,19 +215,30 @@ internal class WatchlistDetailViewModel(
         val movie = current.content?.movies?.firstOrNull { it.id == movieId } ?: return
         removals.stage(id, movie)
     }
+
     fun removeMovie(movieId: Int) {
         val id = listId ?: return
         if (state.value.busy || movieId in state.value.removing) return
-        state.update { it.copy(removing = it.removing + movieId,error = null) }
+        state.update { it.copy(removing = it.removing + movieId, error = null) }
         viewModelScope.launch {
-            try { repository.removeMovie(id,movieId).onFailure { error -> state.update { it.copy(error = error.message) } } }
-            finally { state.update { it.copy(removing = it.removing - movieId) } }
+            try {
+                repository.removeMovie(id, movieId)
+                    .onFailure { error -> state.update { it.copy(error = error.message) } }
+            } finally {
+                state.update { it.copy(removing = it.removing - movieId) }
+            }
         }
     }
+
     fun leave() = write(deleting = true) { id -> sharing.leave(id) }
     fun delete() = write(deleting = true) { id -> repository.delete(id) }
-    fun clearError() { state.update { it.copy(error = null) } }
-    fun consumeRenamed() { state.update { it.copy(renamed = false) } }
+    fun clearError() {
+        state.update { it.copy(error = null) }
+    }
+
+    fun consumeRenamed() {
+        state.update { it.copy(renamed = false) }
+    }
 
     private fun write(deleting: Boolean = false, renaming: Boolean = false, action: suspend (String) -> Result<Unit>) {
         val id = listId ?: return
@@ -208,7 +248,9 @@ internal class WatchlistDetailViewModel(
             try {
                 action(id).onSuccess { state.update { it.copy(deleted = deleting, renamed = renaming) } }
                     .onFailure { error -> state.update { it.copy(error = error.message) } }
-            } finally { state.update { it.copy(busy = false) } }
+            } finally {
+                state.update { it.copy(busy = false) }
+            }
         }
     }
 }

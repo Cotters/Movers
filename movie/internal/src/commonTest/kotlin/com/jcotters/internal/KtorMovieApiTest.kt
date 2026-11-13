@@ -24,9 +24,16 @@ class KtorMovieApiTest {
             assertEquals("false", request.url.parameters["include_adult"])
             assertEquals("2026", request.url.parameters["primary_release_year"])
             assertEquals("Bearer test-token", request.headers[HttpHeaders.Authorization])
-            respond("""{"page":2,"total_pages":2,"results":[]}""", headers = headersOf(HttpHeaders.ContentType, "application/json"))
+            respond(
+                """{"page":2,"total_pages":2,"results":[]}""",
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
         }) { configureMovieApi("test-token") }
-        try { assertEquals(2, KtorMovieApi(client).searchMovies("L'été & the city", 2, 2026).page) } finally { client.close() }
+        try {
+            assertEquals(2, KtorMovieApi(client).searchMovies("L'été & the city", 2, 2026).page)
+        } finally {
+            client.close()
+        }
     }
 
     @Test
@@ -46,7 +53,9 @@ class KtorMovieApiTest {
             assertEquals("Sample", movie.title)
             assertNull(movie.posterPath)
             assertEquals(3_000_000_000L, movie.revenue)
-        } finally { client.close() }
+        } finally {
+            client.close()
+        }
     }
 
     @Test
@@ -65,7 +74,9 @@ class KtorMovieApiTest {
             assertEquals(2, page.page)
             assertEquals(3, page.totalPages)
             assertTrue(page.results.orEmpty().isEmpty())
-        } finally { client.close() }
+        } finally {
+            client.close()
+        }
     }
 
     @Test
@@ -75,6 +86,8 @@ class KtorMovieApiTest {
         }
         try {
             assertFailsWith<ServerResponseException> { KtorMovieApi(client).getMovieById(12) }
-        } finally { client.close() }
+        } finally {
+            client.close()
+        }
     }
 }

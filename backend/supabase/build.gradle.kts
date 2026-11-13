@@ -16,7 +16,9 @@ kotlin {
     sourceSets.androidMain.dependencies {
         implementation(libs.ktor.client.okhttp)
         // SDK 3.9 requests Lifecycle 2.11; keep its Android runtime aligned with the shared app.
-        implementation(libs.androidx.lifecycle.process.get().toString()) { version { strictly(libs.versions.lifecycleShared.get()) } }
+        implementation(
+            libs.androidx.lifecycle.process.get().toString()
+        ) { version { strictly(libs.versions.lifecycleShared.get()) } }
     }
     sourceSets.iosMain.dependencies { implementation(libs.ktor.client.darwin) }
 }

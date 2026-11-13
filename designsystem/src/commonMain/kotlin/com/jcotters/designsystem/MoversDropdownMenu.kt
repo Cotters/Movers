@@ -54,10 +54,12 @@ fun MoversDropdownMenu(
     }
     // Anchored content is measured unbounded by Unstyled; bound the viewport before scrolling.
     val maximumHeight = (availableHeight - 32.dp).coerceAtLeast(48.dp)
-    UnstyledDropdownMenu(expanded, onExpandedChange, modifier, sideOffset = 6.dp, anchor = anchor,
+    UnstyledDropdownMenu(
+        expanded, onExpandedChange, modifier, sideOffset = 6.dp, anchor = anchor,
         panel = {
             DropdownMenuPanel(
-                modifier = Modifier.widthIn(min = 220.dp, max = 320.dp).heightIn(max = maximumHeight).shadow(12.dp, shape).clip(shape)
+                modifier = Modifier.widthIn(min = 220.dp, max = 320.dp).heightIn(max = maximumHeight)
+                    .shadow(12.dp, shape).clip(shape)
                     .background(tokens.colors.surface).border(1.dp, tokens.colors.border, shape)
                     .verticalScroll(rememberScrollState()).padding(6.dp),
                 enter = fadeIn(tween(160)), exit = fadeOut(tween(120)),
@@ -81,16 +83,20 @@ fun MoversDropdownMenuItem(
     val focused by interaction.collectIsFocusedAsState()
     val pressed by interaction.collectIsPressedAsState()
     val shape = RoundedCornerShape(tokens.cornerRadius)
-    UnstyledDropdownMenuItem(onClick = onClick, enabled = enabled, interactionSource = interaction, closeOnClick = closeOnClick,
+    UnstyledDropdownMenuItem(
+        onClick = onClick, enabled = enabled, interactionSource = interaction, closeOnClick = closeOnClick,
         modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).clip(shape)
             .background(if (focused || pressed) tokens.colors.raised else tokens.colors.surface)
             .border(1.dp, if (focused) tokens.colors.accent else tokens.colors.surface, shape)
-            .padding(horizontal = 10.dp, vertical = tokens.spacing)) {
-        CompositionLocalProvider(LocalContentColor provides when {
-            !enabled -> tokens.colors.muted
-            destructive -> tokens.colors.danger
-            else -> tokens.colors.content
-        }) {
+            .padding(horizontal = 10.dp, vertical = tokens.spacing)
+    ) {
+        CompositionLocalProvider(
+            LocalContentColor provides when {
+                !enabled -> tokens.colors.muted
+                destructive -> tokens.colors.danger
+                else -> tokens.colors.content
+            }
+        ) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 leadingIcon?.invoke()
                 ProvideTextStyle(tokens.type.label, content = text)

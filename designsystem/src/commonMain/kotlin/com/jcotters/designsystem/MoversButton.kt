@@ -40,7 +40,11 @@ fun MoversButton(
     loading: Boolean = false,
 ) {
     MoversButton(onClick, modifier, variant, enabled, loading) {
-        MoversText(if (loading) "$label…" else label, style = MoversDesign.tokens.type.label, color = LocalContentColor.current)
+        MoversText(
+            if (loading) "$label…" else label,
+            style = MoversDesign.tokens.type.label,
+            color = LocalContentColor.current
+        )
     }
 }
 
@@ -88,7 +92,11 @@ fun MoversButton(
     ) {
         CompositionLocalProvider(LocalContentColor provides foreground) {
             ProvideTextStyle(tokens.type.label) {
-                Row(horizontalArrangement = Arrangement.spacedBy(tokens.spacing), verticalAlignment = Alignment.CenterVertically, content = content)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(tokens.spacing),
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = content
+                )
             }
         }
     }
@@ -103,6 +111,8 @@ fun MoversTextButton(
     contentColor: Color = Color.Unspecified,
     content: @Composable RowScope.() -> Unit,
 ) {
-    MoversButton(onClick, modifier, variant = if (destructive) ButtonVariant.Destructive else ButtonVariant.Quiet,
-        enabled = enabled, contentColor = contentColor, content = content)
+    MoversButton(
+        onClick, modifier, variant = if (destructive) ButtonVariant.Destructive else ButtonVariant.Quiet,
+        enabled = enabled, contentColor = contentColor, content = content
+    )
 }

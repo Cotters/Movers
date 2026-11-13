@@ -13,7 +13,11 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
 
-internal class MovieSearchRepository(private val api: MovieApi, private val dao: MovieDao, private val mapper: MovieMapper) : IMovieSearchRepository {
+internal class MovieSearchRepository(
+    private val api: MovieApi,
+    private val dao: MovieDao,
+    private val mapper: MovieMapper
+) : IMovieSearchRepository {
     override fun searchMovies(query: String) = Pager(PagingConfig(pageSize = 20, enablePlaceholders = false)) {
         MovieSearchPagingSource(query.trim(), api, dao, mapper)
     }.flow
@@ -36,7 +40,11 @@ internal class MovieSearchPagingSource(
             // Search summaries must be saved before quick-add; preserve enriched movie fields.
             dao.upsertCatalogueMovies(movies)
             val endReached = response.results.isNullOrEmpty() || response.totalPages?.let { page >= it } == true
-            LoadResult.Page(movies.map(mapper::toDomainModel), if (page > 1) page - 1 else null, if (endReached) null else page + 1)
+            LoadResult.Page(
+                movies.map(mapper::toDomainModel),
+                if (page > 1) page - 1 else null,
+                if (endReached) null else page + 1
+            )
         }
     } catch (error: CancellationException) {
         throw error

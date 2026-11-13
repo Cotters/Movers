@@ -47,7 +47,11 @@ class PopularMoviesRemoteMediatorShould {
 
     @Test
     fun `skip refresh for a fresh cache then refresh when it expires`() = runBlocking {
-        coEvery { keys.getRemoteKey(MovieCatalogue.Popular.key) } returns DbMovieCatalogueRemoteKey(MovieCatalogue.Popular.key, 2, now)
+        coEvery { keys.getRemoteKey(MovieCatalogue.Popular.key) } returns DbMovieCatalogueRemoteKey(
+            MovieCatalogue.Popular.key,
+            2,
+            now
+        )
         assertEquals(RemoteMediator.InitializeAction.SKIP_INITIAL_REFRESH, mediator.initialize())
         now += Duration.ofHours(6).toMillis()
         assertEquals(RemoteMediator.InitializeAction.LAUNCH_INITIAL_REFRESH, mediator.initialize())
@@ -55,7 +59,10 @@ class PopularMoviesRemoteMediatorShould {
 
     @Test
     fun `refresh caches migrated without a timestamp`() = runBlocking {
-        coEvery { keys.getRemoteKey(MovieCatalogue.Popular.key) } returns DbMovieCatalogueRemoteKey(MovieCatalogue.Popular.key, 2)
+        coEvery { keys.getRemoteKey(MovieCatalogue.Popular.key) } returns DbMovieCatalogueRemoteKey(
+            MovieCatalogue.Popular.key,
+            2
+        )
         assertEquals(RemoteMediator.InitializeAction.LAUNCH_INITIAL_REFRESH, mediator.initialize())
     }
 
@@ -67,7 +74,11 @@ class PopularMoviesRemoteMediatorShould {
 
     @Test
     fun `refresh when the wall clock moves behind the stored timestamp`() = runBlocking {
-        coEvery { keys.getRemoteKey(MovieCatalogue.Popular.key) } returns DbMovieCatalogueRemoteKey(MovieCatalogue.Popular.key, 2, now + 1)
+        coEvery { keys.getRemoteKey(MovieCatalogue.Popular.key) } returns DbMovieCatalogueRemoteKey(
+            MovieCatalogue.Popular.key,
+            2,
+            now + 1
+        )
         assertEquals(RemoteMediator.InitializeAction.LAUNCH_INITIAL_REFRESH, mediator.initialize())
     }
 

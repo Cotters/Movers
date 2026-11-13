@@ -1,4 +1,5 @@
 @file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package com.jcotters.watchlists.documents
 
 import androidx.compose.runtime.Composable
@@ -42,7 +43,10 @@ import platform.posix.memcpy
 import kotlin.uuid.Uuid
 
 @Composable
-internal actual fun rememberDocumentActions(onPicked: (PickedDocument) -> Unit, onResult: (DocumentResult) -> Unit): DocumentActions {
+internal actual fun rememberDocumentActions(
+    onPicked: (PickedDocument) -> Unit,
+    onResult: (DocumentResult) -> Unit
+): DocumentActions {
     val scope = rememberCoroutineScope()
     val picked by rememberUpdatedState(onPicked)
     val result by rememberUpdatedState(onResult)
@@ -65,8 +69,17 @@ private class IosDocumentActions(
     override fun open() {
         if (controller != null) return
         reading = true
-        present(UIDocumentPickerViewController(forOpeningContentTypes = listOf(UTTypeCommaSeparatedText, UTTypeTabSeparatedText, UTTypePlainText, UTTypeJSON), asCopy = true).also { it.delegate = delegate })
+        present(
+            UIDocumentPickerViewController(
+                forOpeningContentTypes = listOf(
+                    UTTypeCommaSeparatedText,
+                    UTTypeTabSeparatedText,
+                    UTTypePlainText,
+                    UTTypeJSON
+                ), asCopy = true
+            ).also { it.delegate = delegate })
     }
+
     override fun save(document: ExportDocument) = export(document, share = false)
     override fun share(document: ExportDocument) = export(document, share = true)
     private fun export(document: ExportDocument, share: Boolean) {
@@ -78,12 +91,18 @@ private class IosDocumentActions(
                     val folder = NSTemporaryDirectory() + "movers-export-" + Uuid.random().toString()
                     check(NSFileManager.defaultManager.createDirectoryAtPath(folder, true, null, null))
                     val target = NSURL.fileURLWithPath("$folder/${document.name}")
-                    val data = if (document.bytes.isEmpty()) NSData() else document.bytes.usePinned { NSData.create(bytes = it.addressOf(0), length = document.bytes.size.toULong()) }
+                    val data = if (document.bytes.isEmpty()) NSData() else document.bytes.usePinned {
+                        NSData.create(
+                            bytes = it.addressOf(0), length = document.bytes.size.toULong()
+                        )
+                    }
                     check(data.writeToURL(target, atomically = true))
                     target
                 }
                 exported = url
-                if (!alive) { cleanup(); return@launch }
+                if (!alive) {
+                    cleanup(); return@launch
+                }
                 if (share) {
                     val sheet = UIActivityViewController(activityItems = listOf(url), applicationActivities = null)
                     sheet.completionWithItemsHandler = { _, completed, _, _ ->
@@ -91,24 +110,40 @@ private class IosDocumentActions(
                         if (alive) onResult(if (completed) DocumentResult.Shared else DocumentResult.Cancelled)
                     }
                     present(sheet)
-                } else present(UIDocumentPickerViewController(forExportingURLs = listOf(url), asCopy = true).also { it.delegate = delegate })
-            } catch (e: CancellationException) { cleanup(); throw e }
-            catch (_: Exception) { cleanup(); if (alive) onResult(DocumentResult.Failed("Couldn't export this file.")) }
+                } else present(
+                    UIDocumentPickerViewController(
+                        forExportingURLs = listOf(url),
+                        asCopy = true
+                    ).also { it.delegate = delegate })
+            } catch (e: CancellationException) {
+                cleanup(); throw e
+            } catch (_: Exception) {
+                cleanup(); if (alive) onResult(DocumentResult.Failed("Couldn't export this file."))
+            }
         }
     }
+
     private fun present(view: UIViewController) {
         var presenter = UIApplication.sharedApplication.keyWindow?.rootViewController
         while (presenter?.presentedViewController != null) presenter = presenter.presentedViewController
-        if (presenter == null) { cleanup(); onResult(DocumentResult.Failed("Couldn't open file actions.")); return }
-        view.popoverPresentationController?.let { it.sourceView = presenter.view; it.sourceRect = CGRectMake(0.0, 0.0, 1.0, 1.0) }
+        if (presenter == null) {
+            cleanup(); onResult(DocumentResult.Failed("Couldn't open file actions.")); return
+        }
+        view.popoverPresentationController?.let {
+            it.sourceView = presenter.view; it.sourceRect = CGRectMake(0.0, 0.0, 1.0, 1.0)
+        }
         controller = view
         presenter.presentViewController(view, animated = true, completion = null)
     }
+
     private fun picked(didPickDocumentsAtURLs: List<*>) {
         this.controller = null
         if (!alive) return
-        if (!reading) { cleanup(); onResult(DocumentResult.Saved); return }
-        val url = didPickDocumentsAtURLs.firstOrNull() as? NSURL ?: run { onResult(DocumentResult.Failed("Couldn't open this file.")); return }
+        if (!reading) {
+            cleanup(); onResult(DocumentResult.Saved); return
+        }
+        val url = didPickDocumentsAtURLs.firstOrNull() as? NSURL
+            ?: run { onResult(DocumentResult.Failed("Couldn't open this file.")); return }
         scope.launch {
             try {
                 val document = withContext(Dispatchers.Default) {
@@ -123,22 +158,28 @@ private class IosDocumentActions(
                     PickedDocument(url.lastPathComponent ?: "films.txt", bytes)
                 }
                 if (alive) onPicked(document)
-            } catch (e: CancellationException) { throw e }
-            catch (_: Exception) { if (alive) onResult(DocumentResult.Failed("Choose a readable file up to 5 MB.")) }
-            finally {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                if (alive) onResult(DocumentResult.Failed("Choose a readable file up to 5 MB."))
+            } finally {
                 // asCopy imports belong to this app; never remove an external provider's source.
-                url.path?.takeIf { it.startsWith(NSHomeDirectory() + "/") }?.let { NSFileManager.defaultManager.removeItemAtPath(it, null) }
+                url.path?.takeIf { it.startsWith(NSHomeDirectory() + "/") }
+                    ?.let { NSFileManager.defaultManager.removeItemAtPath(it, null) }
             }
         }
     }
+
     private fun cancelled() {
         this.controller = null; cleanup()
         if (alive) onResult(DocumentResult.Cancelled)
     }
+
     private fun cleanup() {
         exported?.path?.substringBeforeLast('/')?.let { NSFileManager.defaultManager.removeItemAtPath(it, null) }
         exported = null
     }
+
     fun dispose() {
         alive = false
         (controller as? UIDocumentPickerViewController)?.delegate = null
@@ -151,7 +192,9 @@ private class DocumentPickerDelegate(
     private val onPicked: (List<*>) -> Unit,
     private val onCancelled: () -> Unit,
 ) : NSObject(), UIDocumentPickerDelegateProtocol {
-    override fun documentPicker(controller: UIDocumentPickerViewController, didPickDocumentsAtURLs: List<*>) = onPicked(didPickDocumentsAtURLs)
+    override fun documentPicker(controller: UIDocumentPickerViewController, didPickDocumentsAtURLs: List<*>) =
+        onPicked(didPickDocumentsAtURLs)
+
     override fun documentPickerWasCancelled(controller: UIDocumentPickerViewController) = onCancelled()
 }
 
@@ -160,6 +203,9 @@ internal actual fun rememberImportHelpPreference(): ImportHelpPreference = remem
     object : ImportHelpPreference {
         override var seen by mutableStateOf(NSUserDefaults.standardUserDefaults.boolForKey("movers.import-help.seen"))
             private set
-        override fun dismiss() { seen = true; NSUserDefaults.standardUserDefaults.setBool(true, "movers.import-help.seen") }
+
+        override fun dismiss() {
+            seen = true; NSUserDefaults.standardUserDefaults.setBool(true, "movers.import-help.seen")
+        }
     }
 }

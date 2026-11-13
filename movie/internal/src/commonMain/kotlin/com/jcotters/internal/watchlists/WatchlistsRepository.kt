@@ -11,9 +11,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.map
 import kotlin.uuid.Uuid
 
-internal class WatchlistsRepository(private val database: WatchlistDatabase, private val clock: AppClock) : IWatchlistsRepository {
+internal class WatchlistsRepository(private val database: WatchlistDatabase, private val clock: AppClock) :
+    IWatchlistsRepository {
     override fun observeWatchlists() = database.observeLists().map { rows -> rows.map(WatchlistRecord::toDomain) }
-    override fun observeWatchlist(id: String) = database.observeContent(id).map { it?.let { content -> WatchlistContent(content.list.toDomain(), content.movies, content.contributions) } }
+    override fun observeWatchlist(id: String) = database.observeContent(id)
+        .map { it?.let { content -> WatchlistContent(content.list.toDomain(), content.movies, content.contributions) } }
+
     override fun observeMovieIds(listId: String) = database.observeMovieIds(listId)
     override fun observeListIds(movieId: Int) = database.observeListIds(movieId)
 
@@ -24,19 +27,30 @@ internal class WatchlistsRepository(private val database: WatchlistDatabase, pri
         id
     }
 
-    override suspend fun rename(id: String, name: String) = write("Unable to rename the list.") { database.rename(id, validateName(name)) }
+    override suspend fun rename(id: String, name: String) =
+        write("Unable to rename the list.") { database.rename(id, validateName(name)) }
+
     override suspend fun delete(id: String) = write("Unable to delete the list.") { database.delete(id) }
-    override suspend fun addMovieToLists(movieId: Int, listIds: Set<String>) = write("Unable to add this movie to the selected lists.") {
-        require(listIds.isNotEmpty()) { "Choose at least one list." }
-        database.addMovieToLists(movieId, listIds, clock.millis())
-    }
-    override suspend fun removeMovie(listId: String, movieId: Int) = write("Unable to remove this movie from the list.") { database.removeMovie(listId, movieId) }
-    override suspend fun importMovies(requestId: String, listId: String, films: List<com.jcotters.contract.watchlists.data.SharedFilm>) = write("Unable to import these films. Retry when connected.") {
+    override suspend fun addMovieToLists(movieId: Int, listIds: Set<String>) =
+        write("Unable to add this movie to the selected lists.") {
+            require(listIds.isNotEmpty()) { "Choose at least one list." }
+            database.addMovieToLists(movieId, listIds, clock.millis())
+        }
+
+    override suspend fun removeMovie(listId: String, movieId: Int) =
+        write("Unable to remove this movie from the list.") { database.removeMovie(listId, movieId) }
+
+    override suspend fun importMovies(
+        requestId: String,
+        listId: String,
+        films: List<com.jcotters.contract.watchlists.data.SharedFilm>
+    ) = write("Unable to import these films. Retry when connected.") {
         require(films.size in 1..50 && films.all { it.id > 0 }) { "Choose up to 50 valid films per batch." }
         database.importMovies(requestId, listId, films.distinctBy { it.id }, clock.millis())
     }
 
-    private fun validateName(name: String): String = name.trim().also { require(it.isNotBlank()) { "Enter a list name." } }
+    private fun validateName(name: String): String =
+        name.trim().also { require(it.isNotBlank()) { "Enter a list name." } }
 
     private suspend fun <T> write(message: String, operation: suspend () -> T): Result<T> = try {
         Result.success(operation())
@@ -47,10 +61,13 @@ internal class WatchlistsRepository(private val database: WatchlistDatabase, pri
     } catch (error: IllegalArgumentException) {
         Result.failure(error)
     } catch (error: Exception) {
-        Result.failure(if (error is com.jcotters.contract.watchlists.data.SharedConnectionException ||
-            error is com.jcotters.contract.watchlists.data.SharedAccessDeniedException ||
-            error is com.jcotters.contract.watchlists.data.ImportUnavailableException ||
-            error is com.jcotters.contract.watchlists.data.SharingUnavailableException) error else IllegalStateException(message, error))
+        Result.failure(
+            if (error is com.jcotters.contract.watchlists.data.SharedConnectionException ||
+                error is com.jcotters.contract.watchlists.data.SharedAccessDeniedException ||
+                error is com.jcotters.contract.watchlists.data.ImportUnavailableException ||
+                error is com.jcotters.contract.watchlists.data.SharingUnavailableException
+            ) error else IllegalStateException(message, error)
+        )
     }
 }
 

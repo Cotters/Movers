@@ -26,7 +26,10 @@ object WatchlistInvitation {
         require(token.length == 64 && token.all { it in '0'..'9' || it in 'a'..'f' }) { "Enter a valid Movers invitation link." }
         return token
     }
+
     fun url(token: String): String = "movers://join/${token(token)}"
 }
 
-interface InvitationSharing { fun share(url: String) }
+interface InvitationSharing {
+    fun share(url: String)
+}

@@ -30,14 +30,21 @@ fun MoversSearchField(
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = { keyboard?.hide(); onSearch?.invoke() }),
-        leadingIcon = if (onSearch == null) { { MoversIcon(MoversSymbol.Search) } } else null,
+        leadingIcon = if (onSearch == null) {
+            { MoversIcon(MoversSymbol.Search) }
+        } else null,
         trailingIcon = {
             Row {
                 if (value.isNotEmpty()) {
                     MoversIconButton(MoversSymbol.Close, "Clear search", { onValueChange("") }, enabled = enabled)
                 }
                 if (onSearch != null) {
-                    MoversIconButton(MoversSymbol.Search, "Submit search", onSearch, enabled = enabled && value.isNotBlank())
+                    MoversIconButton(
+                        MoversSymbol.Search,
+                        "Submit search",
+                        onSearch,
+                        enabled = enabled && value.isNotBlank()
+                    )
                 }
             }
         },

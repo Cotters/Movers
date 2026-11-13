@@ -57,6 +57,7 @@ internal fun MovieImageScreen(
                     placeholderKey = imageKey,
                     modifier = Modifier.fillMaxSize(),
                 )
+
                 else -> Text(
                     state.errorMessage ?: "Image unavailable.",
                     color = Color.White,

@@ -60,7 +60,11 @@ class MovieDetailViewModelShould {
     @Test
     fun `wait for the first Room emission when fresh-cache refresh finishes immediately`() = runTest {
         val gate = CompletableDeferred<Unit>()
-        every { movieRepository.observeMovieWithId(7) } returns kotlinx.coroutines.flow.flow { gate.await(); emit(savedMovie.value) }
+        every { movieRepository.observeMovieWithId(7) } returns kotlinx.coroutines.flow.flow {
+            gate.await(); emit(
+            savedMovie.value
+        )
+        }
         val model = MovieDetailViewModel(movieRepository)
         model.onViewEvent(MovieDetailViewEvent.OnLoad(7))
         runCurrent()
@@ -110,7 +114,11 @@ class MovieDetailViewModelShould {
     fun `switch IDs without allowing an old request to replace new content`() = runTest {
         var cancelled = false
         coEvery { movieRepository.refreshMovieWithId(7) } coAnswers {
-            try { kotlinx.coroutines.awaitCancellation() } finally { cancelled = true }
+            try {
+                kotlinx.coroutines.awaitCancellation()
+            } finally {
+                cancelled = true
+            }
         }
         val secondMovie = Movie(8, "Second movie", "Overview", "2027")
         every { movieRepository.observeMovieWithId(8) } returns MutableStateFlow(secondMovie)

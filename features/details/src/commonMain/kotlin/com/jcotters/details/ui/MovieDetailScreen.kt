@@ -172,7 +172,10 @@ fun MovieDetailScreen(
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        MoversTextButton(onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) }, enabled = !loading) {
+                        MoversTextButton(
+                            onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) },
+                            enabled = !loading
+                        ) {
                             Text("Retry")
                         }
                     }
@@ -215,9 +218,13 @@ private fun MovieHeader(
                     } else Modifier,
                 ),
             )
-            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
-                listOf(Color.Black.copy(alpha = 0.35f), Color.Black.copy(alpha = 0.6f)),
-            )))
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        listOf(Color.Black.copy(alpha = 0.35f), Color.Black.copy(alpha = 0.6f)),
+                    )
+                )
+            )
         }
         MovieSummary(
             movie, movieId, posterModifier, posterWidth, posterHeight, overlap,
@@ -414,28 +421,36 @@ private fun InitialLoadingPreview() {
 @Preview(name = "Partial content", widthDp = 360, heightDp = 800)
 @Composable
 private fun PartialContentPreview() {
-    DetailPreview(MovieDetailViewState(
-        isLoading = false, isRefreshingDetails = true,
-        movie = Movie(1, "Preview: The Movie", "A preview to die for...", "2026-10-07"),
-    ))
+    DetailPreview(
+        MovieDetailViewState(
+            isLoading = false, isRefreshingDetails = true,
+            movie = Movie(1, "Preview: The Movie", "A preview to die for...", "2026-10-07"),
+        )
+    )
 }
 
 @Preview(name = "Fetch failed", widthDp = 360, heightDp = 800)
 @Composable
 private fun FetchFailedPreview() {
-    DetailPreview(MovieDetailViewState(
-        isLoading = false, movie = previewMovie,
-        detailsError = "Unable to load additional movie details.",
-    ))
+    DetailPreview(
+        MovieDetailViewState(
+            isLoading = false, movie = previewMovie,
+            detailsError = "Unable to load additional movie details.",
+        )
+    )
 }
 
 @Preview(name = "Long title · large text", widthDp = 320, heightDp = 800, fontScale = 1.5f)
 @Composable
 private fun LongTitlePreview() {
-    DetailPreview(MovieDetailViewState(isLoading = false, movie = previewMovie.copy(
-        title = "A Very Long Movie Title That Needs Room to Wrap",
-        tagline = "A longer subtitle that should remain readable beside the film poster.",
-    )))
+    DetailPreview(
+        MovieDetailViewState(
+            isLoading = false, movie = previewMovie.copy(
+                title = "A Very Long Movie Title That Needs Room to Wrap",
+                tagline = "A longer subtitle that should remain readable beside the film poster.",
+            )
+        )
+    )
 }
 
 @Preview(name = "Wide", widthDp = 840, heightDp = 640)

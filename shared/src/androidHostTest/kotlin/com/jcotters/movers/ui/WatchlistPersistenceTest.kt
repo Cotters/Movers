@@ -41,18 +41,32 @@ class WatchlistPersistenceTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         for (sourceVersion in listOf(7, 8, 9)) {
             val actor = Participant("participant", "Josh", 3)
-            val snapshot = Json.encodeToString(SharedSnapshot("shared-list", "Shared list", 1,
-                SharedListInfo(actor, listOf(actor), 2, 4), emptyList()))
+            val snapshot = Json.encodeToString(
+                SharedSnapshot(
+                    "shared-list", "Shared list", 1,
+                    SharedListInfo(actor, listOf(actor), 2, 4), emptyList()
+                )
+            )
             val operation = Json.encodeToString<SharedCommand>(SharedCommand.Rename("shared-list", "Renamed"))
-            val activity = Json.encodeToString(FilmActivity("event", 4, actor,
-                SharedFilm(12, "Saved movie", "Details", "2026-01-01"), true, 2))
+            val activity = Json.encodeToString(
+                FilmActivity(
+                    "event", 4, actor,
+                    SharedFilm(12, "Saved movie", "Details", "2026-01-01"), true, 2
+                )
+            )
             val name = "watchlist-migration-$sourceVersion-test.db"
             context.deleteDatabase(name)
-            val schema = Json.parseToJsonElement(checkNotNull(javaClass.getResourceAsStream(
-                "/com.jcotters.database.MoversDatabase/$sourceVersion.json",
-            )).bufferedReader().use { it.readText() }).jsonObject.getValue("database").jsonObject
+            val schema = Json.parseToJsonElement(
+                checkNotNull(
+                    javaClass.getResourceAsStream(
+                        "/com.jcotters.database.MoversDatabase/$sourceVersion.json",
+                    )
+                ).bufferedReader().use { it.readText() }).jsonObject.getValue("database").jsonObject
             try {
-                SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath(name).also { it.parentFile?.mkdirs() }, null).use { old ->
+                SQLiteDatabase.openOrCreateDatabase(
+                    context.getDatabasePath(name).also { it.parentFile?.mkdirs() },
+                    null
+                ).use { old ->
                     schema.getValue("entities").jsonArray.forEach { element ->
                         val entity = element.jsonObject
                         val table = entity.getValue("tableName").jsonPrimitive.content
@@ -64,8 +78,14 @@ class WatchlistPersistenceTest {
                     if (sourceVersion == 9) {
                         old.execSQL("INSERT INTO device_profile VALUES(1, 'stable-installation', 'Josh', 3, 1)")
                         old.execSQL("INSERT INTO watchlists VALUES('shared-list','Shared list',1)")
-                        old.execSQL("INSERT INTO shared_lists VALUES('shared-list','participant',4,?)", arrayOf(snapshot))
-                        old.execSQL("INSERT INTO shared_operations VALUES('operation','shared-list','participant',?)", arrayOf(operation))
+                        old.execSQL(
+                            "INSERT INTO shared_lists VALUES('shared-list','participant',4,?)",
+                            arrayOf(snapshot)
+                        )
+                        old.execSQL(
+                            "INSERT INTO shared_operations VALUES('operation','shared-list','participant',?)",
+                            arrayOf(operation)
+                        )
                         old.execSQL("INSERT INTO shared_activity VALUES('shared-list','event',4,?)", arrayOf(activity))
                         old.execSQL("INSERT INTO shared_activity_cursors VALUES('shared-list',3)")
                     } else {
@@ -83,13 +103,19 @@ class WatchlistPersistenceTest {
                 }
                 fun open() = Room.databaseBuilder<MoversDatabase>(context, name)
                     .setDriver(AndroidSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO)
-                    .addMigrations(WatchlistMigration7To8, com.jcotters.database.watchlists.SharedMigration8To9, RemoveBookmarksMigration9To10).build()
+                    .addMigrations(
+                        WatchlistMigration7To8,
+                        com.jcotters.database.watchlists.SharedMigration8To9,
+                        RemoveBookmarksMigration9To10
+                    ).build()
                 MoversUiFixture(open()).use { fixture ->
                     val db = fixture.database
                     assertEquals("stable-installation", db.profileDao().get()?.installationId)
                     assertEquals(sourceVersion == 9, checkNotNull(db.profileDao().get()).nameConfirmed)
                     assertTrue(checkNotNull(db.profileDao().get()).color in 0..7)
-                    if (sourceVersion >= 8) assertEquals(listOf(12), fixture.lists.observeWatchlist("existing-list").first()?.movies?.map { it.id })
+                    if (sourceVersion >= 8) assertEquals(
+                        listOf(12),
+                        fixture.lists.observeWatchlist("existing-list").first()?.movies?.map { it.id })
                     assertEquals(125, db.movieDao().getMovieById(12)?.runtimeMinutes)
                     assertEquals(1234L, db.movieDao().getMovieById(12)?.detailsFetchedAt)
                     db.useReaderConnection { connection ->
@@ -118,7 +144,9 @@ class WatchlistPersistenceTest {
                         assertEquals(3L, cache.cursor("shared-list")?.nextBefore)
                     }
                 }
-            } finally { context.deleteDatabase(name) }
+            } finally {
+                context.deleteDatabase(name)
+            }
         }
     }
 

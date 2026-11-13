@@ -17,7 +17,8 @@ import com.jcotters.internal.detail.data.MovieMapper
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-internal class RoomWatchlistDatabase(private val database: MoversDatabase, private val mapper: MovieMapper) : WatchlistDatabase {
+internal class RoomWatchlistDatabase(private val database: MoversDatabase, private val mapper: MovieMapper) :
+    WatchlistDatabase {
     private val dao = database.watchlistDao()
 
     override fun observeLists() = dao.observeLists().map { rows ->
@@ -36,7 +37,8 @@ internal class RoomWatchlistDatabase(private val database: MoversDatabase, priva
 
     override fun observeMovieIds(listId: String) = dao.observeMovieIds(listId).map { it.toSet() }.distinctUntilChanged()
     override fun observeListIds(movieId: Int) = dao.observeListIds(movieId).map { it.toSet() }.distinctUntilChanged()
-    override suspend fun create(id: String, name: String, createdAt: Long) = dao.insert(DbWatchlist(id, name, createdAt))
+    override suspend fun create(id: String, name: String, createdAt: Long) =
+        dao.insert(DbWatchlist(id, name, createdAt))
 
     override suspend fun rename(id: String, name: String) {
         if (dao.rename(id, name) == 0) throw WatchlistNotFoundException()
@@ -58,7 +60,12 @@ internal class RoomWatchlistDatabase(private val database: MoversDatabase, priva
 
     override suspend fun removeMovie(listId: String, movieId: Int) = dao.removeMovie(listId, movieId)
 
-    override suspend fun importMovies(requestId: String, listId: String, films: List<com.jcotters.contract.watchlists.data.SharedFilm>, addedAt: Long): ImportBatchResult =
+    override suspend fun importMovies(
+        requestId: String,
+        listId: String,
+        films: List<com.jcotters.contract.watchlists.data.SharedFilm>,
+        addedAt: Long
+    ): ImportBatchResult =
         database.useWriterConnection { connection ->
             connection.immediateTransaction {
                 if (dao.get(listId) == null) throw WatchlistNotFoundException()

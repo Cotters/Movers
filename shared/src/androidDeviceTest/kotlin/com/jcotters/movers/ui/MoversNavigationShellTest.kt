@@ -27,9 +27,11 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class MoversNavigationShellTest {
-    @get:Rule val compose = createComposeRule()
+    @get:Rule
+    val compose = createComposeRule()
 
-    @Test fun detailsInDifferentTabsHaveIndependentRetainedViewModels() {
+    @Test
+    fun detailsInDifferentTabsHaveIndependentRetainedViewModels() {
         val probes = mutableMapOf<String, ProbeViewModel>()
         compose.setContent {
             MaterialTheme { MoversNavigationShell(NetworkStatus.Online, entries(probes)) }
@@ -54,7 +56,8 @@ class MoversNavigationShellTest {
         compose.runOnIdle { assertFalse(requireNotNull(probes["Home"]).cleared) }
     }
 
-    @Test fun savedStateRestoresTheSelectedTabAndItsDetails() {
+    @Test
+    fun savedStateRestoresTheSelectedTabAndItsDetails() {
         val restoration = StateRestorationTester(compose)
         restoration.setContent {
             MaterialTheme { MoversNavigationShell(NetworkStatus.Online, entries(mutableMapOf())) }
@@ -67,26 +70,29 @@ class MoversNavigationShellTest {
         compose.onNodeWithText("Open home details").assertIsDisplayed()
     }
 
-    private fun entries(probes: MutableMap<String, ProbeViewModel>): Set<EntryProviderInstaller> = setOf({ navigator, tab ->
-        entry<CatalogueKey> {
-            Button(onClick = { navigator.navigate(MovieDetailsKey(1)) }) { Text("Open home details") }
-        }
-        entry<ProfileKey> {
-            Column {
-                Text("Josh")
-                Button(onClick = { navigator.navigate(MovieDetailsKey(1)) }) { Text("Open profile details") }
+    private fun entries(probes: MutableMap<String, ProbeViewModel>): Set<EntryProviderInstaller> =
+        setOf({ navigator, tab ->
+            entry<CatalogueKey> {
+                Button(onClick = { navigator.navigate(MovieDetailsKey(1)) }) { Text("Open home details") }
             }
-        }
-        entry<WatchlistsKey> { Text("Coming soon") }
-        entry<MovieDetailsKey> {
-            val probe = viewModel { ProbeViewModel() }
-            probes[tab] = probe
-            Text("$tab details")
-        }
-    })
+            entry<ProfileKey> {
+                Column {
+                    Text("Josh")
+                    Button(onClick = { navigator.navigate(MovieDetailsKey(1)) }) { Text("Open profile details") }
+                }
+            }
+            entry<WatchlistsKey> { Text("Coming soon") }
+            entry<MovieDetailsKey> {
+                val probe = viewModel { ProbeViewModel() }
+                probes[tab] = probe
+                Text("$tab details")
+            }
+        })
 
     private class ProbeViewModel : ViewModel() {
         var cleared = false
-        override fun onCleared() { cleared = true }
+        override fun onCleared() {
+            cleared = true
+        }
     }
 }

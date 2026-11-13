@@ -1,8 +1,8 @@
 # Kotlin lint cleanup plan
 
-Owner chose **finish lint setup; plan cleanup next** on 12 November 2026. Application cleanup has not started. Setup uses strict source-only Detekt; its reported failure is retained, with no suppression baseline. Do not claim the codebase is warning-free.
+Owner authorized cleanup on 12 November 2026, including the existing working changes. Cleanup is in progress. Setup uses strict source-only Detekt; its reported failure is retained, with no suppression baseline. Do not claim the codebase is warning-free.
 
-## Current evidence
+## Starting evidence
 
 `JAVA_HOME=$(/usr/libexec/java_home -v 17) ./scripts/lint-kotlin.sh` resolves/runs the tool and fails with **656 findings across 129 files**:
 
@@ -26,3 +26,9 @@ The new lint build scripts have no findings. Full reports are ignored under `too
 5. **Enforce clean results in CI.** After the approved profile is clean, add the source-only lint job/step to CI and confirm its reports/failure behavior. No broad suppressions, ignore-failure flags, generated baseline, or repository-wide auto-format to manufacture green.
 
 Completion requires zero findings for the agreed Detekt profile, resolved relevant IDE/type-aware warnings with their checks actually run, preserved behavior and user edits, and evidence scoped to the actual targets. A Detekt pass alone does not prove SOLID or visual quality. No app release, dependency migration or backend work is part of this cleanup.
+
+## Progress
+
+- Formatting: 106 lint-flagged files processed by the isolated Android Studio formatter. A Kotlin lexer comparison verified unchanged code/string tokens in those files. The user's pending film title styling is included separately as authorized.
+- Profile review: modern KMP test folders, annotated test names and required interface overrides follow the existing/default test and contract conventions. Guard clauses and readability parentheses remain permitted. Complexity limits are unchanged.
+- Latest scan after this slice: **208 findings**, with behavior-sensitive refactoring and production constants still to address. No application build/tests or device verification for the formatting-only slice.

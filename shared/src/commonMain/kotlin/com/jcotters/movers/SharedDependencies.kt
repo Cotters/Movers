@@ -19,6 +19,16 @@ private val sharedDependencies = module {
 
 internal fun initializeMovers(platformDependencies: Module) {
     startKoin {
-        modules(platformDependencies, movieDependencies, catalogueDependencies, detailsDependencies, profileDependencies, watchlistsDependencies, searchDependencies, styleGuideDependencies, sharedDependencies)
+        modules(
+            platformDependencies,
+            movieDependencies,
+            catalogueDependencies,
+            detailsDependencies,
+            profileDependencies,
+            watchlistsDependencies,
+            searchDependencies,
+            styleGuideDependencies,
+            sharedDependencies
+        )
     }
 }
