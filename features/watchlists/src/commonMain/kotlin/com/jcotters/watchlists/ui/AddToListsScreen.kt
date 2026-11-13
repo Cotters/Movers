@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jcotters.designsystem.MoversCheckboxRow
 import com.jcotters.designsystem.MoversTextButton
 import com.jcotters.navigation.Navigator
+import com.jcotters.watchlists.AddToListsState
 import com.jcotters.watchlists.AddToListsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -55,7 +57,9 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
             MoversTextButton(onClick = navigator::goBack, enabled = !state.busy) { Text("Close") }
         }
         Text(state.title, style = MaterialTheme.typography.titleMedium)
-        if (!state.loading && state.error == null && state.lists.isEmpty()) Text("Create your first list to save this movie.")
+        if (!state.loading && state.error == null && state.lists.isEmpty()) {
+            Text("Create your first list to save this movie.")
+        }
         state.error?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
             MoversTextButton(onClick = {
@@ -63,38 +67,67 @@ internal fun AddToListsRoute(movieId: Int, initialListId: String?, navigator: Na
                 if (state.readFailed) viewModel.load(movieId)
             }) { Text(if (state.readFailed) "Retry" else "Dismiss") }
         }
-        LazyColumn(Modifier.weight(1f, fill = false).fillMaxWidth().heightIn(max = 340.dp), state = scroll) {
-            items(state.lists, key = { it.id }) { list ->
-                val existing = list.id in state.existing
-                val enabled = !state.loading && !state.readFailed && !state.creating && list.id !in state.saving
-                val count = "${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}"
-                val shared = list.shared?.let { " · ${it.members.size} members" }.orEmpty()
-                MoversCheckboxRow(
-                    label = list.name,
-                    checked = existing,
-                    onCheckedChange = { viewModel.setMembership(list.id, it) },
-                    enabled = enabled,
-                    description = if (list.id in state.saving) "Saving…" else count + shared,
-                )
-            }
-        }
+        MembershipChoices(
+            state, scroll,
+            modifier = Modifier.weight(1f, fill = false).fillMaxWidth().heightIn(max = 340.dp),
+            onMembershipChange = viewModel::setMembership,
+        )
         if (creating) {
-            ListNameFields(name, { name = it }, state.lists, error = state.error, enabled = !state.busy)
-            Row {
-                MoversTextButton(
-                    onClick = { viewModel.create(name) },
-                    enabled = !state.busy && name.isNotBlank()
-                ) { Text("Create") }
-                MoversTextButton(
-                    onClick = { creating = false; viewModel.clearError() },
-                    enabled = !state.busy
-                ) { Text("Cancel") }
-            }
+            CreateListForm(
+                state, name, onNameChange = { name = it },
+                onCreate = { viewModel.create(name) },
+                onCancel = { creating = false; viewModel.clearError() },
+            )
         } else {
             MoversTextButton(
                 onClick = { viewModel.clearError(); creating = true },
                 enabled = !state.busy && !state.loading && !state.readFailed
             ) { Text("Create new list") }
         }
+    }
+}
+
+@Composable
+private fun MembershipChoices(
+    state: AddToListsState,
+    scroll: LazyListState,
+    modifier: Modifier,
+    onMembershipChange: (String, Boolean) -> Unit,
+) {
+    LazyColumn(modifier, state = scroll) {
+        items(state.lists, key = { it.id }) { list ->
+            val existing = list.id in state.existing
+            val enabled = !state.membershipUnavailable && list.id !in state.saving
+            val count = "${list.movieCount} ${if (list.movieCount == 1) "movie" else "movies"}"
+            val shared = list.shared?.let { " · ${it.members.size} members" }.orEmpty()
+            MoversCheckboxRow(
+                label = list.name,
+                checked = existing,
+                onCheckedChange = { onMembershipChange(list.id, it) },
+                enabled = enabled,
+                description = if (list.id in state.saving) "Saving…" else count + shared,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CreateListForm(
+    state: AddToListsState,
+    name: String,
+    onNameChange: (String) -> Unit,
+    onCreate: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    ListNameFields(name, onNameChange, state.lists, error = state.error, enabled = !state.busy)
+    Row {
+        MoversTextButton(
+            onClick = onCreate,
+            enabled = !state.busy && name.isNotBlank()
+        ) { Text("Create") }
+        MoversTextButton(
+            onClick = onCancel,
+            enabled = !state.busy
+        ) { Text("Cancel") }
     }
 }

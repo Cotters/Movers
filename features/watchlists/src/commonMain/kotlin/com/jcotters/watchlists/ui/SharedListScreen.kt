@@ -39,6 +39,7 @@ import com.jcotters.navigation.Navigator
 import com.jcotters.presentation.ParticipantAvatar
 import com.jcotters.presentation.formatActivityDay
 import com.jcotters.presentation.formatActivityTime
+import com.jcotters.watchlists.SharingState
 import com.jcotters.watchlists.SharingViewModel
 import com.jcotters.watchlists.navigation.SharedSection
 import org.koin.compose.koinInject
@@ -68,20 +69,12 @@ internal fun SharedListRoute(listId: String, section: SharedSection, navigator: 
         )
     }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            state.error?.let {
-                Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
-                MoversTextButton(onClick = {
-                    viewModel.load(
-                        listId, includeActivity = section == SharedSection.Activity,
-                        sharingRequested = section == SharedSection.Sharing
-                    )
-                }, enabled = !state.busy) { Text("Retry") }
-            }
-            state.message?.let { Text(it, Modifier.padding(16.dp)) }
-            if (!state.busy && state.error == null && state.list == null) {
-                Text("This list no longer exists.", Modifier.padding(16.dp))
-            }
+            SharedListFeedback(state, onRetry = {
+                viewModel.load(
+                    listId, includeActivity = section == SharedSection.Activity,
+                    sharingRequested = section == SharedSection.Sharing,
+                )
+            })
             when (section) {
                 SharedSection.Members -> state.list?.let { SharedListMembers(it) }
                 SharedSection.Activity -> SharedListActivity(
@@ -192,5 +185,18 @@ private fun SharingActions(list: Watchlist, busy: Boolean, onShare: () -> Unit, 
             onClick = onRevoke, enabled = !busy,
             destructive = true
         ) { Text("Revoke links") }
+    }
+}
+
+@Composable
+private fun SharedListFeedback(state: SharingState, onRetry: () -> Unit) {
+    if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+    state.error?.let {
+        Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
+        MoversTextButton(onClick = onRetry, enabled = !state.busy) { Text("Retry") }
+    }
+    state.message?.let { Text(it, Modifier.padding(16.dp)) }
+    if (!state.busy && state.error == null && state.list == null) {
+        Text("This list no longer exists.", Modifier.padding(16.dp))
     }
 }

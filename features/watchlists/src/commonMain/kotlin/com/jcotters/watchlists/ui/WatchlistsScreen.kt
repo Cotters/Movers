@@ -90,34 +90,10 @@ internal fun WatchlistsRoute(navigator: Navigator) {
                 Text(message, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
                 MoversTextButton(onClick = viewModel::retryPreferences) { Text("Retry pins") }
             }
-            LazyColumn(Modifier.weight(1f)) {
-                if (state.pinnedLists.isNotEmpty()) {
-                    item(key = "pinned-heading") {
-                        Text(
-                            "Pinned · ${state.pinnedLists.size}/$MAXIMUM_PINNED_WATCHLISTS",
-                            Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    watchlistRows(state.pinnedLists, state, viewModel::setPinned) {
-                        navigator.navigate(
-                            WatchlistDetailKey(it)
-                        )
-                    }
-                    if (state.otherLists.isNotEmpty()) item(key = "other-heading") {
-                        Text(
-                            "Other lists", Modifier.padding(16.dp), style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                watchlistRows(
-                    state.otherLists,
-                    state,
-                    viewModel::setPinned
-                ) { navigator.navigate(WatchlistDetailKey(it)) }
-            }
+            WatchlistGroups(
+                state, viewModel::setPinned, onOpen = { navigator.navigate(WatchlistDetailKey(it)) },
+                modifier = Modifier.weight(1f),
+            )
         }
     }
     if (creating) ListNameDialog(
@@ -179,5 +155,34 @@ private fun LazyListScope.watchlistRows(
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MoversDesign.tokens.colors.border)
             }
         }
+    }
+}
+
+@Composable
+private fun WatchlistGroups(
+    state: WatchlistsState,
+    onPin: (String, Boolean) -> Unit,
+    onOpen: (String) -> Unit,
+    modifier: Modifier,
+) {
+    LazyColumn(modifier) {
+        if (state.pinnedLists.isNotEmpty()) {
+            item(key = "pinned-heading") {
+                Text(
+                    "Pinned · ${state.pinnedLists.size}/$MAXIMUM_PINNED_WATCHLISTS",
+                    Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            watchlistRows(state.pinnedLists, state, onPin, onOpen)
+            if (state.otherLists.isNotEmpty()) item(key = "other-heading") {
+                Text(
+                    "Other lists", Modifier.padding(16.dp), style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        watchlistRows(state.otherLists, state, onPin, onOpen)
     }
 }

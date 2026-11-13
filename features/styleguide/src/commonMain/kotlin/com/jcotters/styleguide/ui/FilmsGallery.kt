@@ -74,16 +74,7 @@ internal fun FilmsGallery() {
             MoversAvatarButton("Avery", "Added by Avery", { contributorVisible = true })
         })
     MoversRating(8.4, "1,286")
-    GalleryHeading("Shared list", "Names and initials, with room for the films")
-    MoversWatchlistSummary("Friday films", 12, listOf("Avery", "Morgan", "Casey"))
-    GalleryHeading("Activity", "Added/imported green; removed red")
-    MoversActivity("Avery", demoTitles[0], "added", "Today · 19:42", removed = false)
-    MoversActivity("Morgan", demoTitles[1], "removed", "Yesterday · 18:10", removed = true)
-    GalleryHeading("Empty list")
-    MoversPanel(Modifier.fillMaxWidth()) {
-        MoversText("No films yet.", style = MoversDesign.tokens.type.title)
-        MoversButton("Find a film", { openPicker(demoTitles[0]) }, variant = ButtonVariant.Secondary)
-    }
+    SharedListExamples(onFindFilm = { openPicker(demoTitles[0]) })
     MoversSheet("Add to list", addingVisible, onDismiss = { addingVisible = false }) {
         MoversText(addingTitle, style = MoversDesign.tokens.type.label)
         MoversCheckboxRow("Friday films", addingTitle in fridayFilms, { checked ->
@@ -128,5 +119,19 @@ private fun DemoPoster(index: Int, modifier: Modifier) {
             color = Color.White,
             maxLines = 2
         )
+    }
+}
+
+@Composable
+private fun SharedListExamples(onFindFilm: () -> Unit) {
+    GalleryHeading("Shared list", "Names and initials, with room for the films")
+    MoversWatchlistSummary("Friday films", 12, listOf("Avery", "Morgan", "Casey"))
+    GalleryHeading("Activity", "Added/imported green; removed red")
+    MoversActivity("Avery", demoTitles[0], "added", "Today · 19:42", removed = false)
+    MoversActivity("Morgan", demoTitles[1], "removed", "Yesterday · 18:10", removed = true)
+    GalleryHeading("Empty list")
+    MoversPanel(Modifier.fillMaxWidth()) {
+        MoversText("No films yet.", style = MoversDesign.tokens.type.title)
+        MoversButton("Find a film", onFindFilm, variant = ButtonVariant.Secondary)
     }
 }

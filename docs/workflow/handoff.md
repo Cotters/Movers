@@ -4,11 +4,11 @@ Updated 13 November 2026. Cleanup starts from `364b988`; owner authorized cleanu
 
 ## Active work: Kotlin hygiene cleanup
 
-[Cleanup plan](kotlin-lint-cleanup.md) is in progress: **656 initial findings → 65 remaining**. Strict source lint still fails; no baseline, broad suppression, ignore-failure setting or relaxed application complexity limits. Intermediate cleanup commits are explicitly not lint-clean feature commits.
+[Cleanup plan](kotlin-lint-cleanup.md) is in progress: **656 initial findings → 55 remaining**. Strict source lint still fails; no baseline, broad suppression, ignore-failure setting or relaxed application complexity limits. Intermediate cleanup commits are explicitly not lint-clean feature commits.
 
 Completed slices cover actual Studio formatting, declaration/syntax cleanup, document codecs, named limits, shared-control responsibilities, membership waits and existing migration fixture organization. The owner's title typography was included as authorized in `74dd5fb`. Later commits and evidence are in the cleanup plan/Git.
 
-Current slice centralizes recoverable-result policy in the existing shared contract module. `recoverableResult` rethrows cancellation and non-Exception fatal errors; repositories keep their domain error mapping/messages, and ViewModels retain cleanup in `finally`. Returned cancellation failures now also propagate through detail refresh/removal boundaries. Secure-session and RPC wrappers retain causes where their exception constructors support them. No new dependencies, schema/backend changes or suppressions.
+Latest slice gives invitation joining its own Nav-entry-owned `JoinWatchlistViewModel` and Koin binding, leaving existing-list sharing/activity in `SharingViewModel`. Add-to-list choices/form, pinned list groups, shared feedback and gallery examples are focused render sections with existing callbacks/layout. No visual redesign, new tests, dependencies or backend/schema changes.
 
 The Studio formatter works alongside the user's IDE using isolated ignored directories in `build/quality/studio-formatter`; serialize its invocations. Explicit `STUDIO_PROPERTIES` overrides remain supported. Canonical code gate is `scripts/check-code.sh 364b988`; inspect exact staged content and report remaining lint failure. Type-aware IDE inspections are unavailable; source-only lint cannot prove unused imports or all compiler warnings absent.
 
@@ -20,7 +20,8 @@ The Studio formatter works alongside the user's IDE using isolated ignored direc
 
 ## Latest verification and next action
 
-- Recoverable-error slice: 16 changed/new Kotlin files pass Studio formatting; mechanical checks pass; strict source lint reports 65 remaining, including no named broad-catch findings. Complete existing Android host suite (`testAndroidHostTest testDebugUnitTest`) passes. No new cases or devices.
+- Joining/small-screen slice: nine Kotlin files pass Studio formatting; mechanical checks pass; strict source lint reports 55 remaining. Affected watchlist/styleguide/shared host tasks pass. No new cases or devices.
+- Recoverable-error slice (`3376203`) passed the complete existing Android host suite. `recoverableResult` rethrows cancellation/fatal errors; caller messages/mapping and `finally` cleanup stay local. Returned cancellation failures also propagate at detail/removal boundaries.
 - DAO/cache slice previously passed generated Room compilation and affected host suites; exported schema is unchanged. Compiler still emits existing library/beta/deprecation warnings; no claim of zero type-aware warnings.
 - Document parser has no dedicated existing test suite; compilation/source review are the evidence, not runtime edge-case coverage. Expansion remains deferred by owner policy.
 - Next: simplify error boundaries and remaining oversized/complex UI/import functions, finish genuine findings, verify cumulative Android/iOS compilation, then enforce the clean profile in CI. Existing missing `iosApp/MoversApp.swift` remains an app-link prerequisite; preserve its earlier deletion. Physical Android/iPhone acceptance stays user-owned; never use emulators/simulators.

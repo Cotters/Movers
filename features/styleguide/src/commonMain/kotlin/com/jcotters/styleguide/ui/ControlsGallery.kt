@@ -52,25 +52,7 @@ internal fun ControlsGallery() {
         MoversIconButton(MoversSymbol.Search, "Search demo films", { action = "Demo search selected." })
         MoversIconButton(MoversSymbol.More, "Unavailable options", {}, enabled = false)
     }
-    GalleryHeading("Fields", "Labelled forms and inline search · try focus, paste and keyboard actions")
-    MoversTextField(rememberTextFieldState(), "List name", placeholder = "Friday films")
-    var search by rememberSaveable { mutableStateOf("") }
-    MoversSearchField(
-        search, { search = it }, "Search films",
-        onSearch = { action = "Demo search submitted." })
-    MoversTextField(
-        rememberTextFieldState(""),
-        "Name with an error",
-        placeholder = "Your list",
-        error = "Enter a list name."
-    )
-    MoversTextField(rememberTextFieldState("Saved locally"), "Disabled field", enabled = false)
-    MoversTextField(
-        rememberTextFieldState(),
-        "Paste titles or CSV",
-        placeholder = "A film title, 2026",
-        multiline = true
-    )
+    FieldsGallery(onSearch = { action = "Demo search submitted." })
     GalleryHeading("Selections", "Immediate feedback · no confirmation step")
     var selected by rememberSaveable { mutableStateOf("All films") }
     FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -88,4 +70,28 @@ internal fun ControlsGallery() {
             enabled = false
         )
     }
+}
+
+@Composable
+private fun FieldsGallery(onSearch: () -> Unit) {
+    GalleryHeading("Fields", "Labelled forms and inline search · try focus, paste and keyboard actions")
+    MoversTextField(rememberTextFieldState(), "List name", placeholder = "Friday films")
+    var search by rememberSaveable { mutableStateOf("") }
+    MoversSearchField(
+        search, { search = it }, "Search films",
+        onSearch = onSearch
+    )
+    MoversTextField(
+        rememberTextFieldState(""),
+        "Name with an error",
+        placeholder = "Your list",
+        error = "Enter a list name."
+    )
+    MoversTextField(rememberTextFieldState("Saved locally"), "Disabled field", enabled = false)
+    MoversTextField(
+        rememberTextFieldState(),
+        "Paste titles or CSV",
+        placeholder = "A film title, 2026",
+        multiline = true
+    )
 }

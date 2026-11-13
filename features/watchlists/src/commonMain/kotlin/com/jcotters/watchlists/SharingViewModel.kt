@@ -20,10 +20,7 @@ import kotlinx.coroutines.launch
 internal data class SharingState(
     val list: Watchlist? = null,
     val events: List<FilmActivity> = emptyList(),
-    val invitation: String = "",
-    val openedFromLink: Boolean = false,
     val inviteUrl: String? = null,
-    val joinedId: String? = null,
     val busy: Boolean = false,
     val moreActivity: Boolean = true,
     val error: String? = null,
@@ -101,29 +98,6 @@ internal class SharingViewModel(
     fun revoke(id: String) = action {
         sharing.revokeInvites(id).getOrThrow()
         state.update { it.copy(message = "Links revoked.") }
-    }
-
-    fun changeInvitation(value: String) {
-        if (!state.value.busy) state.update { it.copy(invitation = value, error = null) }
-    }
-
-    fun openInvitation(value: String) {
-        if (state.value.busy) return
-        state.update { it.copy(invitation = value, openedFromLink = true) }
-        join()
-    }
-
-    fun editInvitation() {
-        if (!state.value.busy) state.update { it.copy(openedFromLink = false, error = null) }
-    }
-
-    fun join() = action {
-        val id = sharing.join(state.value.invitation).getOrThrow()
-        state.update { it.copy(joinedId = id, invitation = "") }
-    }
-
-    fun consumeJoined() {
-        state.update { it.copy(joinedId = null) }
     }
 
     private fun action(block: suspend () -> Unit) {

@@ -46,3 +46,5 @@ Completion requires zero findings for the agreed Detekt profile, resolved releva
 - DAO/cache slice: segregate memberships, pending receipts and activity DAOs; isolate shared cache persistence. Schema export, queries and transaction boundaries are unchanged. Twelve Kotlin files pass Studio formatting; affected database/repository/shared host suites pass. Strict lint reports **98 remaining**.
 
 - Recoverable-error slice: one shared policy rethrows cancellation/fatal errors while callers own domain mapping and UI recovery. Cleanup remains in `finally`; supported wrappers retain original causes. Sixteen files pass Studio formatting, complete existing Android host suite passes, strict lint reports **65 remaining** with no named broad-catch findings. No rule suppression or dependency change.
+
+- Joining/screens slice: separate entry-owned invitation ViewModel from existing-list sharing, and extract focused choice/form/group/feedback/gallery sections. Nine files pass Studio formatting; affected host tasks pass. Strict lint reports **55 remaining**. No intended layout or interaction changes.
