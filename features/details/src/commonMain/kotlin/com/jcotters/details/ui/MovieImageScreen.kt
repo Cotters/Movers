@@ -68,7 +68,9 @@ internal fun MovieImageScreen(
         Box(
             Modifier.align(Alignment.TopStart)
                 .then(closeOverlay)
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                )
                 .padding(12.dp),
         ) {
             MoversIconButton(

@@ -52,53 +52,9 @@ internal fun MoversBottomBar(selectedTab: TopLevelDestination, onSelectTab: (Top
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TopLevelDestination.entries.forEach { tab ->
-                val selected = selectedTab == tab
-                val label = stringResource(tab.labelRes)
-                val interactions = remember(tab) { MutableInteractionSource() }
-                val pressed by interactions.collectIsPressedAsState()
-                val focused by interactions.collectIsFocusedAsState()
-                val tileColor by animateColorAsState(
-                    targetValue = when {
-                        selected -> MaterialTheme.colorScheme.primary
-                        pressed || focused -> MaterialTheme.colorScheme.surfaceContainerHighest
-                        else -> Color.Transparent
-                    },
-                    animationSpec = tween(180),
-                    label = "Tab tile",
+                MoversNavigationTab(
+                    tab, selected = selectedTab == tab, onClick = { onSelectTab(tab) }, modifier = Modifier.weight(1f),
                 )
-                val iconColor by animateColorAsState(
-                    targetValue = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    animationSpec = tween(180),
-                    label = "Tab icon",
-                )
-                val scale by animateFloatAsState(if (pressed) 0.92f else 1f, tween(120), label = "Tab press")
-                Box(
-                    modifier = Modifier.weight(1f).height(56.dp)
-                        .selectable(
-                            selected = selected,
-                            role = Role.Tab,
-                            interactionSource = interactions,
-                            indication = null,
-                            onClick = { onSelectTab(tab) },
-                        )
-                        .semantics { contentDescription = label },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(
-                        modifier = Modifier.size(44.dp)
-                            .graphicsLayer { scaleX = scale; scaleY = scale }
-                            .clip(RoundedCornerShape(com.jcotters.designsystem.MoversDesign.tokens.cornerRadius))
-                            .background(tileColor),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            painterResource(tab.iconRes),
-                            contentDescription = null,
-                            tint = iconColor,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
             }
         }
     }
@@ -122,4 +78,55 @@ private val TopLevelDestination.iconRes: DrawableResource
 @Composable
 private fun BottomBarPreview() {
     com.jcotters.designsystem.MoversDesignTheme { MoversBottomBar(TopLevelDestination.Watchlists, onSelectTab = {}) }
+}
+
+@Composable
+private fun MoversNavigationTab(tab: TopLevelDestination, selected: Boolean, onClick: () -> Unit, modifier: Modifier) {
+    val label = stringResource(tab.labelRes)
+    val interactions = remember(tab) { MutableInteractionSource() }
+    val pressed by interactions.collectIsPressedAsState()
+    val focused by interactions.collectIsFocusedAsState()
+    val tileColor by animateColorAsState(
+        targetValue = when {
+            selected -> MaterialTheme.colorScheme.primary
+            pressed || focused -> MaterialTheme.colorScheme.surfaceContainerHighest
+            else -> Color.Transparent
+        },
+        animationSpec = tween(180),
+        label = "Tab tile",
+    )
+    val iconColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimary
+        else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(180),
+        label = "Tab icon",
+    )
+    val scale by animateFloatAsState(if (pressed) 0.92f else 1f, tween(120), label = "Tab press")
+    Box(
+        modifier = modifier.height(56.dp)
+            .selectable(
+                selected = selected,
+                role = Role.Tab,
+                interactionSource = interactions,
+                indication = null,
+                onClick = onClick,
+            )
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier.size(44.dp)
+                .graphicsLayer { scaleX = scale; scaleY = scale }
+                .clip(RoundedCornerShape(com.jcotters.designsystem.MoversDesign.tokens.cornerRadius))
+                .background(tileColor),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painterResource(tab.iconRes),
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
 }

@@ -77,13 +77,7 @@ internal fun MoversNavigationShell(
     snackbarEffects: @Composable () -> Unit = {},
 ) {
     val navigator = remember(state) { AppNavigator(state) }
-    val invitation by com.jcotters.contract.watchlists.domain.InvitationInbox.invitation.collectAsStateWithLifecycle()
-    androidx.compose.runtime.LaunchedEffect(invitation) {
-        if (invitation != null) {
-            if (state.selectedTab != TopLevelDestination.Watchlists) state.selectTab(TopLevelDestination.Watchlists)
-            navigator.navigate(com.jcotters.watchlists.navigation.JoinWatchlistKey)
-        }
-    }
+    IncomingInvitations(state, navigator)
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
     val bottomSheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     val forwardTransition = remember { defaultTransitionSpec<NavKey>() }
@@ -145,3 +139,14 @@ private fun AnimatedContentTransitionScope<Scene<NavKey>>.changesTab(): Boolean 
 }
 
 private fun tabFade(): ContentTransform = fadeIn(tween(TAB_FADE_MILLIS)) togetherWith fadeOut(tween(TAB_FADE_MILLIS))
+
+@Composable
+private fun IncomingInvitations(state: NavigationState, navigator: com.jcotters.navigation.Navigator) {
+    val invitation by com.jcotters.contract.watchlists.domain.InvitationInbox.invitation.collectAsStateWithLifecycle()
+    androidx.compose.runtime.LaunchedEffect(invitation) {
+        if (invitation != null) {
+            if (state.selectedTab != TopLevelDestination.Watchlists) state.selectTab(TopLevelDestination.Watchlists)
+            navigator.navigate(com.jcotters.watchlists.navigation.JoinWatchlistKey)
+        }
+    }
+}

@@ -56,25 +56,9 @@ object MovieDetailsNavigationModule {
             )
         }
         entry<MovieImageKey>(
-            metadata = NavDisplay.transitionSpec {
-                fadeIn(tween(IMAGE_FADE_MILLIS)) togetherWith fadeOut(
-                    tween(
-                        IMAGE_FADE_MILLIS
-                    )
-                )
-            } +
-                NavDisplay.popTransitionSpec {
-                    fadeIn(tween(IMAGE_FADE_MILLIS)) togetherWith fadeOut(
-                        tween(
-                            IMAGE_FADE_MILLIS
-                        )
-                    )
-                } +
-                NavDisplay.predictivePopTransitionSpec { _ ->
-                    fadeIn(tween(IMAGE_FADE_MILLIS)) togetherWith fadeOut(
-                        tween(IMAGE_FADE_MILLIS)
-                    )
-                },
+            metadata = NavDisplay.transitionSpec { imageFade() } +
+                NavDisplay.popTransitionSpec { imageFade() } +
+                NavDisplay.predictivePopTransitionSpec { _ -> imageFade() },
         ) { key ->
             val viewModel: MovieImageViewModel = koinViewModel { parametersOf(key.movieId, key.imageType) }
             val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -92,3 +76,5 @@ object MovieDetailsNavigationModule {
         }
     }
 }
+
+private fun imageFade() = fadeIn(tween(IMAGE_FADE_MILLIS)) togetherWith fadeOut(tween(IMAGE_FADE_MILLIS))

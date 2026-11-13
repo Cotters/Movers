@@ -42,7 +42,9 @@ internal fun rememberWatchlistHeaderScrollState(
                 rowHeight.coerceIn(minimumReveal.coerceAtMost(limit), limit)
             },
             atTop = { if (showGrid) !gridState.canScrollBackward else !listState.canScrollBackward },
-            hasItems = { if (showGrid) gridState.layoutInfo.totalItemsCount > 0 else listState.layoutInfo.totalItemsCount > 0 },
+            hasItems = {
+                if (showGrid) gridState.layoutInfo.totalItemsCount > 0 else listState.layoutInfo.totalItemsCount > 0
+            },
         )
     }
 }

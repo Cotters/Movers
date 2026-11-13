@@ -58,7 +58,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -120,37 +119,7 @@ fun MovieDetailScreen(
                     modifier = Modifier.fillMaxWidth().animateContentSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    val genres = movie?.genres.orEmpty()
-                    if (genres.isNotEmpty() || loadingMissingDetails) {
-                        AnimatedContent(
-                            targetState = genres,
-                            transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) },
-                            label = "Loaded genres",
-                        ) { loadedGenres ->
-                            if (loadedGenres.isNotEmpty()) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    loadedGenres.forEach { genre ->
-                                        Surface(
-                                            shape = RoundedCornerShape(16.dp),
-                                            color = MaterialTheme.colorScheme.secondaryContainer
-                                        ) {
-                                            Text(
-                                                genre.name,
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                                style = MaterialTheme.typography.labelLarge,
-                                                maxLines = 1,
-                                            )
-                                        }
-                                    }
-                                }
-                            } else {
-                                DetailPlaceholder("genres", placeholderAlpha)
-                            }
-                        }
-                    }
+                    MovieGenres(movie?.genres.orEmpty(), loadingMissingDetails, placeholderAlpha)
                     DetailValue(
                         "synopsis", movie?.synopsis, loadingMissingDetails, placeholderAlpha,
                         style = MaterialTheme.typography.bodyMedium
@@ -166,25 +135,7 @@ fun MovieDetailScreen(
                         contentDescription = "Refreshing movie details"
                     })
                 }
-                val error = viewState.detailsError ?: viewState.errorMessage.takeIf { it.isNotBlank() }
-                if (error != null) {
-                    Column(modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
-                        Text(
-                            error,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        MoversTextButton(
-                            onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) },
-                            enabled = !loading
-                        ) {
-                            Text("Retry")
-                        }
-                    }
-                } else if (movie == null && !loading) {
-                    Text("Movie details are unavailable.")
-                    MoversTextButton(onClick = { onViewEvent(MovieDetailViewEvent.RetryDetails) }) { Text("Retry") }
-                }
+                MovieDetailFeedback(viewState, loading, onRetry = { onViewEvent(MovieDetailViewEvent.RetryDetails) })
             }
         }
     }
@@ -236,7 +187,9 @@ private fun MovieHeader(
         )
         Row(
             modifier = Modifier.fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                )
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -312,34 +265,7 @@ private fun MovieSummary(
                 ),
             )
             DetailValue("tagline", movie?.tagline, loading, placeholderAlpha)
-            val releaseDate = movie?.releaseDate?.takeIf(String::isNotBlank)
-            val runtime = movie?.runtimeMinutes?.let(::formatRuntime)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (releaseDate != null || runtime != null || loading) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (releaseDate != null) {
-                            Text(releaseDate, style = MaterialTheme.typography.bodyMedium)
-                            if (runtime != null || loading) {
-                                Text("•", style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                        DetailValue("runtime", runtime, loading, placeholderAlpha)
-                    }
-                }
-                val score = movie?.voteAverage?.takeIf { it.isFinite() }?.coerceIn(0.0, 10.0)
-                val votes = movie?.voteCount
-                if (score != null && votes != null && votes > 0) {
-                    MovieRating(score, votes)
-                } else {
-                    DetailValue(
-                        "rating", formatRating(movie), loading, placeholderAlpha,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
+            MovieReleaseAndRating(movie, loading, placeholderAlpha)
         }
     }
 }
@@ -398,72 +324,91 @@ internal fun formatRating(movie: Movie?): String? = when {
     else -> null
 }
 
-private val previewMovie = Movie(
-    id = 1, title = "Preview: The Movie", synopsis = "A preview to die for...", releaseDate = "2026-10-07",
-    tagline = "Every frame tells a story.", runtimeMinutes = 125,
-    genres = listOf(
-        MovieGenre(18, "Drama"), MovieGenre(12, "Adventure"),
-        MovieGenre(878, "Science Fiction"), MovieGenre(9648, "Mystery"),
-    ),
-    voteAverage = 7.8, voteCount = 1234, status = "Released", originalLanguage = "en", detailsFetchedAt = 1,
-)
-
-@Preview(name = "Completed", widthDp = 360, heightDp = 800)
 @Composable
-private fun MovieDetailScreenPreview() {
-    DetailPreview(MovieDetailViewState(isLoading = false, movie = previewMovie))
+private fun MovieGenres(genres: List<MovieGenre>, loading: Boolean, placeholderAlpha: State<Float>) {
+    if (genres.isNotEmpty() || loading) {
+        AnimatedContent(
+            targetState = genres,
+            transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) },
+            label = "Loaded genres",
+        ) { loadedGenres ->
+            if (loadedGenres.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    loadedGenres.forEach { genre ->
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer
+                        ) {
+                            Text(
+                                genre.name,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
+            } else {
+                DetailPlaceholder("genres", placeholderAlpha)
+            }
+        }
+    }
 }
 
-@Preview(name = "Initial loading", widthDp = 360, heightDp = 800)
 @Composable
-private fun InitialLoadingPreview() {
-    DetailPreview(MovieDetailViewState(isRefreshingDetails = true))
-}
-
-@Preview(name = "Partial content", widthDp = 360, heightDp = 800)
-@Composable
-private fun PartialContentPreview() {
-    DetailPreview(
-        MovieDetailViewState(
-            isLoading = false, isRefreshingDetails = true,
-            movie = Movie(1, "Preview: The Movie", "A preview to die for...", "2026-10-07"),
-        )
-    )
-}
-
-@Preview(name = "Fetch failed", widthDp = 360, heightDp = 800)
-@Composable
-private fun FetchFailedPreview() {
-    DetailPreview(
-        MovieDetailViewState(
-            isLoading = false, movie = previewMovie,
-            detailsError = "Unable to load additional movie details.",
-        )
-    )
-}
-
-@Preview(name = "Long title · large text", widthDp = 320, heightDp = 800, fontScale = 1.5f)
-@Composable
-private fun LongTitlePreview() {
-    DetailPreview(
-        MovieDetailViewState(
-            isLoading = false, movie = previewMovie.copy(
-                title = "A Very Long Movie Title That Needs Room to Wrap",
-                tagline = "A longer subtitle that should remain readable beside the film poster.",
+private fun MovieReleaseAndRating(movie: Movie?, loading: Boolean, placeholderAlpha: State<Float>) {
+    val releaseDate = movie?.releaseDate?.takeIf(String::isNotBlank)
+    val runtime = movie?.runtimeMinutes?.let(::formatRuntime)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (releaseDate != null || runtime != null || loading) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (releaseDate != null) {
+                    Text(releaseDate, style = MaterialTheme.typography.bodyMedium)
+                    if (runtime != null || loading) {
+                        Text("•", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                DetailValue("runtime", runtime, loading, placeholderAlpha)
+            }
+        }
+        val score = movie?.voteAverage?.takeIf { it.isFinite() }?.coerceIn(0.0, 10.0)
+        val votes = movie?.voteCount
+        if (score != null && votes != null && votes > 0) {
+            MovieRating(score, votes)
+        } else {
+            DetailValue(
+                "rating", formatRating(movie), loading, placeholderAlpha,
+                style = MaterialTheme.typography.bodySmall,
             )
-        )
-    )
-}
-
-@Preview(name = "Wide", widthDp = 840, heightDp = 640)
-@Composable
-private fun WidePreview() {
-    DetailPreview(MovieDetailViewState(isLoading = false, movie = previewMovie))
+        }
+    }
 }
 
 @Composable
-private fun DetailPreview(state: MovieDetailViewState) {
-    com.jcotters.designsystem.MoversDesignTheme {
-        MovieDetailScreen(onViewEvent = {}, viewState = state, onBack = {}, onAddToList = {})
+private fun MovieDetailFeedback(viewState: MovieDetailViewState, loading: Boolean, onRetry: () -> Unit) {
+    val error = viewState.detailsError ?: viewState.errorMessage.takeIf { it.isNotBlank() }
+    if (error != null) {
+        Column(modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
+            Text(
+                error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            MoversTextButton(
+                onClick = onRetry,
+                enabled = !loading
+            ) {
+                Text("Retry")
+            }
+        }
+    } else if (viewState.movie == null && !loading) {
+        Text("Movie details are unavailable.")
+        MoversTextButton(onClick = onRetry) { Text("Retry") }
     }
 }

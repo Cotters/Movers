@@ -27,7 +27,11 @@ fun WatchlistUndoMessages() {
                 withDismissAction = true,
                 duration = SnackbarDuration.Long,
             )
-            if (result == SnackbarResult.ActionPerformed) coordinator.undo(pending.id) else coordinator.commit(pending.id)
+            if (result == SnackbarResult.ActionPerformed) {
+                coordinator.undo(pending.id)
+            } else {
+                coordinator.commit(pending.id)
+            }
         }
     }
     LaunchedEffect(coordinator, snackbar) {

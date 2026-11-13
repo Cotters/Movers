@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.State
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -36,14 +37,7 @@ internal fun MovieTrailerSection(movieId: Int) {
     var expanded by rememberSaveable(movieId) { mutableStateOf(false) }
     var linkError by remember(movieId) { mutableStateOf<String?>(null) }
     val uriHandler = LocalUriHandler.current
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    var active by remember(lifecycle) { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
-    DisposableEffect(lifecycle) {
-        val observer =
-            LifecycleEventObserver { _, _ -> active = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
-        lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer) }
-    }
+    val active by rememberTrailerActive()
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!expanded) {
@@ -98,3 +92,16 @@ internal fun MovieTrailerSection(movieId: Int) {
 
 @Composable
 internal expect fun TrailerPlayer(embedUrl: String, modifier: Modifier)
+
+@Composable
+private fun rememberTrailerActive(): State<Boolean> {
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val active = remember(lifecycle) { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
+    DisposableEffect(lifecycle) {
+        val observer =
+            LifecycleEventObserver { _, _ -> active.value = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    return active
+}
