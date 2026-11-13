@@ -53,7 +53,7 @@ internal actual fun rememberDocumentActions(
                         while (true) {
                             val count = input.read(buffer)
                             if (count < 0) break
-                            require(output.size() + count <= MaxImportBytes) { "Choose a file up to 5 MB." }
+                            require(output.size() + count <= MAX_IMPORT_BYTES) { "Choose a file up to 5 MB." }
                             output.write(buffer, 0, count)
                         }
                         output.toByteArray()

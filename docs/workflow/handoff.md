@@ -10,7 +10,9 @@ The formatter now uses isolated ignored config/cache/log directories in `build/q
 
 Reviewed profile corrections extend default test exclusions to Android KMP host/device sources, permit `@Test` scenario names, avoid counting required interface overrides as independent methods, allow early guards and readability parentheses. Application complexity limits remain unchanged. No baseline, broad suppression or ignore-failure setting.
 
-Latest source-only scan after formatting/profile alignment: **208 findings remain**. Remaining slices cover actual long/complex functions, redundant syntax/naming, production constants and error boundaries. Do not present intermediate cleanup commits as lint-clean. Canonical pre-commit command is `scripts/check-code.sh`; formatting/import/diagnostic and manual architecture review remain separate requirements. See [code review](code-review.md).
+First cleanup commit: `74dd5fb`. The next slice moves value types to matching files, fixes constant names/redundant syntax and keeps mapper validation as explicit guards. Conditional callback lambdas retain their function type; a first compile caught and corrected a semantic parentheses-removal mistake.
+
+Latest source-only scan: **182 findings remain**. Remaining slices cover actual long/complex functions, redundant syntax/naming, production constants and error boundaries. Do not present intermediate cleanup commits as lint-clean. Canonical pre-commit command is `scripts/check-code.sh`; formatting/import/diagnostic and manual architecture review remain separate requirements. See [code review](code-review.md).
 
 ## Behavior to preserve
 
@@ -20,6 +22,6 @@ Latest source-only scan after formatting/profile alignment: **208 findings remai
 
 ## Verification and next action
 
-- Formatting-only slice: actual Studio format plus lexical token comparison; source/diff/docs and source-only lint checks. No app build/tests, new cases or devices. Source lint still fails with 208 findings.
+- Formatting slice: Studio format plus lexical token comparison. Naming/syntax slice: all 33 changed/new Kotlin files pass Studio formatting; mechanical checks pass, source lint still fails with 182 findings. Existing `testAndroidHostTest testDebugUnitTest` now succeeds after correcting conditional lambdas. No new cases or devices. Type-aware IDE inspections remain unavailable; compilation covers Android types, not native targets.
 - Previous app evidence predates recent UI changes: `91bed7e`, 79 existing tests / 21 suites, Android debug build and shared iOS arm64 compilation. It is not evidence for forthcoming refactors. Existing missing `iosApp/MoversApp.swift` is still an app-link prerequisite; preserve its earlier deletion.
 - Next: fix focused remaining findings, run existing host/native checks when the refactor scope warrants it (explain first), reach a clean agreed profile, then wire CI. New tests remain deferred. Physical Android/iPhone acceptance stays user-owned; never use emulators/simulators.

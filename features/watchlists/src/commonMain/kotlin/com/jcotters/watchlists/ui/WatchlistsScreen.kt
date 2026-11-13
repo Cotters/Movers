@@ -39,7 +39,7 @@ import com.jcotters.navigation.Navigator
 import com.jcotters.watchlists.WatchlistsState
 import com.jcotters.watchlists.WatchlistsViewModel
 import com.jcotters.watchlists.navigation.WatchlistDetailKey
-import com.jcotters.watchlists.preferences.MaximumPinnedWatchlists
+import com.jcotters.watchlists.preferences.MAXIMUM_PINNED_WATCHLISTS
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,7 +94,7 @@ internal fun WatchlistsRoute(navigator: Navigator) {
                 if (state.pinnedLists.isNotEmpty()) {
                     item(key = "pinned-heading") {
                         Text(
-                            "Pinned · ${state.pinnedLists.size}/$MaximumPinnedWatchlists",
+                            "Pinned · ${state.pinnedLists.size}/$MAXIMUM_PINNED_WATCHLISTS",
                             Modifier.padding(16.dp),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -138,7 +138,7 @@ private fun LazyListScope.watchlistRows(
         MoversSwipeActions(
             onOpen = { onOpen(list.id) },
             endAction = MoversSwipeAction(
-                label = if (pinned) "Unpin" else if (canPin) "Pin" else "$MaximumPinnedWatchlists pin limit",
+                label = if (pinned) "Unpin" else if (canPin) "Pin" else "$MAXIMUM_PINNED_WATCHLISTS pin limit",
                 accessibilityLabel = "${if (pinned) "Unpin" else "Pin"} ${list.name}",
                 onClick = { onPin(list.id, !pinned) },
                 enabled = canPin,
@@ -164,12 +164,14 @@ private fun LazyListScope.watchlistRows(
                             )
                         }
                     },
-                    trailingContent = if (pinned) ({
-                        MoversIcon(
-                            MoversSymbol.Pin,
-                            tint = MoversDesign.tokens.colors.accent
-                        )
-                    }) else null,
+                    trailingContent = if (pinned) {
+                        {
+                            MoversIcon(
+                                MoversSymbol.Pin,
+                                tint = MoversDesign.tokens.colors.accent
+                            )
+                        }
+                    } else null,
                     modifier = Modifier.heightIn(min = 72.dp).clickable(onClick = open).semantics {
                         if (pinned) stateDescription = "Pinned"
                     },

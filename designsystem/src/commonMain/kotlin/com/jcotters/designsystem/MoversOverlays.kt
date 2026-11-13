@@ -51,14 +51,6 @@ import com.composeunstyled.UnstyledDialog
 import com.composeunstyled.UnstyledModalBottomSheet
 import com.composeunstyled.rememberModalBottomSheetState
 
-data class MoversMenuAction(
-    val label: String,
-    val onClick: () -> Unit,
-    val symbol: MoversSymbol? = null,
-    val destructive: Boolean = false,
-    val enabled: Boolean = true,
-)
-
 @Composable
 fun MoversMenu(actions: List<MoversMenuAction>, modifier: Modifier = Modifier, label: String = "List options") {
     var expanded by rememberSaveable { mutableStateOf(false) }

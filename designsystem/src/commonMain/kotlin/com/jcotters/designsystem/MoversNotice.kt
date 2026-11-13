@@ -13,8 +13,6 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 
-enum class NoticeKind { Information, Success, Error }
-
 @Composable
 fun MoversNotice(
     message: String,

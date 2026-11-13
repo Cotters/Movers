@@ -116,7 +116,7 @@ internal class MovieSearchViewModel(
         val id = target.value ?: return
         val current = actions.value
         if (current.membershipLoading || current.membershipReadFailed || movieId in current.saving) return
-        if ((movieId in addedIds.value) == added) return
+        if (movieId in addedIds.value == added) return
         actions.update { it.copy(saving = it.saving + movieId, error = null) }
         viewModelScope.launch {
             try {
@@ -132,7 +132,7 @@ internal class MovieSearchViewModel(
                 val result = if (added) lists.addMovieToLists(movieId, setOf(id)) else lists.removeMovie(id, movieId)
                 result.onSuccess {
                     combine(addedIds, actionsState) { ids, state ->
-                        state.membershipReadFailed || (!state.membershipLoading && (movieId in ids) == added)
+                        state.membershipReadFailed || (!state.membershipLoading && movieId in ids == added)
                     }.first { it }
                 }.onFailure { error -> actions.update { it.copy(error = error.message) } }
             } finally {

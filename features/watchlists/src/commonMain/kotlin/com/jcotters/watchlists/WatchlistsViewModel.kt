@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.jcotters.contract.watchlists.domain.ISharedWatchlistsRepository
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
 import com.jcotters.contract.watchlists.domain.Watchlist
-import com.jcotters.watchlists.preferences.MaximumPinnedWatchlists
+import com.jcotters.watchlists.preferences.MAXIMUM_PINNED_WATCHLISTS
 import com.jcotters.watchlists.preferences.WatchlistPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -31,7 +31,7 @@ internal data class WatchlistsState(
 ) {
     val pinnedLists get() = pinnedIds.mapNotNull { id -> lists.firstOrNull { it.id == id } }
     val otherLists get() = lists.filterNot { it.id in pinnedIds }
-    val canPinMore get() = pinnedIds.size < MaximumPinnedWatchlists
+    val canPinMore get() = pinnedIds.size < MAXIMUM_PINNED_WATCHLISTS
 }
 
 internal class WatchlistsViewModel(

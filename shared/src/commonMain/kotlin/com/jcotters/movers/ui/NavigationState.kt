@@ -31,7 +31,7 @@ import kotlinx.serialization.modules.polymorphic
 
 internal enum class TopLevelDestination { Home, Watchlists, Profile }
 
-internal const val NavigationTabMetadata = "movers.navigation.tab"
+internal const val NAVIGATION_TAB_METADATA = "movers.navigation.tab"
 
 @Composable
 internal fun rememberNavigationState(): NavigationState {
@@ -99,7 +99,7 @@ internal class NavigationState(
                         NavEntry(
                             key = key,
                             contentKey = entry.contentKey,
-                            metadata = entry.metadata + (NavigationTabMetadata to tab),
+                            metadata = entry.metadata + (NAVIGATION_TAB_METADATA to tab),
                         ) { entry.Content() }
                     }
                     taggedProvider

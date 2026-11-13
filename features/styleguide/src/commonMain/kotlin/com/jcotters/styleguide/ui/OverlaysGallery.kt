@@ -48,9 +48,13 @@ internal fun OverlaysGallery() {
     }
     GalleryHeading("Feedback", "Information, success and failure")
     var removed by rememberSaveable { mutableStateOf(true) }
+    val undoRemoval: (() -> Unit)? = if (removed) {
+        { removed = false }
+    } else null
     MoversNotice(
         if (removed) "Film removed from the demo list." else "Demo removal undone.",
-        actionLabel = if (removed) "Undo" else null, onAction = if (removed) ({ removed = false }) else null
+        actionLabel = if (removed) "Undo" else null,
+        onAction = undoRemoval
     )
     MoversNotice("Invitation copied.", kind = NoticeKind.Success)
     var failed by rememberSaveable { mutableStateOf(true) }

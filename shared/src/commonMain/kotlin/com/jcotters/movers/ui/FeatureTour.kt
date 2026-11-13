@@ -13,11 +13,6 @@ import androidx.compose.ui.unit.dp
 import com.jcotters.designsystem.MoversAlertDialog
 import com.jcotters.designsystem.MoversTextButton
 
-internal interface FeatureTourPreference {
-    val seen: Boolean
-    fun finish()
-}
-
 @Composable
 internal expect fun rememberFeatureTourPreference(): FeatureTourPreference
 

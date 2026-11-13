@@ -26,7 +26,7 @@ interface WatchlistPreferenceStorage {
     suspend fun write(value: String)
 }
 
-internal const val MaximumPinnedWatchlists = 5
+internal const val MAXIMUM_PINNED_WATCHLISTS = 5
 
 internal data class WatchlistPreferenceState(
     val ready: Boolean = false,
@@ -58,7 +58,7 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
     override suspend fun setPinned(listId: String, pinned: Boolean): Result<Unit> = change { current ->
         requireAvailable(listId)
         if (pinned && listId !in current.pinnedIds) {
-            require(current.pinnedIds.size < MaximumPinnedWatchlists) { "You can pin up to five lists." }
+            require(current.pinnedIds.size < MAXIMUM_PINNED_WATCHLISTS) { "You can pin up to five lists." }
             current.copy(pinnedIds = current.pinnedIds + listId)
         } else if (!pinned) current.copy(pinnedIds = current.pinnedIds - listId) else current
     }
@@ -100,7 +100,7 @@ internal class LocalWatchlistPreferences(private val storage: WatchlistPreferenc
         if (value == null) return WatchlistPreferenceState()
         val root = Json.parseToJsonElement(value).jsonObject
         val pins = (root["pins"] as? JsonArray).orEmpty().mapNotNull { it.jsonPrimitive.contentOrNull }
-            .filter(String::isNotBlank).distinct().take(MaximumPinnedWatchlists)
+            .filter(String::isNotBlank).distinct().take(MAXIMUM_PINNED_WATCHLISTS)
         val sorts = root["sorts"]?.jsonObject.orEmpty().mapValues { (_, value) ->
             val setting = value.jsonObject
             val field =

@@ -28,8 +28,6 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.composeunstyled.UnstyledButton
 
-enum class ButtonVariant { Primary, Secondary, Quiet, Destructive }
-
 @Composable
 fun MoversButton(
     label: String,

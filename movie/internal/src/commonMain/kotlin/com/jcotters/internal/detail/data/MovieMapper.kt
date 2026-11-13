@@ -8,11 +8,13 @@ import com.jcotters.database.movies.DbMovieGenre
 import com.jcotters.internal.catalogue.data.models.CatalogueMovieDto
 import com.jcotters.internal.detail.data.models.MovieDto
 
-internal class MovieMapper() {
+internal class MovieMapper {
     fun toDatabaseModel(dto: MovieDto, fetchedAt: Long): DbMovie? {
+        val id = dto.id ?: return null
+        val title = dto.title?.takeIf { it.isNotBlank() } ?: return null
         return DbMovie(
-            id = dto.id ?: return null,
-            title = dto.title?.takeIf { it.isNotBlank() } ?: return null,
+            id = id,
+            title = title,
             synopsis = dto.overview.orEmpty(),
             releaseDate = dto.releaseDate.orEmpty(),
             posterUrl = imageUrl(dto.posterPath),

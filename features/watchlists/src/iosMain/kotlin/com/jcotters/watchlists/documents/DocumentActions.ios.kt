@@ -150,9 +150,9 @@ private class IosDocumentActions(
                     val path = checkNotNull(url.path)
                     val attributes = checkNotNull(NSFileManager.defaultManager.attributesOfItemAtPath(path, null))
                     val size = checkNotNull(attributes[NSFileSize] as? NSNumber).longLongValue
-                    require(size in 0..MaxImportBytes.toLong())
+                    require(size in 0..MAX_IMPORT_BYTES.toLong())
                     val data = checkNotNull(NSData.create(contentsOfURL = url))
-                    require(data.length <= MaxImportBytes.toULong())
+                    require(data.length <= MAX_IMPORT_BYTES.toULong())
                     val bytes = ByteArray(data.length.toInt())
                     if (bytes.isNotEmpty()) bytes.usePinned { memcpy(it.addressOf(0), data.bytes, data.length) }
                     PickedDocument(url.lastPathComponent ?: "films.txt", bytes)

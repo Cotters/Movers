@@ -24,8 +24,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.composeunstyled.UnstyledButton
 
-enum class MoversSymbol { Add, Check, Close, Search, Trash, More, Back, Grid, Sort, Pin, PinOff }
-
 /** Small original stroke icons; no icon-font or external asset dependency. */
 @Composable
 fun MoversIcon(symbol: MoversSymbol, modifier: Modifier = Modifier, tint: Color = MoversDesign.tokens.colors.content) {

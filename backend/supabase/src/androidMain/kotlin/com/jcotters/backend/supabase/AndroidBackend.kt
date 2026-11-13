@@ -17,7 +17,7 @@ private class AndroidCredentials(context: Context) : SecureCredentialStore {
     private val preferences = context.getSharedPreferences("movers.sharing", Context.MODE_PRIVATE)
     private fun key(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        return (store.getKey("movers.sharing.session", null) as? SecretKey)
+        return store.getKey("movers.sharing.session", null) as? SecretKey
             ?: KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").run {
                 init(
                     KeyGenParameterSpec.Builder(

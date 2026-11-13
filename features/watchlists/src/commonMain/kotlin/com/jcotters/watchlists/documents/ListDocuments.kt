@@ -13,8 +13,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
-internal const val MaxImportBytes = 5 * 1024 * 1024
-internal const val MaxImportEntries = 10_000
+internal const val MAX_IMPORT_BYTES = 5 * 1024 * 1024
+internal const val MAX_IMPORT_ENTRIES = 10_000
 
 internal enum class InputFormat(val label: String, val separator: Char? = null) {
     Auto("Auto"), Lines("Newlines"), Comma("Commas", ','), Semicolon("Semicolons", ';'), Tab(
@@ -63,7 +63,7 @@ internal object ListDocuments {
     private fun header(value: String) = value.lowercase().filter(Char::isLetterOrDigit)
 
     fun decode(bytes: ByteArray): String {
-        require(bytes.size <= MaxImportBytes) { "Choose a file up to 5 MB." }
+        require(bytes.size <= MAX_IMPORT_BYTES) { "Choose a file up to 5 MB." }
         val first = bytes.getOrNull(0)?.toInt()?.and(255)
         val second = bytes.getOrNull(1)?.toInt()?.and(255)
         return if ((first == 255 && second == 254) || (first == 254 && second == 255)) {
@@ -88,7 +88,7 @@ internal object ListDocuments {
         headerOverride: Boolean? = null,
         mappingOverride: ColumnMapping? = null
     ): ParsedInput {
-        require(source.encodeToByteArray().size <= MaxImportBytes) { "Use up to 5 MB of text." }
+        require(source.encodeToByteArray().size <= MAX_IMPORT_BYTES) { "Use up to 5 MB of text." }
         val text = source.removePrefix("\uFEFF").trim()
         if (text.isEmpty()) return ParsedInput(emptyList(), InputFormat.Lines)
         val format = if (requested == InputFormat.Auto) detect(text) else requested
@@ -185,12 +185,12 @@ internal object ListDocuments {
         var i = 0;
         var recordStart = 0
         fun field() {
-            require(cells.size <= MaxImportEntries) { "Import up to 10,000 films at a time." }
+            require(cells.size <= MAX_IMPORT_ENTRIES) { "Import up to 10,000 films at a time." }
             cells += field.toString(); field.clear(); closed = false
         }
 
         fun record() {
-            field(); rows += cells.toList(); cells.clear(); require(rows.size <= MaxImportEntries + 1) { "Import up to 10,000 films at a time." }
+            field(); rows += cells.toList(); cells.clear(); require(rows.size <= MAX_IMPORT_ENTRIES + 1) { "Import up to 10,000 films at a time." }
         }
         while (i < text.length) {
             val c = text[i]
@@ -240,7 +240,7 @@ internal object ListDocuments {
             .matchEntire(value.trim())?.groupValues?.get(1)?.lowercase()
 
     private fun limit(films: List<ParsedFilm>) =
-        films.also { require(it.size <= MaxImportEntries) { "Import up to 10,000 films at a time." } }
+        films.also { require(it.size <= MAX_IMPORT_ENTRIES) { "Import up to 10,000 films at a time." } }
 
     private fun parseJson(text: String): ParsedInput {
         val root = try {
@@ -250,7 +250,7 @@ internal object ListDocuments {
         }
         require((root["format"] as? JsonPrimitive)?.contentOrNull == "movers.watchlist" && (root["version"] as? JsonPrimitive)?.intOrNull == 1) { "Choose a supported Movers JSON export." }
         val films = root["films"] as? JsonArray ?: throw IllegalArgumentException("This export has no film array.")
-        require(films.size <= MaxImportEntries) { "Import up to 10,000 films at a time." }
+        require(films.size <= MAX_IMPORT_ENTRIES) { "Import up to 10,000 films at a time." }
         return ParsedInput(films.map { value ->
             try {
                 val film = value.jsonObject

@@ -137,8 +137,8 @@ internal fun MoversNavigationShell(
 }
 
 private fun AnimatedContentTransitionScope<Scene<NavKey>>.changesTab(): Boolean {
-    val from = initialState.entries.lastOrNull()?.metadata?.get(NavigationTabMetadata)
-    val to = targetState.entries.lastOrNull()?.metadata?.get(NavigationTabMetadata)
+    val from = initialState.entries.lastOrNull()?.metadata?.get(NAVIGATION_TAB_METADATA)
+    val to = targetState.entries.lastOrNull()?.metadata?.get(NAVIGATION_TAB_METADATA)
     return from != null && to != null && from != to
 }
 

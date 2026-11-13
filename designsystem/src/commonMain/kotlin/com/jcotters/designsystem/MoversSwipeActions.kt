@@ -36,18 +36,6 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-data class MoversSwipeAction(
-    val label: String,
-    val accessibilityLabel: String,
-    val onClick: () -> Unit,
-    val icon: @Composable (Color) -> Unit,
-    val destructive: Boolean = false,
-    val enabled: Boolean = true,
-    val allowsFullSwipe: Boolean = false,
-) {
-    internal val canFullSwipe: Boolean get() = allowsFullSwipe && enabled && !destructive
-}
-
 /** Short swipes reveal buttons; opted-in, non-destructive actions also support full swipes. */
 @Composable
 fun MoversSwipeActions(

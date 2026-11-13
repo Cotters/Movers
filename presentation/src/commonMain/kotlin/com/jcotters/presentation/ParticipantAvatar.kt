@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
-data class ParticipantAvatarColor(val label: String, val background: Color)
-
 // Indices are persisted and shared. Keep this order stable.
 val participantAvatarColors = listOf(
     ParticipantAvatarColor("Blue", Color(0xFF385F9D)),

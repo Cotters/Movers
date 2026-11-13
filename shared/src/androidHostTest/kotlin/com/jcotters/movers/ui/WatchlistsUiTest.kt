@@ -257,7 +257,7 @@ class WatchlistsUiTest {
 
     private fun awaitMembership(name: String, added: Boolean) {
         compose.waitUntil("Membership '$name' becomes $added and is editable", 10_000) {
-            compose.onAllNodes(hasText(name) and isEnabled() and (if (added) isOn() else isOff()))
+            compose.onAllNodes(hasText(name) and isEnabled() and if (added) isOn() else isOff())
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }

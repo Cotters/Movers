@@ -29,7 +29,7 @@ internal class PopularMoviesRemoteMediator(
 
     private companion object {
         const val START_PAGE = 1
-        val CACHE_TTL_MILLIS = 6 * 60 * 60 * 1000L
+        const val CACHE_TTL_MILLIS = 6 * 60 * 60 * 1000L
         val catalogue = MovieCatalogue.Popular.key
     }
 
@@ -70,22 +70,24 @@ internal class PopularMoviesRemoteMediator(
             }
             val endOfPaginationReached = movies.isEmpty() || response.totalPages?.let { responsePage >= it } == true
 
-            database.useWriterConnection { connection -> connection.immediateTransaction {
-                val lastRefreshedAt = if (loadType == LoadType.REFRESH) {
-                    clock.millis()
-                } else {
-                    remoteKeysDao.getRemoteKey(catalogue)?.lastRefreshedAt
+            database.useWriterConnection { connection ->
+                connection.immediateTransaction {
+                    val lastRefreshedAt = if (loadType == LoadType.REFRESH) {
+                        clock.millis()
+                    } else {
+                        remoteKeysDao.getRemoteKey(catalogue)?.lastRefreshedAt
+                    }
+                    if (loadType == LoadType.REFRESH) {
+                        removeCatalogueData()
+                    }
+                    val dbMovies = movieMapper.toDatabaseModel(movies = movies)
+                    movieDao.upsertCatalogueMovies(dbMovies)
+                    val catalogueEntries = movieMapper.toCatalogueEntry(catalogue, dbMovies, responsePage)
+                    movieCatalogueDao.insertCatalogueEntries(catalogueEntries)
+                    val nextPage = if (endOfPaginationReached) null else responsePage + 1
+                    remoteKeysDao.insertKey(DbMovieCatalogueRemoteKey(catalogue, nextPage, lastRefreshedAt))
                 }
-                if (loadType == LoadType.REFRESH) {
-                    removeCatalogueData()
-                }
-                val dbMovies = movieMapper.toDatabaseModel(movies = movies)
-                movieDao.upsertCatalogueMovies(dbMovies)
-                val catalogueEntries = movieMapper.toCatalogueEntry(catalogue, dbMovies, responsePage)
-                movieCatalogueDao.insertCatalogueEntries(catalogueEntries)
-                val nextPage = if (endOfPaginationReached) null else responsePage + 1
-                remoteKeysDao.insertKey(DbMovieCatalogueRemoteKey(catalogue, nextPage, lastRefreshedAt))
-            } }
+            }
             MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         } catch (e: CancellationException) {
             throw e

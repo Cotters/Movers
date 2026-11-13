@@ -63,7 +63,7 @@ internal class AddToListsViewModel(
         val id = movieId ?: return
         val current = state.value
         if (current.loading || current.readFailed || current.creating || listId in current.saving) return
-        if (current.lists.none { it.id == listId } || (listId in current.existing) == added) return
+        if (current.lists.none { it.id == listId } || listId in current.existing == added) return
         state.update { it.copy(saving = it.saving + listId, error = null) }
         viewModelScope.launch {
             try {
@@ -105,7 +105,7 @@ internal class AddToListsViewModel(
             if (added) repository.addMovieToLists(movieId, setOf(listId)) else repository.removeMovie(listId, movieId)
         result.onSuccess {
             // Keep the row busy until persisted observation confirms the new checkbox state.
-            state.first { it.readFailed || (previouslyListed && it.lists.none { list -> list.id == listId }) || (listId in it.existing) == added }
+            state.first { it.readFailed || (previouslyListed && it.lists.none { list -> list.id == listId }) || listId in it.existing == added }
         }.onFailure { error -> state.update { it.copy(error = error.message) } }
     }
 

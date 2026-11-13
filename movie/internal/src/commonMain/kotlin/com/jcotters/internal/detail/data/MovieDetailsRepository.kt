@@ -48,6 +48,6 @@ internal class MovieDetailsRepository(
     }
 
     private companion object {
-        val CACHE_TTL_MILLIS = 24 * 60 * 60 * 1000L
+        const val CACHE_TTL_MILLIS = 24 * 60 * 60 * 1000L
     }
 }
