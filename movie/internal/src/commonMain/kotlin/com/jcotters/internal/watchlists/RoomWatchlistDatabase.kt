@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 internal class RoomWatchlistDatabase(private val database: MoversDatabase, private val mapper: MovieMapper) :
     WatchlistDatabase {
     private val dao = database.watchlistDao()
+    private val memberships = database.watchlistMembershipDao()
 
     override fun observeLists() = dao.observeLists().map { rows ->
         rows.map { WatchlistRecord(it.id, it.name, it.createdAt, it.movieCount) }
@@ -35,8 +36,12 @@ internal class RoomWatchlistDatabase(private val database: MoversDatabase, priva
         }
     }.distinctUntilChanged()
 
-    override fun observeMovieIds(listId: String) = dao.observeMovieIds(listId).map { it.toSet() }.distinctUntilChanged()
-    override fun observeListIds(movieId: Int) = dao.observeListIds(movieId).map { it.toSet() }.distinctUntilChanged()
+    override fun observeMovieIds(listId: String) =
+        memberships.observeMovieIds(listId).map { it.toSet() }.distinctUntilChanged()
+
+    override fun observeListIds(movieId: Int) =
+        memberships.observeListIds(movieId).map { it.toSet() }.distinctUntilChanged()
+
     override suspend fun create(id: String, name: String, createdAt: Long) =
         dao.insert(DbWatchlist(id, name, createdAt))
 
@@ -53,12 +58,12 @@ internal class RoomWatchlistDatabase(private val database: MoversDatabase, priva
         database.useWriterConnection { connection ->
             connection.immediateTransaction {
                 if (dao.countLists(listIds.toList()) != listIds.size) throw WatchlistNotFoundException()
-                listIds.forEach { dao.insertMovie(DbWatchlistMovie(it, movieId, addedAt)) }
+                listIds.forEach { memberships.insertMovie(DbWatchlistMovie(it, movieId, addedAt)) }
             }
         }
     }
 
-    override suspend fun removeMovie(listId: String, movieId: Int) = dao.removeMovie(listId, movieId)
+    override suspend fun removeMovie(listId: String, movieId: Int) = memberships.removeMovie(listId, movieId)
 
     override suspend fun importMovies(
         requestId: String,
@@ -72,7 +77,7 @@ internal class RoomWatchlistDatabase(private val database: MoversDatabase, priva
                 ImportBatchResult(films.map { it.id }.distinct().map { id ->
                     val disposition = if (database.movieDao().getMovieById(id) == null) {
                         ImportDisposition.Rejected
-                    } else if (dao.insertMovie(DbWatchlistMovie(listId, id, addedAt)) == -1L) {
+                    } else if (memberships.insertMovie(DbWatchlistMovie(listId, id, addedAt)) == -1L) {
                         ImportDisposition.AlreadyPresent
                     } else ImportDisposition.Imported
                     FilmImportOutcome(id, disposition)

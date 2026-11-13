@@ -70,7 +70,7 @@ class DbMovieTest {
         )
         movieDao.saveMovieDetails(enriched)
         database.watchlistDao().insert(DbWatchlist("saved", "Saved list", 1))
-        database.watchlistDao().insertMovie(DbWatchlistMovie("saved", 7, 2))
+        database.watchlistMembershipDao().insertMovie(DbWatchlistMovie("saved", 7, 2))
         database.movieCatalogueDao().insertCatalogueEntries(listOf(DbMovieCatalogueEntry("popular", 7, 1, 0)))
         movieDao.upsertCatalogueMovies(
             listOf(

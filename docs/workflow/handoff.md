@@ -1,31 +1,26 @@
 # Current handoff
 
-Updated 13 November 2026. Cleanup starts from `364b988`; owner explicitly authorized cleanup and including existing working changes. Prior feature/verification detail: [pre-cleanup handoff](history/2026-11-12-before-lint-cleanup.md).
+Updated 13 November 2026. Cleanup starts from `364b988`; owner authorized cleanup and including existing working changes. Prior feature/verification detail: [pre-cleanup handoff](history/2026-11-12-before-lint-cleanup.md).
 
 ## Active work: Kotlin hygiene cleanup
 
-[Cleanup plan](kotlin-lint-cleanup.md) is in progress. The starting strict Detekt scan had 656 findings across 129 files. First slice formats 106 lint-flagged files with Android Studio; a Kotlin lexer comparison confirms unchanged code/string tokens in those files. Owner's staged film title/style edits are included as authorized, not reverted.
+[Cleanup plan](kotlin-lint-cleanup.md) is in progress: **656 initial findings → 98 remaining**. Strict source lint still fails; no baseline, broad suppression, ignore-failure setting or relaxed application complexity limits. Intermediate cleanup commits are explicitly not lint-clean feature commits.
 
-The formatter now uses isolated ignored config/cache/log directories in `build/quality/studio-formatter`; an actual sample write succeeded while leaving the user's Studio open. Explicit `STUDIO_PROPERTIES` remains supported. This supersedes the earlier instance-lock blocker. Formatter invocations remain sequential.
+Completed slices cover actual Studio formatting, declaration/syntax cleanup, document codecs, named limits, shared-control responsibilities, membership waits and existing migration fixture organization. The owner's title typography was included as authorized in `74dd5fb`. Later commits and evidence are in the cleanup plan/Git.
 
-Reviewed profile corrections extend default test exclusions to Android KMP host/device sources, permit `@Test` scenario names, avoid counting required interface overrides as independent methods, allow early guards and readability parentheses. Application complexity limits remain unchanged. No baseline, broad suppression or ignore-failure setting.
+Current slice separates membership, shared operation receipts and activity DAOs, and moves shared cache persistence into `SharedListCache`. Tables, SQL and transaction boundaries remain unchanged; Room schema export is unchanged. Provider-neutral interfaces and Koin ownership are preserved. No backend deployment.
 
-First cleanup commit: `74dd5fb`. The next slice moves value types to matching files, fixes constant names/redundant syntax and keeps mapper validation as explicit guards. Conditional callback lambdas retain their function type; a first compile caught and corrected a semantic parentheses-removal mistake.
-
-Latest source-only scan: **101 findings remain**. Remaining slices cover actual long/complex functions, redundant syntax/naming, production constants and error boundaries. Do not present intermediate cleanup commits as lint-clean. Canonical pre-commit command is `scripts/check-code.sh`; formatting/import/diagnostic and manual architecture review remain separate requirements. See [code review](code-review.md).
+The Studio formatter works alongside the user's IDE using isolated ignored directories in `build/quality/studio-formatter`; serialize its invocations. Explicit `STUDIO_PROPERTIES` overrides remain supported. Canonical code gate is `scripts/check-code.sh 364b988`; inspect exact staged content and report remaining lint failure. Type-aware IDE inspections are unavailable; source-only lint cannot prove unused imports or all compiler warnings absent.
 
 ## Behavior to preserve
 
-- Full Add/Pin swipes arm at 65% of row width (at least two action widths) and act on release. Short gestures reveal; Remove is always reveal-and-tap with existing delayed-write Undo. Cancellation/disabled actions cannot fire. [Swipe design](../features/swipe-actions.md).
-- Posters retain Home ×1.33 / watchlist ×1.20 widths, 2:3 ratios and bottom alignment; contributor avatars use agreed bottom-right footers below details with attribution taps. Keep the owner's title typography.
-- Sorting, five local pins and film-search suggestions retain saved/query/scroll state. Shared providers remain behind neutral contracts; preserve cancellation, identities, persisted relationships, failure/retry handling and Room migrations. [Organization](../features/watchlist-organization.md), [shared lists](../features/shared-watchlists.md).
+- Full Add/Pin swipes arm at 65% of row width (at least two action widths) and act on release. Short gestures reveal; Remove is reveal-and-tap with delayed-write Undo. Cancellation/disabled actions cannot fire. [Swipe design](../features/swipe-actions.md).
+- Posters retain Home ×1.33 / watchlist ×1.20 widths, 2:3 ratios and bottom alignment; contributor avatars use bottom-right footers below details with attribution taps. Keep the owner's title typography.
+- Sorting, five local pins and film-search suggestions retain saved/query/scroll state. Preserve cancellation, installation identity, persisted relationships, failure/retry handling and Room migrations. [Organization](../features/watchlist-organization.md), [shared lists](../features/shared-watchlists.md).
 
-## Verification and next action
+## Latest verification and next action
 
-- Formatting slice: Studio format plus lexical token comparison. Naming/syntax slice: all 33 changed/new Kotlin files pass Studio formatting; mechanical checks pass, source lint still fails with 182 findings. Existing `testAndroidHostTest testDebugUnitTest` now succeeds after correcting conditional lambdas. No new cases or devices. Type-aware IDE inspections remain unavailable; compilation covers Android types, not native targets.
-- Previous app evidence predates recent UI changes: `91bed7e`, 79 existing tests / 21 suites, Android debug build and shared iOS arm64 compilation. It is not evidence for forthcoming refactors. Existing missing `iosApp/MoversApp.swift` is still an app-link prerequisite; preserve its earlier deletion.
-- Document slice: decoding, CSV state/mapping, film references and export codecs are separated. All eight changed Kotlin files pass Studio formatting; mechanical checks pass. Existing watchlist/shared host tests pass. No dedicated import-parser tests exist; edge cases received source review, not a claim of runtime coverage.
-- Constants slice names existing protocol, migration, validation, animation and retry limits; the retired database reset range remains 1–6. A shared import batch limit now keeps feature/repository policy aligned. Studio formatting passes; source lint still fails with 127 findings.
-- Shared-control slice: focused button color policy, Material palette mapping, field decoration, swipe accessibility/background and image retry feedback. All six changed files pass Studio formatting; mechanical checks pass, source lint reports 120 remaining. The existing complete Android host suite passes (`testAndroidHostTest testDebugUnitTest`). No new cases/devices.
-- Membership/migration slice: name observed lists, retain acknowledgement waits, split existing migration setup/assertions and wrap SQL/fixture responses. SQL literals and existing case/assertion counts are preserved; six Kotlin files pass Studio formatting and affected shared/watchlist/search host suites pass. Strict lint still fails with 101 findings.
-- Next: fix focused remaining findings, run existing host/native checks when the refactor scope warrants it (explain first), reach a clean agreed profile, then wire CI. New tests remain deferred. Physical Android/iPhone acceptance stays user-owned; never use emulators/simulators.
+- DAO/cache slice: Studio formatting validates 12 changed/new Kotlin files; mechanical checks pass; source lint reports 98 remaining. Existing `:database:testAndroidHostTest :movie:internal:testAndroidHostTest :shared:testAndroidHostTest` passes. No new cases or devices.
+- Complete existing Android host suite (`testAndroidHostTest testDebugUnitTest`) passed after shared-control/constants work. Later affected suites passed. Compiler still emits expected library/beta/deprecation warnings; no claim of zero type-aware warnings.
+- Document parser has no dedicated existing test suite; compilation/source review are the evidence, not runtime edge-case coverage. Expansion remains deferred by owner policy.
+- Next: simplify error boundaries and remaining oversized/complex UI/import functions, finish genuine findings, verify cumulative Android/iOS compilation, then enforce the clean profile in CI. Existing missing `iosApp/MoversApp.swift` remains an app-link prerequisite; preserve its earlier deletion. Physical Android/iPhone acceptance stays user-owned; never use emulators/simulators.

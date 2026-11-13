@@ -42,3 +42,5 @@ Completion requires zero findings for the agreed Detekt profile, resolved releva
 - Shared controls: separate actual styling/decoration/accessibility responsibilities without changing approved layout or behavior. Six changed files pass Studio formatting and the complete existing Android host suite passes. Strict lint reports **120 remaining**.
 
 - Membership/migration slice: explicit observed-list values and focused existing migration setup/assertions; SQL literals remain identical. Six Kotlin files pass Studio formatting; affected host suites pass with no new cases. Strict lint reports **101 remaining**.
+
+- DAO/cache slice: segregate memberships, pending receipts and activity DAOs; isolate shared cache persistence. Schema export, queries and transaction boundaries are unchanged. Twelve Kotlin files pass Studio formatting; affected database/repository/shared host suites pass. Strict lint reports **98 remaining**.

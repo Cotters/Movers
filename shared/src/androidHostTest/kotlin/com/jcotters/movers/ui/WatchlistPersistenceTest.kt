@@ -168,9 +168,12 @@ class WatchlistPersistenceTest {
             assertEquals(snapshot, cache.get("shared-list")?.payload)
             assertEquals("participant", cache.get("shared-list")?.participantId)
             assertEquals(4L, cache.get("shared-list")?.revision)
-            assertEquals(operation, cache.operations().single().payload)
-            assertEquals(activity, cache.observeActivity("shared-list").first().single().payload)
-            assertEquals(3L, cache.cursor("shared-list")?.nextBefore)
+            assertEquals(operation, fixture.database.sharedOperationDao().operations().single().payload)
+            assertEquals(
+                activity,
+                fixture.database.sharedActivityDao().observeActivity("shared-list").first().single().payload
+            )
+            assertEquals(3L, fixture.database.sharedActivityDao().cursor("shared-list")?.nextBefore)
         }
     }
 

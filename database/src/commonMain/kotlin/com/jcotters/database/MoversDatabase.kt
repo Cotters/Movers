@@ -19,9 +19,12 @@ import com.jcotters.database.watchlists.DbSharedList
 import com.jcotters.database.watchlists.DbSharedOperation
 import com.jcotters.database.watchlists.DbWatchlist
 import com.jcotters.database.watchlists.DbWatchlistMovie
+import com.jcotters.database.watchlists.SharedActivityDao
 import com.jcotters.database.watchlists.SharedCacheDao
 import com.jcotters.database.watchlists.SharedMigration8To9
+import com.jcotters.database.watchlists.SharedOperationDao
 import com.jcotters.database.watchlists.WatchlistDao
+import com.jcotters.database.watchlists.WatchlistMembershipDao
 import com.jcotters.database.watchlists.WatchlistMigration7To8
 import kotlin.coroutines.CoroutineContext
 
@@ -50,6 +53,9 @@ abstract class MoversDatabase : RoomDatabase() {
     abstract fun movieCatalogueRemoteKeysDao(): MovieCatalogueRemoteKeysDao
     abstract fun watchlistDao(): WatchlistDao
     abstract fun sharedCacheDao(): SharedCacheDao
+    abstract fun watchlistMembershipDao(): WatchlistMembershipDao
+    abstract fun sharedOperationDao(): SharedOperationDao
+    abstract fun sharedActivityDao(): SharedActivityDao
 }
 
 @Suppress("KotlinNoActualForExpect")

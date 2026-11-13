@@ -50,7 +50,7 @@ class PopularMoviesRemoteMediatorTest {
     fun appendingDoesNotExtendFreshnessAndRefreshPreservesWatchlists() = runTest {
         assertTrue(mediator(startTime).load(LoadType.REFRESH, state) is RemoteMediator.MediatorResult.Success)
         database.watchlistDao().insert(DbWatchlist("saved", "Saved list", 1))
-        database.watchlistDao().insertMovie(DbWatchlistMovie("saved", 1, 2))
+        database.watchlistMembershipDao().insertMovie(DbWatchlistMovie("saved", 1, 2))
         database.movieDao().saveMovieDetails(
             database.movieDao().getMovieById(1)!!.copy(
                 tagline = "Keep this tagline", runtimeMinutes = 125, detailsFetchedAt = startTime,

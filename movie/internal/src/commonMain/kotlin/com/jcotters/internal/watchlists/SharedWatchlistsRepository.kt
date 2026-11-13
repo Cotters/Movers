@@ -1,10 +1,7 @@
 package com.jcotters.internal.watchlists
 
-import androidx.room.immediateTransaction
-import androidx.room.useWriterConnection
 import com.cotters.data.network.NetworkMonitor
 import com.cotters.data.network.NetworkStatus
-import com.jcotters.contract.watchlists.data.ActivityPage
 import com.jcotters.contract.watchlists.data.FilmActivity
 import com.jcotters.contract.watchlists.data.ImportBatchResult
 import com.jcotters.contract.watchlists.data.ImportUnavailableException
@@ -20,13 +17,7 @@ import com.jcotters.contract.watchlists.domain.SharedSyncStatus
 import com.jcotters.contract.watchlists.domain.WatchlistInvitation
 import com.jcotters.contract.watchlists.domain.WatchlistNotFoundException
 import com.jcotters.database.MoversDatabase
-import com.jcotters.database.movies.DbMovie
-import com.jcotters.database.watchlists.DbSharedActivity
-import com.jcotters.database.watchlists.DbSharedActivityCursor
-import com.jcotters.database.watchlists.DbSharedList
 import com.jcotters.database.watchlists.DbSharedOperation
-import com.jcotters.database.watchlists.DbWatchlist
-import com.jcotters.database.watchlists.DbWatchlistMovie
 import com.jcotters.profile.domain.DeviceProfileRepository
 import com.jcotters.profile.domain.ParticipantIdentity
 import kotlinx.coroutines.CancellationException
@@ -47,13 +38,16 @@ internal class SharedWatchlistsRepository(
 ) : ISharedWatchlistsRepository {
     private val cache = database.sharedCacheDao()
     private val lists = database.watchlistDao()
+    private val outbox = database.sharedOperationDao()
     private val mutex = Mutex()
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private val persisted = SharedListCache(database, json)
     private val sync = kotlinx.coroutines.flow.MutableStateFlow(SharedSyncStatus())
     override val syncStatus = sync.asStateFlow()
     override val configured get() = remote.configured
     override fun observeActivity(listId: String) =
-        cache.observeActivity(listId).map { rows -> rows.map { json.decodeFromString<FilmActivity>(it.payload) } }
+        database.sharedActivityDao().observeActivity(listId)
+            .map { rows -> rows.map { json.decodeFromString<FilmActivity>(it.payload) } }
 
     override suspend fun refresh(listId: String?): Result<Unit> {
         sync.value = sync.value.copy(refreshing = true)
@@ -75,14 +69,14 @@ internal class SharedWatchlistsRepository(
             online()
             val id = identity.currentId() ?: run {
                 check(
-                    cache.lists().isEmpty() && cache.operations().isEmpty()
+                    cache.lists().isEmpty() && outbox.operations().isEmpty()
                 ) { "This device's sharing identity is unavailable. Retry without clearing app data." }
                 return@withLock
             }
-            checkOwner(id)
+            persisted.checkOwner(id)
             reconcile(id)
             val ids = remote.listIds().toSet()
-            cache.lists().filter { it.listId !in ids }.forEach { purge(it.listId) }
+            cache.lists().filter { it.listId !in ids }.forEach { persisted.purge(it.listId) }
             (if (listId == null) ids else setOf(listId).intersect(ids)).forEach { fetch(it, id) }
         }
     }
@@ -134,11 +128,11 @@ internal class SharedWatchlistsRepository(
     override suspend fun loadActivity(listId: String, older: Boolean): Result<Boolean> = result {
         mutex.withLock {
             val owner = participant()
-            val cursor = cache.cursor(listId)
+            val cursor = database.sharedActivityDao().cursor(listId)
             if (older && cursor != null && cursor.nextBefore == null) return@withLock false
             val page = remote.activity(listId, if (older) cursor?.nextBefore else null)
-            checkOwner(owner)
-            saveActivity(listId, page)
+            persisted.checkOwner(owner)
+            persisted.saveActivity(listId, page)
             page.nextBefore != null
         }
     }
@@ -156,18 +150,18 @@ internal class SharedWatchlistsRepository(
         mutex.withLock {
             if (cache.get(listId) == null) {
                 check(
-                    cache.operations()
+                    outbox.operations()
                         .none { it.listId == listId }) { "This list is being shared. Reconnect and retry." }
                 return@withLock local()
             }
             val owner = participant()
             // Reconcile other commands, but preserve this batch's original receipt/outcome.
-            cache.operations().filter { it.id != requestId }.forEach { execute(it) }
+            outbox.operations().filter { it.id != requestId }.forEach { execute(it) }
             val command = SharedCommand.ImportFilms(listId, films)
             val payload = json.encodeToString<SharedCommand>(command)
-            val operation = cache.operations().firstOrNull { it.id == requestId }?.also {
+            val operation = outbox.operations().firstOrNull { it.id == requestId }?.also {
                 check(it.participantId == owner && it.payload == payload) { "Import request changed. Reopen the import." }
-            } ?: DbSharedOperation(requestId, listId, owner, payload).also { cache.insert(it) }
+            } ?: DbSharedOperation(requestId, listId, owner, payload).also { outbox.insert(it) }
             checkNotNull(execute(operation))
         }
 
@@ -177,7 +171,7 @@ internal class SharedWatchlistsRepository(
             val sharedIds = listIds.filter { cache.get(it) != null }
             if (sharedIds.isEmpty()) {
                 check(
-                    cache.operations()
+                    outbox.operations()
                         .none { it.listId in listIds }) { "This list is being shared. Reconnect and retry." }
                 local()
             } else {
@@ -194,12 +188,12 @@ internal class SharedWatchlistsRepository(
         if (!configured) throw SharingUnavailableException()
         val current = identity.currentId()
         check(
-            current != null || (cache.lists().isEmpty() && cache.operations().isEmpty())
+            current != null || (cache.lists().isEmpty() && outbox.operations().isEmpty())
         ) { "This device's sharing identity is unavailable. Retry without clearing app data." }
         val profile = profiles.profile.first() ?: error("Set your name first.")
         check(profile.nameConfirmed) { "Confirm your name before sharing." }
         val id = identity.ensure(profile.displayName, profile.color)
-        checkOwner(id)
+        persisted.checkOwner(id)
         return id
     }
 
@@ -207,20 +201,14 @@ internal class SharedWatchlistsRepository(
         if (network.networkStatus.first() == NetworkStatus.Offline) throw SharedConnectionException()
     }
 
-    private suspend fun checkOwner(id: String) {
-        check(cache.lists().all { it.participantId == id } && cache.operations().all { it.participantId == id }) {
-            "Saved lists belong to a different device identity. Sharing is unavailable."
-        }
-    }
-
     private suspend fun command(owner: String, command: SharedCommand) {
         val operation = DbSharedOperation(Uuid.random().toString(), command.listId, owner, json.encodeToString(command))
-        cache.insert(operation)
+        outbox.insert(operation)
         execute(operation)
     }
 
     private suspend fun reconcile(owner: String) {
-        cache.operations().forEach { operation ->
+        outbox.operations().forEach { operation ->
             check(operation.participantId == owner)
             execute(operation)
         }
@@ -239,21 +227,21 @@ internal class SharedWatchlistsRepository(
                     remote.execute(operation.id, command)
                     null
                 }
-            if (command is SharedCommand.Leave) purge(command.listId) else fetch(
+            if (command is SharedCommand.Leave) persisted.purge(command.listId) else fetch(
                 command.listId,
                 operation.participantId
             )
-            cache.complete(operation.id)
+            outbox.complete(operation.id)
             return importResult
         } catch (e: SharedAccessDeniedException) {
-            if (cache.get(command.listId) != null) purge(command.listId)
-            cache.complete(operation.id)
+            if (cache.get(command.listId) != null) persisted.purge(command.listId)
+            outbox.complete(operation.id)
             throw e
         } catch (e: IllegalArgumentException) {
-            cache.complete(operation.id)
+            outbox.complete(operation.id)
             throw e
         } catch (e: ImportUnavailableException) {
-            cache.complete(operation.id)
+            outbox.complete(operation.id)
             throw e
         }
         // A transport failure retains the request ID. Reconciliation repeats that exact command.
@@ -262,45 +250,9 @@ internal class SharedWatchlistsRepository(
     private suspend fun fetch(id: String, owner: String) {
         try {
             val snapshot = remote.snapshot(id)
-            database.useWriterConnection { connection ->
-                connection.immediateTransaction<Unit> {
-                    if ((cache.get(id)?.revision ?: -1) <= snapshot.info.revision) {
-                        database.movieDao().insertMissingMovies(snapshot.entries.map { it.film.toDb() })
-                        lists.upsert(DbWatchlist(id, snapshot.name, snapshot.createdAt))
-                        lists.clearMovies(id)
-                        snapshot.entries.forEach {
-                            lists.insertMovie(
-                                DbWatchlistMovie(
-                                    id,
-                                    it.film.id,
-                                    it.contribution.addedAt
-                                )
-                            )
-                        }
-                        cache.put(DbSharedList(id, owner, snapshot.info.revision, json.encodeToString(snapshot)))
-                    }
-                }
-            }
+            persisted.saveSnapshot(id, snapshot, owner)
         } catch (e: SharedAccessDeniedException) {
-            purge(id); throw e
-        }
-    }
-
-    private suspend fun saveActivity(id: String, page: ActivityPage) {
-        database.movieDao().insertMissingMovies(page.events.map { it.film.toDb() })
-        database.useWriterConnection { connection ->
-            connection.immediateTransaction<Unit> {
-                cache.putActivity(page.events.map { DbSharedActivity(id, it.id, it.sequence, json.encodeToString(it)) })
-                cache.putCursor(DbSharedActivityCursor(id, page.nextBefore))
-            }
-        }
-    }
-
-    private suspend fun purge(id: String) {
-        database.useWriterConnection { connection ->
-            connection.immediateTransaction<Unit> {
-                cache.remove(id); cache.clearActivity(id); cache.clearCursor(id); cache.discard(id); lists.delete(id)
-            }
+            persisted.purge(id); throw e
         }
     }
 
@@ -312,5 +264,3 @@ internal class SharedWatchlistsRepository(
         Result.failure(e)
     }
 }
-
-private fun SharedFilm.toDb() = DbMovie(id, title, synopsis, releaseDate, posterUrl)
