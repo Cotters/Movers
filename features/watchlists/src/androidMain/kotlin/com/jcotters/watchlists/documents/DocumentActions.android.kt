@@ -38,29 +38,12 @@ internal actual fun rememberDocumentActions(
     DisposableEffect(Unit) { onDispose { alive = false } }
     val opener = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) {
-            result(DocumentResult.Cancelled); return@rememberLauncherForActivityResult
+            result(DocumentResult.Cancelled)
+            return@rememberLauncherForActivityResult
         }
         scope.launch {
             recoverableResult {
-                val document = withContext(Dispatchers.IO) {
-                    val name =
-                        context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                            ?.use { cursor ->
-                                if (cursor.moveToFirst()) cursor.getString(0) else null
-                            } ?: "films.txt"
-                    val bytes = checkNotNull(context.contentResolver.openInputStream(uri)).use { input ->
-                        val output = ByteArrayOutputStream()
-                        val buffer = ByteArray(8192)
-                        while (true) {
-                            val count = input.read(buffer)
-                            if (count < 0) break
-                            require(output.size() + count <= MAX_IMPORT_BYTES) { "Choose a file up to 5 MB." }
-                            output.write(buffer, 0, count)
-                        }
-                        output.toByteArray()
-                    }
-                    PickedDocument(name, bytes)
-                }
+                val document = readAndroidDocument(context, uri)
                 if (alive) picked(document)
             }.onFailure { e ->
                 val message = if (e is IllegalArgumentException) "Choose a readable file up to 5 MB."
@@ -74,7 +57,8 @@ internal actual fun rememberDocumentActions(
         saving = null
         val uri = response.data?.data
         if (response.resultCode != android.app.Activity.RESULT_OK || uri == null || document == null) {
-            result(DocumentResult.Cancelled); return@rememberLauncherForActivityResult
+            result(DocumentResult.Cancelled)
+            return@rememberLauncherForActivityResult
         }
         scope.launch {
             try {
@@ -113,7 +97,8 @@ internal actual fun rememberDocumentActions(
                             .setType(document.mimeType).putExtra(Intent.EXTRA_TITLE, document.name)
                     )
                 } catch (_: Exception) {
-                    saving = null; result(DocumentResult.Failed("Couldn't open file saving."))
+                    saving = null
+                    result(DocumentResult.Failed("Couldn't open file saving."))
                 }
             }
 
@@ -155,8 +140,31 @@ internal actual fun rememberImportHelpPreference(): ImportHelpPreference {
                 private set
 
             override fun dismiss() {
-                seen = true; preferences.edit().putBoolean("seen", true).apply()
+                seen = true
+                preferences.edit().putBoolean("seen", true).apply()
             }
         }
     }
 }
+
+private const val FILE_READ_BUFFER_BYTES = 8192
+private suspend fun readAndroidDocument(context: Context, uri: android.net.Uri): PickedDocument =
+    withContext(Dispatchers.IO) {
+        val name =
+            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                ?.use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getString(0) else null
+                } ?: "films.txt"
+        val bytes = checkNotNull(context.contentResolver.openInputStream(uri)).use { input ->
+            val output = ByteArrayOutputStream()
+            val buffer = ByteArray(FILE_READ_BUFFER_BYTES)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                require(output.size() + count <= MAX_IMPORT_BYTES) { "Choose a file up to 5 MB." }
+                output.write(buffer, 0, count)
+            }
+            output.toByteArray()
+        }
+        PickedDocument(name, bytes)
+    }

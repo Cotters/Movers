@@ -1,15 +1,10 @@
 package com.jcotters.watchlists.ui
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,47 +17,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.jcotters.contract.watchlists.data.FilmContribution
 import com.jcotters.contract.watchlists.domain.Watchlist
 import com.jcotters.designsystem.MoversAlertDialog
-import com.jcotters.designsystem.MoversDropdownMenu
-import com.jcotters.designsystem.MoversDropdownMenuItem
-import com.jcotters.designsystem.MoversIconButton
 import com.jcotters.designsystem.MoversTextButton
-import com.jcotters.designsystem.MoversTopBar
-import com.jcotters.details.navigation.MovieDetailsKey
 import com.jcotters.navigation.Navigator
-import com.jcotters.presentation.MovieLayoutToggle
 import com.jcotters.presentation.ScrollToTopButton
 import com.jcotters.presentation.formatActivityTime
-import com.jcotters.presentation.resources.Res
-import com.jcotters.presentation.resources.add
-import com.jcotters.presentation.resources.arrow_back
-import com.jcotters.presentation.resources.more
-import com.jcotters.search.navigation.MovieSearchKey
+import com.jcotters.watchlists.WatchlistDetailState
 import com.jcotters.watchlists.WatchlistDetailViewModel
-import com.jcotters.watchlists.navigation.AddToListsKey
-import com.jcotters.watchlists.navigation.ListTransferKey
-import com.jcotters.watchlists.navigation.SharedListKey
-import com.jcotters.watchlists.navigation.SharedSection
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId: String) {
     val viewModel: WatchlistDetailViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val suggestions = viewModel.suggestions.collectAsLazyPagingItems()
-    var menu by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
     var editing by rememberSaveable(listId) { mutableStateOf(false) }
@@ -70,238 +43,46 @@ internal fun WatchlistDetailRoute(listId: String, navigator: Navigator, stackId:
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val headerScrollState = rememberWatchlistHeaderScrollState(listState, gridState, showGrid)
-    val coroutineScope = rememberCoroutineScope()
     val showScrollToTop by remember(listState, gridState, showGrid, headerScrollState) {
         derivedStateOf {
             (if (showGrid) gridState.canScrollBackward else listState.canScrollBackward) || !headerScrollState.visible
         }
     }
     var attribution by remember(listId) { mutableStateOf<FilmContribution?>(null) }
-    LaunchedEffect(listId) { viewModel.load(listId) }
-    LaunchedEffect(state.deleted) { if (state.deleted) navigator.goBack() }
-    LaunchedEffect(state.renamed) {
-        if (state.renamed) {
-            renaming = false; viewModel.consumeRenamed()
-        }
-    }
-    var previousSort by remember { mutableStateOf<com.jcotters.watchlists.preferences.WatchlistSort?>(null) }
-    LaunchedEffect(state.sort, state.preferencesReady) {
-        if (state.preferencesReady) {
-            if (previousSort != null && previousSort != state.sort) {
-                listState.requestScrollToItem(0)
-                gridState.requestScrollToItem(0)
-            }
-            previousSort = state.sort
-        }
-    }
-    val list = state.content?.watchlist
+    WatchlistDetailEffects(
+        listId, state, viewModel, navigator, listState, gridState, onRenamed = { renaming = false },
+    )
     Scaffold(topBar = {
-        MoversTopBar(
-            title = { Text(list?.name ?: "Watchlist", maxLines = 1, overflow = TextOverflow.Ellipsis) },
-            navigationIcon = {
-                if (!editing) {
-                    MoversIconButton(onClick = navigator::goBack) {
-                        Icon(
-                            painterResource(Res.drawable.arrow_back),
-                            "Back"
-                        )
-                    }
-                }
+        WatchlistDetailTopBar(
+            listId, state, viewModel, navigator, editing, showGrid,
+            onLayoutChange = {
+                val anchor = if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
+                if (showGrid) listState.requestScrollToItem(anchor) else gridState.requestScrollToItem(anchor)
+                showGrid = !showGrid
             },
-            actions = {
-                MovieLayoutToggle(showGrid = showGrid, onClick = {
-                    val anchor = if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
-                    if (showGrid) listState.requestScrollToItem(anchor) else gridState.requestScrollToItem(anchor)
-                    showGrid = !showGrid
-                })
-                if (editing) {
-                    MoversTextButton(onClick = { editing = false }) { Text("Done") }
-                } else {
-                    MoversIconButton(
-                        onClick = { navigator.navigate(MovieSearchKey(listId)) },
-                        enabled = list != null && !state.busy
-                    ) {
-                        Icon(painterResource(Res.drawable.add), "Add movies")
-                    }
-                    MoversDropdownMenu(expanded = menu, onExpandedChange = { menu = it }, anchor = {
-                        MoversIconButton(onClick = { menu = !menu }, enabled = list != null && !state.busy) {
-                            Icon(painterResource(Res.drawable.more), "List options")
-                        }
-                    }) {
-                        MoversDropdownMenuItem(
-                            text = { Text("Pick a film") },
-                            enabled = !state.busy && state.content?.movies?.any { it.id !in state.removing } == true,
-                            onClick = {
-                                menu = false
-                                viewModel.pickMovie()
-                                    ?.let { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) }
-                            },
-                        )
-                        MoversDropdownMenuItem(
-                            text = { Text("Import / export") },
-                            onClick = { menu = false; navigator.navigate(ListTransferKey(listId)) })
-                        MoversDropdownMenuItem(text = { Text("Edit list") }, onClick = { menu = false; editing = true })
-                        MoversDropdownMenuItem(
-                            text = { Text("Rename list") },
-                            onClick = { menu = false; viewModel.clearError(); renaming = true })
-                        MoversDropdownMenuItem(
-                            text = { Text(if (list?.shared != null) "Share link" else "Share list") },
-                            onClick = {
-                                menu = false; navigator.navigate(
-                                SharedListKey(
-                                    listId,
-                                    SharedSection.Sharing
-                                )
-                            )
-                            })
-                        if (list?.shared != null) {
-                            MoversDropdownMenuItem(
-                                text = { Text("Members") },
-                                onClick = {
-                                    menu = false; navigator.navigate(
-                                    SharedListKey(
-                                        listId,
-                                        SharedSection.Members
-                                    )
-                                )
-                                })
-                            MoversDropdownMenuItem(
-                                text = { Text("Activity") },
-                                onClick = {
-                                    menu = false; navigator.navigate(
-                                    SharedListKey(
-                                        listId,
-                                        SharedSection.Activity
-                                    )
-                                )
-                                })
-                        }
-                        HorizontalDivider()
-                        MoversDropdownMenuItem(
-                            text = {
-                                Text(
-                                    if (list?.shared != null) "Leave list" else "Delete list",
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            },
-                            onClick = { menu = false; viewModel.clearError(); deleting = true })
-                    }
-                }
-            })
+            onEditingChanged = { editing = it },
+            onRename = { renaming = true },
+            onDelete = { deleting = true },
+        )
     }, floatingActionButton = {
-        ScrollToTopButton(
-            visible = state.content != null && showScrollToTop,
-            onClick = {
-                coroutineScope.launch {
-                    if (showGrid) gridState.animateScrollToItem(0) else listState.animateScrollToItem(0)
-                    headerScrollState.show()
-                }
-            },
+        WatchlistScrollButton(
+            listState, gridState, headerScrollState, showGrid, visible = state.content != null && showScrollToTop,
         )
     }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
-            if (state.loading) LinearProgressIndicator()
-            state.error?.let {
-                Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
-                MoversTextButton(onClick = { viewModel.clearError(); viewModel.load(listId) }) { Text("Retry") }
-            }
-            state.sortError?.let { message ->
-                Text(message, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error)
-                MoversTextButton(onClick = viewModel.sorting::retry) { Text("Retry sorting") }
-            }
-            if (!state.loading && state.error == null && state.content == null) Text(
-                "This list no longer exists.",
-                Modifier.padding(24.dp)
-            )
-            state.content?.let { content ->
-                val visibleMovies = state.visibleMovies
-                LaunchedEffect(visibleMovies.isEmpty(), headerScrollState) {
-                    if (visibleMovies.isEmpty()) headerScrollState.show()
-                }
-                WatchlistSearchHeader(
-                    scrollState = headerScrollState,
-                    query = state.query,
-                    onQueryChange = {
-                        viewModel.filmSearch.changeQuery(it)
-                        headerScrollState.show()
-                        listState.requestScrollToItem(0)
-                        gridState.requestScrollToItem(0)
-                    },
-                    summary = {
-                        WatchlistSummary(
-                            movieCount = visibleMovies.size,
-                            totalMovieCount = content.movies.size,
-                            sharedInfo = content.watchlist.shared,
-                            sort = state.sort,
-                            sortEnabled = state.preferencesReady && !state.sortSaving,
-                            onSort = viewModel.sorting::change,
-                            onMembers = { navigator.navigate(SharedListKey(listId, SharedSection.Members)) },
-                        )
-                    },
-                )
-                WatchlistMovies(
-                    content = content.copy(movies = visibleMovies),
-                    showGrid = showGrid,
-                    listState = listState,
-                    gridState = gridState,
-                    stackId = stackId,
-                    editing = editing,
-                    enabled = !state.busy,
-                    removing = state.removing,
-                    onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
-                    onRemove = viewModel::removeMovie,
-                    onSwipeRemove = viewModel::stageMovieRemoval,
-                    onAddToLists = { navigator.navigate(AddToListsKey(it, listId)) },
-                    onContribution = { attribution = it },
-                    bottomContentPadding = if (showScrollToTop) 88.dp else 24.dp,
-                    modifier = Modifier.weight(1f).clipToBounds().nestedScroll(headerScrollState),
-                    emptyMessage = if (visibleMovies.isNotEmpty()) null
-                    else if (state.query.isNotBlank()) "No matches in this list."
-                    else "No movies yet. Tap + to find films.",
-                    listFooter = {
-                        watchlistSuggestions(
-                            state,
-                            suggestions,
-                            stackId,
-                            onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
-                            onAdd = viewModel.filmSearch::addSuggestedMovie,
-                            onDismissError = viewModel.filmSearch::clearSuggestionError
-                        )
-                    },
-                    gridFooter = {
-                        watchlistSuggestions(
-                            state,
-                            suggestions,
-                            stackId,
-                            onOpen = { navigator.navigate(MovieDetailsKey(it, targetListId = listId)) },
-                            onAdd = viewModel.filmSearch::addSuggestedMovie,
-                            onDismissError = viewModel.filmSearch::clearSuggestionError
-                        )
-                    },
-                )
-            }
-        }
+        WatchlistDetailContent(
+            state = state, viewModel = viewModel, navigator = navigator,
+            listId = listId, stackId = stackId, showGrid = showGrid, editing = editing,
+            listState = listState, gridState = gridState, headerScrollState = headerScrollState,
+            suggestions = suggestions, showScrollToTop = showScrollToTop, padding = padding,
+            onContribution = { attribution = it },
+        )
     }
-    if (renaming && list != null) ListNameDialog(
-        "Rename list",
-        state.lists,
-        list.name,
-        list.id,
-        state.busy,
-        state.error,
-        onDismiss = { renaming = false; viewModel.clearError() },
-        onSave = viewModel::rename
+    WatchlistDetailDialogs(
+        state, viewModel, renaming, deleting, attribution,
+        onDismissRename = { renaming = false },
+        onDismissDelete = { deleting = false },
+        onDismissAttribution = { attribution = null },
     )
-    if (deleting && list != null) ListRemovalDialog(
-        list = list,
-        busy = state.busy,
-        error = state.error,
-        onDismiss = { deleting = false; viewModel.clearError() },
-        onConfirm = { if (list.shared != null) viewModel.leave() else viewModel.delete() },
-    )
-    attribution?.let { contribution ->
-        FilmAttributionDialog(contribution, onDismiss = { attribution = null })
-    }
 }
 
 @Composable
@@ -319,7 +100,8 @@ private fun ListRemovalDialog(
         text = {
             Column {
                 Text(
-                    if (shared) "Remove “${list.name}” from this device? Other members keep access. If you are the last member, the list will be retired."
+                    if (shared) "Remove “${list.name}” from this device? " +
+                        "Other members keep access. If you are the last member, the list will be retired."
                     else "Delete “${list.name}” and its movie selections?"
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -339,10 +121,102 @@ private fun ListRemovalDialog(
 
 @Composable
 private fun FilmAttributionDialog(contribution: FilmContribution, onDismiss: () -> Unit) {
+    val action = if (contribution.imported) "Imported" else "Added"
+    val addedAt = formatActivityTime(contribution.addedAt)
     MoversAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(contribution.actor.name) },
-        text = { Text("${if (contribution.imported) "Imported" else "Added"} · ${formatActivityTime(contribution.addedAt)}") },
+        text = { Text("$action · $addedAt") },
         confirmButton = { MoversTextButton(onClick = onDismiss) { Text("Close") } },
+    )
+}
+
+@Composable
+private fun WatchlistDetailEffects(
+    listId: String,
+    state: WatchlistDetailState,
+    viewModel: WatchlistDetailViewModel,
+    navigator: Navigator,
+    listState: LazyListState,
+    gridState: LazyGridState,
+    onRenamed: () -> Unit,
+) {
+    LaunchedEffect(listId) { viewModel.load(listId) }
+    LaunchedEffect(state.deleted) { if (state.deleted) navigator.goBack() }
+    LaunchedEffect(state.renamed) {
+        if (state.renamed) {
+            onRenamed()
+            viewModel.consumeRenamed()
+        }
+    }
+    var previousSort by remember { mutableStateOf<com.jcotters.watchlists.preferences.WatchlistSort?>(null) }
+    LaunchedEffect(state.sort, state.preferencesReady) {
+        if (state.preferencesReady) {
+            if (previousSort != null && previousSort != state.sort) {
+                listState.requestScrollToItem(0)
+                gridState.requestScrollToItem(0)
+            }
+            previousSort = state.sort
+        }
+    }
+}
+
+@Composable
+private fun WatchlistDetailDialogs(
+    state: WatchlistDetailState,
+    viewModel: WatchlistDetailViewModel,
+    renaming: Boolean,
+    deleting: Boolean,
+    attribution: FilmContribution?,
+    onDismissRename: () -> Unit,
+    onDismissDelete: () -> Unit,
+    onDismissAttribution: () -> Unit,
+) {
+    val list = state.content?.watchlist
+    if (renaming && list != null) ListNameDialog(
+        "Rename list",
+        state.lists,
+        list.name,
+        list.id,
+        state.busy,
+        state.error,
+        onDismiss = {
+            onDismissRename()
+            viewModel.clearError()
+        },
+        onSave = viewModel::rename
+    )
+    if (deleting && list != null) ListRemovalDialog(
+        list = list,
+        busy = state.busy,
+        error = state.error,
+        onDismiss = {
+            onDismissDelete()
+            viewModel.clearError()
+        },
+        onConfirm = { if (list.shared != null) viewModel.leave() else viewModel.delete() },
+    )
+    attribution?.let { contribution ->
+        FilmAttributionDialog(contribution, onDismiss = onDismissAttribution)
+    }
+}
+
+@Composable
+private fun WatchlistScrollButton(
+    listState: LazyListState,
+    gridState: LazyGridState,
+    headerScrollState: WatchlistHeaderScrollState,
+    showGrid: Boolean,
+    visible: Boolean,
+) {
+    val scope = rememberCoroutineScope()
+    ScrollToTopButton(
+        visible = visible,
+        onClick = {
+            scope.launch {
+                if (showGrid) gridState.animateScrollToItem(0) else listState.animateScrollToItem(0)
+                headerScrollState.show()
+            }
+        },
     )
 }

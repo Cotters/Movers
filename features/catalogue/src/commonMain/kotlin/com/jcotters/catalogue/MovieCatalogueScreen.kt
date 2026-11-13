@@ -79,17 +79,19 @@ fun MovieCatalogueScreen(
     }
 
     Scaffold(
-        topBar = { MoversTopBar(title = { Text("Movers") }, actions = {
-            MovieLayoutToggle(showGrid = showGrid, onClick = {
-                // Both layouts use the same item order, including full-width status rows.
-                val anchor = if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
-                if (showGrid) listState.requestScrollToItem(anchor) else gridState.requestScrollToItem(anchor)
-                showGrid = !showGrid
+        topBar = {
+            MoversTopBar(title = { Text("Movers") }, actions = {
+                MovieLayoutToggle(showGrid = showGrid, onClick = {
+                    // Both layouts use the same item order, including full-width status rows.
+                    val anchor = if (showGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
+                    if (showGrid) listState.requestScrollToItem(anchor) else gridState.requestScrollToItem(anchor)
+                    showGrid = !showGrid
+                })
+                if (onSearch != null) MoversIconButton(onClick = onSearch) {
+                    Icon(painterResource(com.jcotters.presentation.resources.Res.drawable.search), "Search movies")
+                }
             })
-            if (onSearch != null) MoversIconButton(onClick = onSearch) {
-                Icon(painterResource(com.jcotters.presentation.resources.Res.drawable.search), "Search movies")
-            }
-        }) },
+        },
         floatingActionButton = {
             ScrollToTopButton(
                 visible = showScrollToTopFab,
@@ -123,7 +125,6 @@ fun MovieCatalogueScreen(
 }
 
 @Composable
-@OptIn(ExperimentalSharedTransitionApi::class)
 private fun PopularMoviesContent(
     modifier: Modifier,
     listState: LazyListState,
@@ -205,6 +206,7 @@ internal fun CatalogueAppendState(state: LoadState, onRetry: () -> Unit) {
             Modifier.fillMaxWidth().padding(16.dp),
             contentAlignment = Alignment.Center,
         ) { LinearProgressIndicator() }
+
         is LoadState.Error -> ErrorItem(state.error.message ?: "Failed to load more", onRetry)
         else -> Unit
     }
@@ -248,10 +250,10 @@ private fun MovieCatalogueScreenPreview() {
     val lazyPagingItems = flowOf(pagingData)
         .collectAsLazyPagingItems()
     com.jcotters.designsystem.MoversDesignTheme {
-    MovieCatalogueScreen(
-        movies = lazyPagingItems,
-        posterModifier = { _ -> Modifier },
-        onMovieTapped = { _ -> },
-    )
+        MovieCatalogueScreen(
+            movies = lazyPagingItems,
+            posterModifier = { _ -> Modifier },
+            onMovieTapped = { _ -> },
+        )
     }
 }

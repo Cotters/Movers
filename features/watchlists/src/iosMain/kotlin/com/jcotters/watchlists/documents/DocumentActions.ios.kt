@@ -10,6 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import kotlin.uuid.Uuid
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CancellationException
@@ -40,7 +42,6 @@ import platform.UniformTypeIdentifiers.UTTypePlainText
 import platform.UniformTypeIdentifiers.UTTypeTabSeparatedText
 import platform.darwin.NSObject
 import platform.posix.memcpy
-import kotlin.uuid.Uuid
 
 @Composable
 internal actual fun rememberDocumentActions(
@@ -65,7 +66,6 @@ private class IosDocumentActions(
     private var reading = false
     private var alive = true
     private val delegate = DocumentPickerDelegate(::picked, ::cancelled)
-
     override fun open() {
         if (controller != null) return
         reading = true
@@ -82,6 +82,8 @@ private class IosDocumentActions(
 
     override fun save(document: ExportDocument) = export(document, share = false)
     override fun share(document: ExportDocument) = export(document, share = true)
+
+    @OptIn(BetaInteropApi::class)
     private fun export(document: ExportDocument, share: Boolean) {
         if (controller != null) return
         reading = false
@@ -101,12 +103,14 @@ private class IosDocumentActions(
                 }
                 exported = url
                 if (!alive) {
-                    cleanup(); return@launch
+                    cleanup()
+                    return@launch
                 }
                 if (share) {
                     val sheet = UIActivityViewController(activityItems = listOf(url), applicationActivities = null)
                     sheet.completionWithItemsHandler = { _, completed, _, _ ->
-                        controller = null; cleanup()
+                        controller = null
+                        cleanup()
                         if (alive) onResult(if (completed) DocumentResult.Shared else DocumentResult.Cancelled)
                     }
                     present(sheet)
@@ -116,9 +120,11 @@ private class IosDocumentActions(
                         asCopy = true
                     ).also { it.delegate = delegate })
             } catch (e: CancellationException) {
-                cleanup(); throw e
+                cleanup()
+                throw e
             } catch (_: Exception) {
-                cleanup(); if (alive) onResult(DocumentResult.Failed("Couldn't export this file."))
+                cleanup()
+                if (alive) onResult(DocumentResult.Failed("Couldn't export this file."))
             }
         }
     }
@@ -127,10 +133,13 @@ private class IosDocumentActions(
         var presenter = UIApplication.sharedApplication.keyWindow?.rootViewController
         while (presenter?.presentedViewController != null) presenter = presenter.presentedViewController
         if (presenter == null) {
-            cleanup(); onResult(DocumentResult.Failed("Couldn't open file actions.")); return
+            cleanup()
+            onResult(DocumentResult.Failed("Couldn't open file actions."))
+            return
         }
         view.popoverPresentationController?.let {
-            it.sourceView = presenter.view; it.sourceRect = CGRectMake(0.0, 0.0, 1.0, 1.0)
+            it.sourceView = presenter.view
+            it.sourceRect = CGRectMake(0.0, 0.0, 1.0, 1.0)
         }
         controller = view
         presenter.presentViewController(view, animated = true, completion = null)
@@ -140,10 +149,16 @@ private class IosDocumentActions(
         this.controller = null
         if (!alive) return
         if (!reading) {
-            cleanup(); onResult(DocumentResult.Saved); return
+            cleanup()
+            onResult(DocumentResult.Saved)
+            return
         }
         val url = didPickDocumentsAtURLs.firstOrNull() as? NSURL
-            ?: run { onResult(DocumentResult.Failed("Couldn't open this file.")); return }
+        if (url == null) onResult(DocumentResult.Failed("Couldn't open this file.")) else readPickedFile(url)
+    }
+
+    @OptIn(BetaInteropApi::class)
+    private fun readPickedFile(url: NSURL) {
         scope.launch {
             try {
                 val document = withContext(Dispatchers.Default) {
@@ -171,7 +186,8 @@ private class IosDocumentActions(
     }
 
     private fun cancelled() {
-        this.controller = null; cleanup()
+        this.controller = null
+        cleanup()
         if (alive) onResult(DocumentResult.Cancelled)
     }
 
@@ -184,7 +200,8 @@ private class IosDocumentActions(
         alive = false
         (controller as? UIDocumentPickerViewController)?.delegate = null
         controller?.dismissViewControllerAnimated(false, null)
-        controller = null; cleanup()
+        controller = null
+        cleanup()
     }
 }
 
@@ -205,7 +222,8 @@ internal actual fun rememberImportHelpPreference(): ImportHelpPreference = remem
             private set
 
         override fun dismiss() {
-            seen = true; NSUserDefaults.standardUserDefaults.setBool(true, "movers.import-help.seen")
+            seen = true
+            NSUserDefaults.standardUserDefaults.setBool(true, "movers.import-help.seen")
         }
     }
 }

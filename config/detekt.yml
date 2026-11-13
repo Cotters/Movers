@@ -6,6 +6,8 @@ naming:
   FunctionNaming:
     # JUnit's backtick test names describe scenarios; Compose uses PascalCase.
     ignoreAnnotated: ['Composable', 'Test']
+    # Preserve the documented Compose/Swift exported controller factory name.
+    functionPattern: '[a-z][a-zA-Z0-9]*|MainViewController'
 
 complexity:
   TooManyFunctions:

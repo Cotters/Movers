@@ -1,6 +1,6 @@
 # Kotlin lint cleanup plan
 
-Owner authorized cleanup on 12 November 2026, including the existing working changes. Cleanup is in progress. Setup uses strict source-only Detekt; its reported failure is retained, with no suppression baseline. Do not claim the codebase is warning-free.
+Owner authorized cleanup on 12 November 2026, including existing working changes. Source cleanup completed on 13 November: **656 initial findings → zero** for the reviewed strict profile. CI enforcement is added. No baseline, broad suppression or relaxed application complexity limits. Android version/target advisories and live IDE/device verification limits remain explicit below.
 
 ## Starting evidence
 
@@ -15,9 +15,9 @@ Owner authorized cleanup on 12 November 2026, including the existing working cha
 | Cyclomatic complexity | 17 |
 | Other naming, structure and style rules | 76 |
 
-The new lint build scripts have no findings. Full reports are ignored under `tools/lint/build/reports/`; the latest private log is `/private/tmp/movers-kotlin-lint-final.log`. Reports describe a source snapshot, not a permanent debt count. Type-dependent rules such as unused imports are outside light-mode coverage.
+The new lint build scripts have no findings. Full reports are ignored under `tools/lint/build/reports/`; logs are local verification artifacts. Reports describe a source snapshot, not a permanent debt count. Type-dependent rules such as unused imports are outside light-mode coverage.
 
-## Proposed sequence
+## Approved sequence
 
 1. **Confirm findings and formatting access.** Re-read the current report and Git state. Inspect representative Compose factories, tests and numeric values before changing conventions; some findings may need narrowly justified configuration rather than code churn. Resolve IDE formatting access without closing the user's running IDE. Preserve existing user edits.
 2. **Mechanical fixes in small commits.** Start with final newlines, actual redundant parentheses, wildcard/unused imports and wrapping. Use Studio formatting/import tools for task-owned files/lines. Review each diff; do not rewrite strings or initializers merely to satisfy a line limit.
@@ -58,3 +58,11 @@ Completion requires zero findings for the agreed Detekt profile, resolved releva
 - Watchlist models: focus sorting/retry and saved-query suggestion ownership under the existing ViewModel scope/state; isolate local membership acknowledgement from shared revision waiting. Five files pass Studio formatting; affected host tasks pass. Strict lint reports **19 remaining**.
 
 - Import/search rendering: source/progress/review sections retain one lazy owner; platform/lifecycle hooks and modal search are explicit. Three files pass Studio formatting; affected host tasks pass. Strict lint reports **nine remaining**. Dedicated import/physical UI coverage remains deferred.
+
+## Completion evidence and limits
+
+- Final route/platform slice separates toolbar/menu, viewport/search, effects/dialogs, row/grid rendering and native file reads. Existing styling, callbacks, guards and transaction semantics are preserved; required NSData opt-ins are function-local. The exact exported `MainViewController` naming exception follows official CMP guidance.
+- Strict `scripts/check-code.sh 364b988` reaches zero findings; Studio formatting and manual imports/caller/architecture review cover changed source. No live IDE inspection bridge is available; light Detekt cannot establish absence of type-dependent IDE warnings.
+- `scripts/verify.sh` passes convention checks, existing host tests, Android lint and debug packaging. After removing 15 obsolete Android resources, `lintDebug :app:assembleDebug` passes; all three shared navigation assets remain packaged. Android lint has 16 target/dependency-version advisories, with no code/resource findings. Toolchain updates remain separate work; Room expect/actual Beta notices remain on fresh compilation.
+- `:shared:linkDebugFrameworkIosArm64` passes for physical-iOS code, including the final working catalogue opt-in removal. The missing pre-existing Swift host entry prevents claiming a full Xcode app build. Existing shared/movie device-test APKs compile; they were not executed. No devices, simulators or new test cases were used.
+- CI YAML parses and the local lint command passes. GitHub-hosted execution, physical UI acceptance and post-feature test expansion remain pending. Dedicated parser/import tests are still absent by the owner's current test policy.

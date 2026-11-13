@@ -1,32 +1,24 @@
 # Current handoff
 
-Updated 13 November 2026. Cleanup starts from `364b988`; owner authorized cleanup and including existing working changes. Prior feature/verification detail: [pre-cleanup handoff](history/2026-11-12-before-lint-cleanup.md).
+Updated 13 November 2026. **Kotlin source cleanup complete: 656 findings → zero** for the reviewed strict profile. Task base: `364b988`. Owner authorized cleanup and including working changes; the earlier title typography and latest catalogue opt-in removal are preserved. [Cleanup evidence/history](kotlin-lint-cleanup.md), [prior feature handoff](history/2026-11-12-before-lint-cleanup.md).
 
-## Active work: Kotlin hygiene cleanup
+## Current workflow and structure
 
-[Cleanup plan](kotlin-lint-cleanup.md) is in progress: **656 initial findings → 9 remaining**. Strict source lint still fails; no baseline, broad suppression, ignore-failure setting or relaxed application complexity limits. Intermediate cleanup commits are explicitly not lint-clean feature commits.
+- Before code commits: Studio formatting/import/diagnostic review, `scripts/check-code.sh`, full-function/caller and architecture review. Use the task-start commit after making task commits. [Code review](code-review.md).
+- CI now independently runs strict public-source Kotlin lint; Warning/Error findings fail it and reports persist after failure. No baseline, broad suppression or relaxed complexity thresholds. Exact factory naming follows official CMP interop guidance. Hosted CI has not run locally.
+- Parsing, cached film lookup, import receipt lifecycle, sorting and suggestions have focused models under the existing ViewModel scope/state. Shared cache/operation/activity/membership persistence is segregated without changing Room schema or transaction ownership. Feature-private route sections bind existing models/navigation; reusable controls retain value/event APIs.
+- `recoverableResult` propagates cancellation and fatal errors; callers retain domain mapping and `finally` cleanup. Returned cancellation failures also propagate at detail/removal boundaries. No new dependencies, backend deployment or feature behavior scope.
 
-Completed slices cover actual Studio formatting, declaration/syntax cleanup, document codecs, named limits, shared-control responsibilities, membership waits and existing migration fixture organization. The owner's title typography was included as authorized in `74dd5fb`. Later commits and evidence are in the cleanup plan/Git.
+## Latest verification
 
-Latest slice separates import source/progress/review content, native-document and lifecycle hooks, and the manual-resolution sheet. It retains one lazy scrolling owner and existing keyboard/actions. Import count text is derived state. Search separates load/error states from result rows with existing callbacks. No intended layout/interaction changes.
+- `scripts/check-code.sh 364b988`: mechanical checks and source-only Detekt pass with zero findings. Studio validates changed Kotlin files; live IDE inspections remain unavailable.
+- `scripts/verify.sh`: convention checks, existing host suites, Android lint and debug packaging pass. Removing obsolete Android resources was followed by `lintDebug :app:assembleDebug`; the APK retains all shared navigation icons. Android lint has **16 target/dependency advisories**, no code/resource findings. Room's expect/actual Beta notices remain on fresh compilation.
+- `:shared:linkDebugFrameworkIosArm64`: physical-iOS framework links, including the working catalogue edit. Required NSData opt-ins are explicit. Full Xcode host build remains unverified because pre-existing `iosApp/MoversApp.swift` is absent; preserve its earlier deletion.
+- `:shared:assembleAndroidDeviceTest :movie:internal:assembleAndroidDeviceTest`: existing test APKs compile only. No instrumentation/device/simulator execution or new cases. Dedicated import/parser coverage remains deferred; broader existing suites do not prove those edge cases.
+- Workflow YAML parses; hosted CI and physical Android/iPhone visual acceptance remain pending.
 
-The Studio formatter works alongside the user's IDE using isolated ignored directories in `build/quality/studio-formatter`; serialize its invocations. Explicit `STUDIO_PROPERTIES` overrides remain supported. Canonical code gate is `scripts/check-code.sh 364b988`; inspect exact staged content and report remaining lint failure. Type-aware IDE inspections are unavailable; source-only lint cannot prove unused imports or all compiler warnings absent.
+## Preserve and next action
 
-## Behavior to preserve
+Preserve Add/Pin full swipes and tap-only Remove with delayed-write Undo; original pending receipts/credit/activity; Home ×1.33 / watchlist ×1.20 posters, 2:3 ratios and bottom alignment; bottom-right contributor footers; saved queries/sorts/pins; cancellation, installation identity and preserving Room migrations. [Swipe behavior](../features/swipe-actions.md), [organization](../features/watchlist-organization.md), [shared lists](../features/shared-watchlists.md).
 
-- Full Add/Pin swipes arm at 65% of row width (at least two action widths) and act on release. Short gestures reveal; Remove is reveal-and-tap with delayed-write Undo. Cancellation/disabled actions cannot fire. [Swipe design](../features/swipe-actions.md).
-- Posters retain Home ×1.33 / watchlist ×1.20 widths, 2:3 ratios and bottom alignment; contributor avatars use bottom-right footers below details with attribution taps. Keep the owner's title typography.
-- Sorting, five local pins and film-search suggestions retain saved/query/scroll state. Preserve cancellation, installation identity, persisted relationships, failure/retry handling and Room migrations. [Organization](../features/watchlist-organization.md), [shared lists](../features/shared-watchlists.md).
-
-## Latest verification and next action
-
-- Import/search screen slice: three changed Kotlin files pass Studio formatting; mechanical checks pass; strict source lint reports nine remaining. Existing watchlist/search/shared host tasks pass. No new cases or devices; dedicated import coverage remains absent.
-- Watchlist-model slice (`e7ada2d`) passed affected host tasks; sorting/suggestions share the existing state, scope and saved query.
-- Detail/navigation slice (`29c23e0`) passed affected detail/shared host tasks; physical visual acceptance remains pending.
-- Command/resolver slice (`652f147`) passed affected repository/shared host tasks. Native network-observer wrapping awaits cumulative iOS compilation.
-- Import-model slice (`89af7ba`) passed affected watchlist/shared host tasks. Input/lookup/session models share one state and ViewModel scope, retaining pending receipts and cancellation generations. Dedicated import coverage remains absent/deferred.
-- Joining/small-screen slice (`5a8edcc`) passed affected watchlist/styleguide/shared host tasks. Entry-owned joining remains separate from existing-list sharing/activity.
-- Recoverable-error slice (`3376203`) passed the complete existing Android host suite. `recoverableResult` rethrows cancellation/fatal errors; caller messages/mapping and `finally` cleanup stay local. Returned cancellation failures also propagate at detail/removal boundaries.
-- DAO/cache slice previously passed generated Room compilation and affected host suites; exported schema is unchanged. Compiler still emits existing library/beta/deprecation warnings; no claim of zero type-aware warnings.
-- Document parser has no dedicated existing test suite; compilation/source review are the evidence, not runtime edge-case coverage. Expansion remains deferred by owner policy.
-- Next: simplify error boundaries and remaining oversized/complex UI/import functions, finish genuine findings, verify cumulative Android/iOS compilation, then enforce the clean profile in CI. Existing missing `iosApp/MoversApp.swift` remains an app-link prerequisite; preserve its earlier deletion. Physical Android/iPhone acceptance stays user-owned; never use emulators/simulators.
+Read the first unchecked private Todo and agree the next feature scope. Compatibility advisories are separate maintenance work. People verify watchlist menu/edit/search, short-list padding, poster/avatar layout and swipe Undo on physical devices; agents never launch emulators/simulators. Keep private Notes/config/logs untracked and preserve Human.md feedback.

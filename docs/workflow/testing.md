@@ -139,6 +139,8 @@ Record the command, date, source revision/working-tree state, result, and remain
 
 `.github/workflows/android.yml` runs on pull requests, pushes to `main`, and manual dispatch. Ubuntu 24.04 with Temurin 17 installs the required SDK packages, creates the ignored placeholder constant on the disposable runner, and invokes `./scripts/verify.sh`. It needs no TMDB/Supabase credentials. Java setup caches Gradle dependencies; report artifacts are retained for seven days, including available reports after failure. APKs are not published.
 
+An independent **Kotlin source lint** job runs `./scripts/lint-kotlin.sh` with JDK 17, without an Android SDK or credential placeholder. Warning/Error findings fail it; ignored Detekt XML/HTML reports are uploaded for seven days even after failure. Local `check-code.sh` also performs task-scoped mechanical review; CI source lint does not replace formatter, imports, diagnostics or manual SOLID review.
+
 The workflow does not change repository branch protection or run deployments. A local passing check and workflow validation do not establish a successful GitHub run.
 
 ## Physical-device handoff
