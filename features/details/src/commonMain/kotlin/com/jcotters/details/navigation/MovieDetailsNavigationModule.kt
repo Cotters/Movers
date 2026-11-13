@@ -23,6 +23,8 @@ import com.jcotters.watchlists.navigation.AddToListsKey
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+private const val IMAGE_FADE_MILLIS = 250
+
 object MovieDetailsNavigationModule {
     fun provideEntries(): EntryProviderInstaller = { navigator, stackId ->
         entry<MovieDetailsKey> { key ->
@@ -54,9 +56,25 @@ object MovieDetailsNavigationModule {
             )
         }
         entry<MovieImageKey>(
-            metadata = NavDisplay.transitionSpec { fadeIn(tween(250)) togetherWith fadeOut(tween(250)) } +
-                NavDisplay.popTransitionSpec { fadeIn(tween(250)) togetherWith fadeOut(tween(250)) } +
-                NavDisplay.predictivePopTransitionSpec { _ -> fadeIn(tween(250)) togetherWith fadeOut(tween(250)) },
+            metadata = NavDisplay.transitionSpec {
+                fadeIn(tween(IMAGE_FADE_MILLIS)) togetherWith fadeOut(
+                    tween(
+                        IMAGE_FADE_MILLIS
+                    )
+                )
+            } +
+                NavDisplay.popTransitionSpec {
+                    fadeIn(tween(IMAGE_FADE_MILLIS)) togetherWith fadeOut(
+                        tween(
+                            IMAGE_FADE_MILLIS
+                        )
+                    )
+                } +
+                NavDisplay.predictivePopTransitionSpec { _ ->
+                    fadeIn(tween(IMAGE_FADE_MILLIS)) togetherWith fadeOut(
+                        tween(IMAGE_FADE_MILLIS)
+                    )
+                },
         ) { key ->
             val viewModel: MovieImageViewModel = koinViewModel { parametersOf(key.movieId, key.imageType) }
             val state by viewModel.uiState.collectAsStateWithLifecycle()

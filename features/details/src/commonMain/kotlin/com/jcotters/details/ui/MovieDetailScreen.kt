@@ -76,6 +76,8 @@ import com.jcotters.presentation.resources.arrow_back
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
+private const val MINUTES_PER_HOUR = 60
+
 @Composable
 fun MovieDetailScreen(
     onViewEvent: (MovieDetailViewEvent) -> Unit,
@@ -386,9 +388,9 @@ private fun DetailPlaceholder(label: String, opacity: State<Float>) {
 }
 
 internal fun formatRuntime(minutes: Int): String = when {
-    minutes < 60 -> "$minutes min"
-    minutes % 60 == 0 -> "${minutes / 60}h"
-    else -> "${minutes / 60}h ${minutes % 60}m"
+    minutes < MINUTES_PER_HOUR -> "$minutes min"
+    minutes % MINUTES_PER_HOUR == 0 -> "${minutes / MINUTES_PER_HOUR}h"
+    else -> "${minutes / MINUTES_PER_HOUR}h ${minutes % MINUTES_PER_HOUR}m"
 }
 
 internal fun formatRating(movie: Movie?): String? = when {

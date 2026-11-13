@@ -10,6 +10,8 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
+private const val GCM_TAG_BITS = 128
+
 fun createAndroidBackend(context: Context, url: String, key: String): SupabaseBackend =
     SupabaseBackend(url, key, AndroidCredentials(context.applicationContext))
 
@@ -37,7 +39,7 @@ private class AndroidCredentials(context: Context) : SecureCredentialStore {
         if (value == null) return null
         val parts = value.split(':')
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, Base64.decode(parts[0], Base64.NO_WRAP)))
+        cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(GCM_TAG_BITS, Base64.decode(parts[0], Base64.NO_WRAP)))
         return cipher.doFinal(Base64.decode(parts[1], Base64.NO_WRAP)).toString(Charsets.UTF_8)
     }
 

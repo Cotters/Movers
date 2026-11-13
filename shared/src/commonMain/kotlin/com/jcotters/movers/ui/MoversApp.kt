@@ -39,6 +39,8 @@ import com.jcotters.presentation.LocalMovieTransitionScope
 import com.jcotters.watchlists.ui.WatchlistUndoMessages
 import org.koin.compose.viewmodel.koinViewModel
 
+private const val TAB_FADE_MILLIS = 220
+
 @Composable
 fun MoversApp(installers: Set<EntryProviderInstaller>) {
     val viewModel: AppViewModel = koinViewModel()
@@ -142,4 +144,4 @@ private fun AnimatedContentTransitionScope<Scene<NavKey>>.changesTab(): Boolean 
     return from != null && to != null && from != to
 }
 
-private fun tabFade(): ContentTransform = fadeIn(tween(220)) togetherWith fadeOut(tween(220))
+private fun tabFade(): ContentTransform = fadeIn(tween(TAB_FADE_MILLIS)) togetherWith fadeOut(tween(TAB_FADE_MILLIS))

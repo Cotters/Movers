@@ -25,6 +25,8 @@ import com.jcotters.database.watchlists.WatchlistDao
 import com.jcotters.database.watchlists.WatchlistMigration7To8
 import kotlin.coroutines.CoroutineContext
 
+private const val LAST_ACCOUNT_DATABASE_VERSION = 6
+
 @Database(
     entities = [
         DeviceProfile::class,
@@ -61,5 +63,5 @@ fun createDatabase(builder: RoomDatabase.Builder<MoversDatabase>, queryContext: 
         .setQueryCoroutineContext(queryContext)
         .addMigrations(WatchlistMigration7To8, SharedMigration8To9, RemoveBookmarksMigration9To10)
         // One-time, explicitly authorized reset from the retired account-based app.
-        .fallbackToDestructiveMigrationFrom(true, 1, 2, 3, 4, 5, 6)
+        .fallbackToDestructiveMigrationFrom(true, *(1..LAST_ACCOUNT_DATABASE_VERSION).toList().toIntArray())
         .build()

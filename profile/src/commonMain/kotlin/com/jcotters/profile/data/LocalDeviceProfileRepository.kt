@@ -10,6 +10,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.uuid.Uuid
 
+private const val MAX_PROFILE_NAME_LENGTH = 80
+private const val AVATAR_COLOR_COUNT = 8
+
 internal class LocalDeviceProfileRepository(
     private val dao: DeviceProfileDao,
     private val identity: ParticipantIdentity? = null,
@@ -20,14 +23,14 @@ internal class LocalDeviceProfileRepository(
 
     override suspend fun saveName(name: String): Unit = edits.withLock {
         val valid = name.trim()
-        require(valid.isNotEmpty() && valid.length <= 80) { "Enter a name of 1–80 characters." }
+        require(valid.isNotEmpty() && valid.length <= MAX_PROFILE_NAME_LENGTH) { "Enter a name of 1–80 characters." }
         val existing = checkNotNull(dao.get())
         if (identity?.configured == true && identity.currentId() != null) identity.update(valid, existing.color)
         dao.saveName(valid)
     }
 
     override suspend fun saveColor(color: Int): Unit = edits.withLock {
-        require(color in 0..7) { "Choose an avatar colour." }
+        require(color in 0 until AVATAR_COLOR_COUNT) { "Choose an avatar colour." }
         val existing = checkNotNull(dao.get())
         if (existing.color != color) {
             if (identity?.configured == true && identity.currentId() != null) {
@@ -43,7 +46,7 @@ internal class LocalDeviceProfileRepository(
                 DeviceProfile(
                     installationId = Uuid.random().toString(),
                     displayName = "",
-                    color = kotlin.random.Random.nextInt(8)
+                    color = kotlin.random.Random.nextInt(AVATAR_COLOR_COUNT)
                 )
             )
         }

@@ -6,6 +6,7 @@ import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.watchlists.data.FilmReference
 import com.jcotters.contract.watchlists.data.FilmResolution
 import com.jcotters.contract.watchlists.data.ImportDisposition
+import com.jcotters.contract.watchlists.data.MAX_IMPORT_BATCH_SIZE
 import com.jcotters.contract.watchlists.data.MovieImportResolver
 import com.jcotters.contract.watchlists.data.MovieLookupException
 import com.jcotters.contract.watchlists.data.SharedFilm
@@ -31,6 +32,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private const val PARSE_DEBOUNCE_MILLIS = 250L
+private const val LOOKUP_RETRY_MILLIS = 1000L
 
 internal enum class ImportRowState { Ready, LookingUp, Resolved, Pending, Imported, Skipped, Review, Failed }
 internal data class ImportRow(
@@ -222,7 +226,7 @@ internal class FilmImportViewModel(
     private fun parse() {
         parser?.cancel()
         state.update { it.copy(parsing = true, error = null) }
-        parser = viewModelScope.launch { delay(250); parseNow() }
+        parser = viewModelScope.launch { delay(PARSE_DEBOUNCE_MILLIS); parseNow() }
     }
 
     private suspend fun parseNow() {
@@ -295,7 +299,7 @@ internal class FilmImportViewModel(
                     var lookupFailed = false
                     val next =
                         if (resolveOnly) emptyList() else state.value.rows.filter { it.status == ImportRowState.Ready }
-                            .take(50)
+                            .take(MAX_IMPORT_BATCH_SIZE)
                     for (pair in next.groupBy { it.input.reference }.entries.chunked(2)) {
                         val results = coroutineScope {
                             pair.map { (reference, rows) ->
@@ -363,7 +367,7 @@ internal class FilmImportViewModel(
             try {
                 return resolver.resolve(reference).also { matches[reference] = it }
             } catch (e: MovieLookupException) {
-                if (attempt == 1) throw e; delay(e.retryAfterMillis ?: 1000)
+                if (attempt == 1) throw e; delay(e.retryAfterMillis ?: LOOKUP_RETRY_MILLIS)
             }
         }
         error("Lookup did not complete")
@@ -377,7 +381,7 @@ internal class FilmImportViewModel(
             state.value.rows.filter { it.status == ImportRowState.Imported || it.status == ImportRowState.Skipped }
                 .mapNotNull { it.movie?.id }.toMutableSet()
         val selected = mutableListOf<ImportRow>()
-        state.value.rows.filter { it.status == ImportRowState.Resolved }.take(50).forEach { row ->
+        state.value.rows.filter { it.status == ImportRowState.Resolved }.take(MAX_IMPORT_BATCH_SIZE).forEach { row ->
             val movie = checkNotNull(row.movie)
             when {
                 !handled.add(movie.id) -> update(row.id) {

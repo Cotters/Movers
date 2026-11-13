@@ -8,6 +8,8 @@ import com.jcotters.database.movies.DbMovieGenre
 import com.jcotters.internal.catalogue.data.models.CatalogueMovieDto
 import com.jcotters.internal.detail.data.models.MovieDto
 
+private const val MAX_MOVIE_RATING = 10.0
+
 internal class MovieMapper {
     fun toDatabaseModel(dto: MovieDto, fetchedAt: Long): DbMovie? {
         val id = dto.id ?: return null
@@ -84,5 +86,5 @@ internal class MovieMapper {
         } else image
     }
 
-    private fun validRating(rating: Double?): Double? = rating?.takeIf { it.isFinite() && it in 0.0..10.0 }
+    private fun validRating(rating: Double?): Double? = rating?.takeIf { it.isFinite() && it in 0.0..MAX_MOVIE_RATING }
 }

@@ -1,15 +1,16 @@
 package com.jcotters.internal.watchlists
 
 import com.jcotters.contract.time.AppClock
+import com.jcotters.contract.watchlists.data.MAX_IMPORT_BATCH_SIZE
 import com.jcotters.contract.watchlists.data.WatchlistDatabase
 import com.jcotters.contract.watchlists.data.WatchlistRecord
 import com.jcotters.contract.watchlists.domain.IWatchlistsRepository
 import com.jcotters.contract.watchlists.domain.Watchlist
 import com.jcotters.contract.watchlists.domain.WatchlistContent
 import com.jcotters.contract.watchlists.domain.WatchlistNotFoundException
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.map
-import kotlin.uuid.Uuid
 
 internal class WatchlistsRepository(private val database: WatchlistDatabase, private val clock: AppClock) :
     IWatchlistsRepository {
@@ -45,7 +46,7 @@ internal class WatchlistsRepository(private val database: WatchlistDatabase, pri
         listId: String,
         films: List<com.jcotters.contract.watchlists.data.SharedFilm>
     ) = write("Unable to import these films. Retry when connected.") {
-        require(films.size in 1..50 && films.all { it.id > 0 }) { "Choose up to 50 valid films per batch." }
+        require(films.size in 1..MAX_IMPORT_BATCH_SIZE && films.all { it.id > 0 }) { "Choose up to 50 valid films per batch." }
         database.importMovies(requestId, listId, films.distinctBy { it.id }, clock.millis())
     }
 

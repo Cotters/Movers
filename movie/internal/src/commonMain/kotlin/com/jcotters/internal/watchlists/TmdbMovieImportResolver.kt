@@ -14,6 +14,10 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
 
+private const val MILLIS_PER_SECOND = 1000L
+private const val MAX_RETRY_MILLIS = 30_000L
+private const val DEFAULT_RETRY_MILLIS = 2000L
+
 internal class TmdbMovieImportResolver(
     private val api: MovieApi,
     private val dao: MovieDao,
@@ -76,8 +80,9 @@ internal class TmdbMovieImportResolver(
         throw error
     } catch (error: ClientRequestException) {
         if (error.response.status == HttpStatusCode.TooManyRequests) {
-            val wait = error.response.headers["Retry-After"]?.toLongOrNull()?.times(1000)?.coerceIn(1000, 30_000)
-            throw MovieLookupException("Movie search is busy. Retry shortly.", wait ?: 2000)
+            val wait = error.response.headers["Retry-After"]?.toLongOrNull()?.times(MILLIS_PER_SECOND)
+                ?.coerceIn(MILLIS_PER_SECOND, MAX_RETRY_MILLIS)
+            throw MovieLookupException("Movie search is busy. Retry shortly.", wait ?: DEFAULT_RETRY_MILLIS)
         }
         throw MovieLookupException("Unable to look up films. Retry when connected.")
     } catch (_: Exception) {

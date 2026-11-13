@@ -4,6 +4,8 @@ import com.jcotters.contract.watchlists.data.FilmActivity
 import com.jcotters.contract.watchlists.data.InvitePreview
 import kotlinx.coroutines.flow.Flow
 
+private const val INVITATION_TOKEN_LENGTH = 64
+
 data class SharedSyncStatus(val refreshing: Boolean = false, val checkedAt: Long? = null, val error: String? = null)
 
 interface ISharedWatchlistsRepository {
@@ -23,7 +25,7 @@ interface ISharedWatchlistsRepository {
 object WatchlistInvitation {
     fun token(value: String): String {
         val token = value.trim().removePrefix("movers://join/")
-        require(token.length == 64 && token.all { it in '0'..'9' || it in 'a'..'f' }) { "Enter a valid Movers invitation link." }
+        require(token.length == INVITATION_TOKEN_LENGTH && token.all { it in '0'..'9' || it in 'a'..'f' }) { "Enter a valid Movers invitation link." }
         return token
     }
 

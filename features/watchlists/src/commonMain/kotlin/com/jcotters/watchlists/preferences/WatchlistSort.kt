@@ -2,6 +2,9 @@ package com.jcotters.watchlists.preferences
 
 import com.jcotters.contract.detail.domain.models.Movie
 
+private const val MAX_MOVIE_RATING = 10.0
+private const val RELEASE_YEAR_LENGTH = 4
+
 private val releaseDatePattern = Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
 internal enum class WatchlistSortField(val label: String) {
@@ -38,13 +41,13 @@ internal data class WatchlistSort(
     }
 
     private fun rating(movie: Movie): Double? = movie.voteAverage?.takeIf {
-        it.isFinite() && it in 0.0..10.0 && movie.voteCount != 0
+        it.isFinite() && it in 0.0..MAX_MOVIE_RATING && movie.voteCount != 0
     }
 
     private fun releaseDate(movie: Movie): String? {
         val date = movie.releaseDate
         if (!date.matches(releaseDatePattern)) return null
-        val year = date.take(4).toInt()
+        val year = date.take(RELEASE_YEAR_LENGTH).toInt()
         val month = date.substring(5, 7).toInt()
         val day = date.takeLast(2).toInt()
         if (year == 0 || month !in 1..12) return null

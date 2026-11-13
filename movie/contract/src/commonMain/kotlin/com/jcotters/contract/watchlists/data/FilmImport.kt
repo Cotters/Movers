@@ -3,6 +3,8 @@ package com.jcotters.contract.watchlists.data
 import com.jcotters.contract.detail.domain.models.Movie
 import kotlinx.serialization.Serializable
 
+const val MAX_IMPORT_BATCH_SIZE = 50
+
 data class FilmReference(
     val title: String = "",
     val year: Int? = null,
