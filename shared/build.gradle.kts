@@ -54,6 +54,7 @@ kotlin {
             dependencies {
                 implementation(libs.ktor.client.mock)
                 implementation(libs.androidx.sqlite.framework)
+                implementation(libs.androidx.paging.compose)
             }
         }
         named("androidDeviceTest") {

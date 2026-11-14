@@ -2,10 +2,6 @@ package com.jcotters.details.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -64,7 +59,9 @@ import androidx.compose.ui.unit.sp
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.MovieGenre
 import com.jcotters.designsystem.MoversIconButton
+import com.jcotters.designsystem.MoversLoadingPlaceholder
 import com.jcotters.designsystem.MoversTextButton
+import com.jcotters.designsystem.rememberMoversLoadingOpacity
 import com.jcotters.details.navigation.MovieImageType
 import com.jcotters.presentation.MoverImageView
 import com.jcotters.presentation.movieBackdropKey
@@ -94,13 +91,7 @@ fun MovieDetailScreen(
     val loading = viewState.isLoading || viewState.isRefreshingDetails
     val loadingMissingDetails = loading && movie?.detailsFetchedAt == null
     val placeholderAlpha = if (loadingMissingDetails) {
-        val transition = rememberInfiniteTransition(label = "Detail loading")
-        transition.animateFloat(
-            initialValue = 0.35f,
-            targetValue = 0.7f,
-            animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
-            label = "Placeholder opacity",
-        )
+        rememberMoversLoadingOpacity()
     } else remember { mutableFloatStateOf(0.35f) }
 
     Surface(modifier = modifier.fillMaxSize()) {
@@ -306,10 +297,9 @@ private fun DetailValue(
 
 @Composable
 private fun DetailPlaceholder(label: String, opacity: State<Float>) {
-    Spacer(
-        modifier = Modifier.fillMaxWidth(0.65f).height(20.dp).clip(RoundedCornerShape(6.dp))
-            .graphicsLayer { alpha = opacity.value }
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+    MoversLoadingPlaceholder(
+        opacity = opacity,
+        modifier = Modifier.fillMaxWidth(0.65f).height(20.dp)
             .semantics { contentDescription = "Loading $label" })
 }
 

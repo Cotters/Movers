@@ -37,6 +37,7 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.contract.detail.domain.models.PreviewMovies
@@ -138,13 +139,9 @@ private fun PopularMoviesContent(
     val refreshState = movies.loadState.refresh
 
     when {
-        refreshState is LoadState.Error && movies.itemCount == 0 -> {
-            val error = refreshState.error
-            ErrorItem(
-                message = error.message ?: "Failed to load movies",
-                onRetry = movies::retry,
-            )
-        }
+        // Load state can become NotLoading before the first item snapshot arrives. Never attach
+        // restored scroll state to a header/footer-only layout: it clamps the saved index to zero.
+        movies.itemCount == 0 -> EmptyCatalogueContent(movies, showGrid, modifier)
 
         showGrid -> PopularMoviesGrid(movies, gridState, onMovieTapped, posterModifier, onAddToList, modifier)
 
@@ -152,18 +149,21 @@ private fun PopularMoviesContent(
             state = listState,
             modifier = modifier.fillMaxSize().padding(horizontal = 8.dp),
         ) {
-            stickyHeader(key = "heading") { CatalogueHeading() }
+            stickyHeader(key = "heading", contentType = "heading") { CatalogueHeading() }
             if (refreshState is LoadState.Error) {
-                item(key = "refresh-error") {
+                item(key = "refresh-error", contentType = "status") {
                     CatalogueRefreshError(movies::retry)
                 }
             }
             items(
                 count = movies.itemCount,
                 key = movies.itemKey(Movie::id),
+                contentType = movies.itemContentType { "movie" },
             ) { index ->
-                val movie = movies[index] ?: return@items
-                MovieSwipeActions(
+                val movie = movies[index]
+                if (movie == null) {
+                    CatalogueMoviePlaceholder(grid = false)
+                } else MovieSwipeActions(
                     movieTitle = movie.title,
                     onOpen = { onMovieTapped(movie.id) },
                     onAddToList = onAddToList?.let { add -> { add(movie.id) } },
@@ -171,7 +171,7 @@ private fun PopularMoviesContent(
                     Column(swipeModifier) {
                         MovieListRow(
                             movie = movie,
-                            posterWidth = 96.dp * 1.33f,
+                            posterWidth = cataloguePosterWidth,
                             modifier = Modifier.fillMaxWidth(),
                             posterModifier = posterModifier(movie),
                             onOpen = openMovie,
@@ -180,7 +180,24 @@ private fun PopularMoviesContent(
                     }
                 }
             }
-            item(key = "append-state") {
+            item(key = "append-state", contentType = "status") {
+                CatalogueAppendState(movies.loadState.append, movies::retry)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyCatalogueContent(movies: LazyPagingItems<Movie>, showGrid: Boolean, modifier: Modifier) {
+    val refreshState = movies.loadState.refresh
+    if (refreshState is LoadState.Error) {
+        ErrorItem(refreshState.error.message ?: "Failed to load movies", movies::retry, modifier)
+    } else {
+        Column(modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = if (showGrid) 8.dp else 0.dp)) {
+            CatalogueHeading()
+            if (refreshState is LoadState.Loading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LinearProgressIndicator() }
+            } else {
                 CatalogueAppendState(movies.loadState.append, movies::retry)
             }
         }

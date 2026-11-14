@@ -40,8 +40,8 @@ targets:
       base:
         CODE_SIGN_ENTITLEMENTS: Movers.entitlements
         PRODUCT_BUNDLE_IDENTIFIER: com.jcotters.movers
-        CURRENT_PROJECT_VERSION: 4
-        MARKETING_VERSION: '0.3.0'
+        CURRENT_PROJECT_VERSION: 5
+        MARKETING_VERSION: '0.3.1'
         SWIFT_VERSION: '5.0'
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: Apple Development

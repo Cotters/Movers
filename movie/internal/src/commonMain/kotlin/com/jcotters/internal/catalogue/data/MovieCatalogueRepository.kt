@@ -29,7 +29,8 @@ internal class MovieCatalogueRepository(
         return Pager(
             config = PagingConfig(
                 pageSize = PAGE_SIZE,
-                enablePlaceholders = false,
+                // Room refreshes around an anchor; counted slots keep that anchor absolute across invalidations.
+                enablePlaceholders = true,
                 prefetchDistance = PREFETCH_DISTANCE,
             ),
             remoteMediator = popularMoviesRemoteMediator,

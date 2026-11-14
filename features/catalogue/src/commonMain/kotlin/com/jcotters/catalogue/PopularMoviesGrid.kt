@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.jcotters.contract.detail.domain.models.Movie
 import com.jcotters.presentation.AddToListButton
@@ -39,15 +40,21 @@ internal fun PopularMoviesGrid(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        stickyHeader(key = "heading") { CatalogueHeading() }
+        stickyHeader(key = "heading", contentType = "heading") { CatalogueHeading() }
         if (movies.loadState.refresh is LoadState.Error) {
-            item(key = "refresh-error", span = { GridItemSpan(maxLineSpan) }) {
+            item(key = "refresh-error", contentType = "status", span = { GridItemSpan(maxLineSpan) }) {
                 CatalogueRefreshError(movies::retry)
             }
         }
-        items(count = movies.itemCount, key = movies.itemKey(Movie::id)) { index ->
-            val movie = movies[index] ?: return@items
-            MoviePosterCard(
+        items(
+            count = movies.itemCount,
+            key = movies.itemKey(Movie::id),
+            contentType = movies.itemContentType { "movie" },
+        ) { index ->
+            val movie = movies[index]
+            if (movie == null) {
+                CatalogueMoviePlaceholder(grid = true)
+            } else MoviePosterCard(
                 movie = movie,
                 posterModifier = posterModifier(movie),
                 onOpen = { onMovieTapped(movie.id) },
@@ -62,7 +69,7 @@ internal fun PopularMoviesGrid(
                 },
             )
         }
-        item(key = "append-state", span = { GridItemSpan(maxLineSpan) }) {
+        item(key = "append-state", contentType = "status", span = { GridItemSpan(maxLineSpan) }) {
             CatalogueAppendState(movies.loadState.append, movies::retry)
         }
     }

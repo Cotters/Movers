@@ -26,11 +26,12 @@ internal class MoversUiFixture(
         ApplicationProvider.getApplicationContext()
     )
         .setDriver(AndroidSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).build(),
+    private val pagedCatalogue: PagedCatalogueFixture? = null,
 ) : AutoCloseable {
     @Volatile
     var failSearch = false
     private val client = HttpClient(MockEngine { request ->
-        val body = when (request.url.encodedPath) {
+        val body = pagedCatalogue?.respond(request.url) ?: when (request.url.encodedPath) {
             "/3/discover/movie" -> """{"page":1,"total_pages":1,"results":[$catalogueMovie]}"""
             "/3/search/movie" -> {
                 if (failSearch) return@MockEngine respond("Unavailable", HttpStatusCode.ServiceUnavailable)
@@ -59,6 +60,7 @@ internal class MoversUiFixture(
 
     init {
         kotlinx.coroutines.runBlocking {
+            pagedCatalogue?.seed(database)
             if (database.profileDao().get() == null) database.profileDao().insert(
                 com.jcotters.database.profile.DeviceProfile(
                     installationId = "fixture",
