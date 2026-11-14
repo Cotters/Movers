@@ -23,6 +23,7 @@ targets:
       path: Info.plist
       properties:
         CFBundleDisplayName: $(APP_DISPLAY_NAME)
+        LSApplicationCategoryType: public.app-category.entertainment
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         ITSAppUsesNonExemptEncryption: false

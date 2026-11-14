@@ -2,6 +2,8 @@
 
 Use the tracked `iosApp/Movers.xcodeproj` and **Movers** scheme. The app minimum is **iOS 16.0** in both `iosApp/project.yml` and the Xcode project. Keep them aligned; review generated changes when using XcodeGen. The Swift entry point, `iosApp/MoversApp.swift`, initializes shared services, embeds Compose and forwards invitation links. Keep it tracked.
 
+The on-device display name is **Movers**, set through `APP_DISPLAY_NAME` in `iosApp/Configuration.xcconfig` and referenced by the explicit plist/XcodeGen spec. Update that source rather than adding a competing `INFOPLIST_KEY_CFBundleDisplayName` build setting. The explicit plist/spec use the Entertainment application category; the App Store primary category is a separate App Store Connect setting, also Entertainment.
+
 ## Compile verification
 
 Use macOS, full Xcode with the iOS device SDK, and JDK 17. Configure your own ignored `iosApp/Local.xcconfig` using its example for live data and signing. Placeholder configuration permits compilation only. See [platform setup](multiplatform.md#configure-and-build).

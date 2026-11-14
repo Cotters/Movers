@@ -8,21 +8,21 @@
 
 /* Begin PBXBuildFile section */
 		0103E6780E29EE229F5BF011 /* MoversNotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC3ED12909C6DBB49E6A326 /* MoversNotificationDelegate.swift */; };
-		5A946EA26FF5246359132C21 /* PushEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FDEA8641B1959BA9EA7CFAB /* PushEnvironment.swift */; };
 		59B618B70C9A17F989359ACF /* MoversApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC4194EACF23703EA75FD79 /* MoversApp.swift */; };
-		BC8900BBCD8D42161247835C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D43F3B04B1828D884BD9C4 /* Assets.xcassets */; };
+		5A946EA26FF5246359132C21 /* PushEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FDEA8641B1959BA9EA7CFAB /* PushEnvironment.swift */; };
 		9A2B74F4C1494C93B626B007 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7B6F25B4C37D4B21835F5D0A /* PrivacyInfo.xcprivacy */; };
+		BC8900BBCD8D42161247835C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D43F3B04B1828D884BD9C4 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CCC3ED12909C6DBB49E6A326 /* MoversNotificationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoversNotificationDelegate.swift; sourceTree = "<group>"; };
-		1FDEA8641B1959BA9EA7CFAB /* PushEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEnvironment.swift; sourceTree = "<group>"; };
 		1825CCFDE76F44E386E8CB07 /* Movers.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Movers.entitlements; sourceTree = "<group>"; };
 		18D43F3B04B1828D884BD9C4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1FDEA8641B1959BA9EA7CFAB /* PushEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushEnvironment.swift; sourceTree = "<group>"; };
 		3C58815FABE728854B196125 /* Configuration.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Configuration.xcconfig; sourceTree = "<group>"; };
 		3DC4194EACF23703EA75FD79 /* MoversApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoversApp.swift; sourceTree = "<group>"; };
-		F2EB21A0273F07B73A15154C /* Movers.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Movers.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B6F25B4C37D4B21835F5D0A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		CCC3ED12909C6DBB49E6A326 /* MoversNotificationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoversNotificationDelegate.swift; sourceTree = "<group>"; };
+		F2EB21A0273F07B73A15154C /* Movers.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Movers.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -88,7 +88,9 @@
 				TargetAttributes = {
 					265A1B4AEF666E7CB4422DE6 = {
 						SystemCapabilities = {
-							com.apple.Push = {enabled = 1;};
+							com.apple.Push = {
+								enabled = 1;
+							};
 						};
 					};
 				};
@@ -195,7 +197,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -222,9 +223,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Movers.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CODE_SIGN_ENTITLEMENTS = Movers.entitlements;
 				CURRENT_PROJECT_VERSION = 4;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -287,7 +288,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -321,9 +321,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Movers.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CODE_SIGN_ENTITLEMENTS = Movers.entitlements;
 				CURRENT_PROJECT_VERSION = 4;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
