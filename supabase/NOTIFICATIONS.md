@@ -22,6 +22,12 @@ The [agreed behavior](../docs/features/watchlist-notifications.md) uses the exis
 4. Deploy `watchlist-notifications`. Its JWT gateway check is disabled intentionally; the handler checks `PUSH_DISPATCH_SECRET` before any privileged operation. Public/publishable keys cannot dispatch notifications. Use only HTTPS and standard certificate validation. No client-side scheduling or Firebase is involved.
 5. Add `movers_push_project_url` and `movers_push_dispatch_secret` to Supabase Vault using the dashboard; the latter must match the function secret. The scheduler stores only secret references. Run [notifications-schedule.sql](notifications-schedule.sql) after reviewing the target. This installs the named minute job using `pg_cron` and `pg_net`.
 
+## Key scope and storage
+
+A team-scoped **All topics [Sandbox]** key is valid for this app; selecting individual topics is optional. Its complete `.p8` PEM contents belong in `APNS_SANDBOX_PRIVATE_KEY` on Supabase. The file itself does not belong in the iOS/Android app, its resources or Git. Keep a secure backup outside the repository; Apple permits only one download. An ignored local env file is optional for CLI secret uploads, not a runtime requirement.
+
+Sandbox keys support development-signed Xcode builds. TestFlight/App Store builds use Production APNs and need a Production key plus `APNS_PRODUCTION_KEY_ID`/`APNS_PRODUCTION_PRIVATE_KEY`; include `production` in `APNS_ENVIRONMENTS` before testing those builds. See [Apple key scopes](https://developer.apple.com/documentation/usernotifications/establishing-a-token-based-connection-to-apns).
+
 ## Validate and activate
 
 Use signed physical-device builds with distinct participant identities. First validate the native token/permission registration and the hosted function's HTTP/2 connectivity, JWT authentication and APNs acceptance in sandbox. Turn on `PUSH_ENABLED` and enable database enqueue only for this controlled acceptance:
